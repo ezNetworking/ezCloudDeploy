@@ -3,19 +3,34 @@ param(
     [Parameter(Mandatory=$true)]
     [string]$Name,
     
-    [Parameter()]
-    [switch]$Verbose,
+    [Parameter(Mandatory=$true)]
+    [ValidateSet("Option1", "Option2", "Option3")]
+    [string]$Option,
     
     [Parameter()]
-    [bool]$Enabled
+    [array]$Values,
+    
+    [Parameter(Mandatory=$true)]
+    [bool]$EnableFeature,
+    
+    [Parameter()]
+    [bool]$UseOption,
+    
+    [Parameter(Mandatory=$true)]
+    [bool]$Confirm
 )
 
-if($Verbose){
-    Write-Output "Verbose mode is enabled."
+Write-Host "Name: $Name"
+Write-Host "Option: $Option"
+Write-Host "Values: $($Values -join ', ')"
+Write-Host "EnableFeature: $EnableFeature"
+Write-Host "UseOption: $UseOption"
+Write-Host "Confirm: $Confirm"
+
+if($UseOption){
+    Write-Host "Option is enabled."
 }
 
-if($Enabled){
-    Write-Output "$Name is enabled."
-} else {
-    Write-Output "$Name is not enabled."
+if($Confirm){
+    Write-Host "Confirmation received."
 }
