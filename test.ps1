@@ -3,8 +3,8 @@ param(
     [Parameter(Mandatory=$true, HelpMessage="Enter the name of the application.")]
     [string]$Name,
     
-    [Parameter(Mandatory=$true, HelpMessage="Choose an option from the list.", 
-        ValidateSet("Option1", "Option2", "Option3")]
+    [Parameter(Mandatory=$true, HelpMessage="Choose an option from the list." )]
+    [ValidateSet("Option1", "Option2", "Option3")]
     [string]$Option = "Option1",
     
     [Parameter(HelpMessage="Enter an array of values.")]
