@@ -27,9 +27,9 @@ foreach ($folder in $folders) {
     }
 }
 
-# Start transcript to c:\ezNetworking\Automation\ezCloudDeploy\Logs\ezCloudDeploy1WinPePostOSPrepLocalADezAdminLocalSyncezTools.log
-Write-Host "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy1WinPePostOSPrepLocalADezAdminLocalSyncezTools.log"
-$transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy1WinPePostOSPrepLocalADezAdminLocalSyncezTools.log"
+# Start transcript to c:\ezNetworking\Automation\ezCloudDeploy\Logs\ezCloudDeploy_011WinPePostOS_PrepLocalADezAdminLocalSyncezTools.log
+Write-Host "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_011WinPePostOS_PrepLocalADezAdminLocalSyncezTools.log"
+$transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_011WinPePostOS_PrepLocalADezAdminLocalSyncezTools.log"
 Start-Transcript -Path $transcriptPath
 
 # Setup
@@ -38,9 +38,10 @@ Set-ExecutionPolicy RemoteSigned -Force
 Install-Module OSD -Force
 Import-Module OSD -Force
 
-# Ask user for the computer name
-Write-Host "   Zed Needs to know the computer name"
+# Ask user for the computer name and local admins password
+Write-Host "   Zed Needs to know the computer name and password"
 $computerName = Read-Host "Enter the computer name"
+$localAdminPassword = Read-Host "Enter the local admin password (check in 1P)" -AsSecureString
 
 # Put our autoUnattend xml template for Local AD OOBE in a variable
 Write-Host " Zed says: I will put our autoUnattend xml template for Local AD OOBE (no online useraccount page) in a variable"
@@ -96,13 +97,13 @@ $unattendXml = @"
             </RunSynchronousCommand>
             <UserAccounts>
                 <AdministratorPassword>
-                    <Value>MakesYourNetWork!</Value>
+                    <Value>REPLACEPASSWORD</Value>
                     <PlainText>true</PlainText>
                 </AdministratorPassword>
                 <LocalAccounts>
                     <LocalAccount wcm:action="add">
                         <Password>
-                        <Value>MakesYourNetWork!</Value>
+                        <Value>REPLACEPASSWORD</Value>
                         <PlainText>true</PlainText>
                         </Password>
                         <DisplayName>ezAdminLocal | ez Networking</DisplayName>
@@ -117,9 +118,11 @@ $unattendXml = @"
 "@
 Write-Host " Zed says: I have a nice unattend.xml template for you: $unattendXml"
 
-# Replace the computername in the unattend.xml file
+# Replace the computername and password in the unattend.xml file
 Write-Host " Zed says: I will replace the computername in the unattend.xml file"
 (Get-Content $unattendXml) -replace "COMPUTERNAME", $computerName | Out-File $unattendPath
+Write-Host " Zed says: I will replace the password in the unattend.xml file"
+(Get-Content $unattendXml) -replace "REPLACEPASSWORD", $localAdminPassword | Out-File $unattendPath
 
 # Write the unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\
 Write-Host " Zed says: will write the unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\"
