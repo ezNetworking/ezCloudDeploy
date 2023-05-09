@@ -34,7 +34,7 @@ Start-Transcript -Path $transcriptPath
 
 # Setup
 Write-Host "  Zed says: Let's setup the environment"
-Set-ExecutionPolicy RemoteSigned -Force
+#Set-ExecutionPolicy RemoteSigned -Force # Was unable to set that
 Install-Module OSD -Force
 Import-Module OSD -Force
 
@@ -121,12 +121,17 @@ Write-Host " Zed says: I have a nice unattend.xml template for you: $unattendXml
 # Replace the computername and password in the unattend.xml file
 Write-Host " Zed says: I will replace the computername and password in the unattend.xml file"
 $updatedXml = (Get-Content $unattendXml) -replace "COMPUTERNAME", $computerName -replace "REPLACEPASSWORD", $localAdminPassword
+Write-Host " Zed says: And this is the updated XML: $updatedXml"
 
 # Write the updated unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\
 Write-Host " Zed says: Writing the unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\"
-$unattendPath = "C:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\LocalADunattend.xml"
+$unattendPath = "C:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\unattend.xml"
 $updatedXml | Out-File -FilePath $unattendPath -Encoding UTF8
 
+# Checking if the unattend.xml file is valid
+Write-Host " Zed says: Checking if the unattend.xml file is valid"
+$unattendPath = "C:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\unattend.xml"
+$unattendPath | Test-UnattendXml
 
 # Download the JoinDomainAtFirstLogin.ps1 script from github
 Write-Host " Zed says: downloading the JoinDomainAtFirstLogin.ps1 script from ezCloudDeploy github..."
@@ -142,7 +147,7 @@ Write-Host " Zed says: I already configured the script to run at first logon in 
 
 # Start OOBEDeploy using the unattend.xml file created in c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\ and remove the following apps: CommunicationsApps,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo
 Write-Host "  Zed says: Let's start OOBEDeploy using the unattend.xml file created in c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\ and remove the following apps: CommunicationsApps,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
-Start-OOBEDeploy Start-OOBEDeploy -CustomProfile $unattendPath -RemoveAppx CommunicationsApps,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo
+Start-OOBEDeploy Start-OOBEDeploy -CustomProfile "C:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend" -RemoveAppx CommunicationsApps,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo
 
 #And stop the transcript.
 Write-Host "  Zed says: And stopping the trancsript. Check out the log file at $transcriptPath and also check if the settings applied and the apps are removed."
