@@ -20,7 +20,7 @@ Author: Jurgen Verhelst | ez Networking | www.ez.be
 
 # Check if folder exist, if not create them
 Write-Host "  Zed says: Let's check if the folders exist, if not create them"
-$folders = "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts"
+$folders = "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
 foreach ($folder in $folders) {
     if (!(Test-Path $folder)) {
         New-Item -ItemType Directory -Path $folder | Out-Null
