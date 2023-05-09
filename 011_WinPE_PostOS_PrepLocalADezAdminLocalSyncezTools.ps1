@@ -1,3 +1,23 @@
+<#
+.SYNOPSIS
+Configures OOBE with Local Active Directory (AD) and removes specified default apps and sets a domain join GUI to be loaded at first login.
+
+.DESCRIPTION
+This script checks if the required folders exist, creates them if they don't, sets up the environment, prompts the user to input a computer name, generates an unattend.xml file to customize the Windows 10 installation with Local AD, downloads a PowerShell script to join the domain at first login, saves it in the correct folder, configures the unattend.xml file to run the script, starts OOBEDeploy with the customized unattend.xml file, and removes specified default apps. It also creates a transcript of the deployment process.
+
+.INPUTS
+This script prompts the user to input the computer name.
+
+.EXAMPLE
+Deploy-Windows10LocalAD -ComputerName "MyComputer01"
+
+This command configures a Windows 10/11 image with Local AD on a computer named "MyComputer01". It removes the default apps CommunicationsApps, OfficeHub, People, Skype, Solitaire, Xbox, ZuneMusic, and ZuneVideo.
+
+.NOTES
+Author: Jurgen Verhelst | ez Networking | www.ez.be
+#>
+
+
 # Check if folder exist, if not create them
 Write-Host "  Zed says: Let's check if the folders exist, if not create them"
 $folders = "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts"
@@ -107,8 +127,8 @@ $unattendPath = "C:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\LocalADun
 $unattendXml | Out-File -FilePath $unattendPath -Encoding UTF8
 
 # Download the JoinDomainAtFirstLogin.ps1 script from github
-Write-Host " Zed says: I will download the JoinDomainAtFirstLogin.ps1 script from github"
-$JoinDomainAtFirstLoginScript = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/101_Windows_PostOOBE_JoinDomainAtFirstLogin.ps1" -UseBasicParsing 
+Write-Host " Zed says: I will download the JoinDomainAtFirstLogin.ps1 script from ezCloudDeploy github"
+$JoinDomainAtFirstLoginScript = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/101_Windows_PostOOBE_JoinDomainAtFirstLogin.ps1" -UseBasicParsing 
 
 # Save the script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1
 Write-Host " Zed says: I will save the script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1"
