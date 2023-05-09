@@ -119,22 +119,21 @@ $unattendXml = @"
 Write-Host " Zed says: I have a nice unattend.xml template for you: $unattendXml"
 
 # Replace the computername and password in the unattend.xml file
-Write-Host " Zed says: I will replace the computername in the unattend.xml file"
-(Get-Content $unattendXml) -replace "COMPUTERNAME", $computerName | Out-File $unattendPath
-Write-Host " Zed says: I will replace the password in the unattend.xml file"
-(Get-Content $unattendXml) -replace "REPLACEPASSWORD", $localAdminPassword | Out-File $unattendPath
+Write-Host " Zed says: I will replace the computername and password in the unattend.xml file"
+$updatedXml = (Get-Content $unattendXml) -replace "COMPUTERNAME", $computerName -replace "REPLACEPASSWORD", $localAdminPassword
 
-# Write the unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\
-Write-Host " Zed says: will write the unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\"
+# Write the updated unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\
+Write-Host " Zed says: Writing the unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\"
 $unattendPath = "C:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\LocalADunattend.xml"
-$unattendXml | Out-File -FilePath $unattendPath -Encoding UTF8
+$updatedXml | Out-File -FilePath $unattendPath -Encoding UTF8
+
 
 # Download the JoinDomainAtFirstLogin.ps1 script from github
-Write-Host " Zed says: I will download the JoinDomainAtFirstLogin.ps1 script from ezCloudDeploy github"
+Write-Host " Zed says: downloading the JoinDomainAtFirstLogin.ps1 script from ezCloudDeploy github..."
 $JoinDomainAtFirstLoginScript = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/101_Windows_PostOOBE_JoinDomainAtFirstLogin.ps1" -UseBasicParsing 
 
 # Save the script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1
-Write-Host " Zed says: I will save the script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1"
+Write-Host " Zed says: Saving the script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1"
 $JoinDomainAtFirstLoginScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1"
 $JoinDomainAtFirstLoginScript | Out-File -FilePath $JoinDomainAtFirstLoginScriptPath -Encoding UTF8
 
