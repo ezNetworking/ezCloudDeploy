@@ -58,8 +58,8 @@ Write-Host -ForegroundColor green "   Zed Needs to know the computer name and pa
 $computerName = Read-Host "Enter the computer name"
 $localAdminPassword = Read-Host "Enter the local admin password (check in 1P)" -AsSecureString
 
-# Put our autoUnattend xml template for Local AD OOBE in a variable
-Write-Host -ForegroundColor green " Zed says: I will put our autoUnattend xml template for Local AD OOBE (no online useraccount page) in a variable"
+# Put our autoUnattend xml template for Azure AD OOBE in a variable
+Write-Host -ForegroundColor green " Zed says: I will put our autoUnattend xml template for Azure AD OOBE (no online useraccount page) in a variable"
 $unattendXml = @"
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend">
