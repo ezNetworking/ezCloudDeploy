@@ -3,7 +3,8 @@
 GUI script for joining a machine to a local AD domain.
 
 .DESCRIPTION
-This script creates a GUI window that prompts the user to enter the domain name, username, and password to join the local machine to a domain. If the domain is joined successfully, the output is displayed in a textbox.
+This script creates a GUI window that prompts the user to enter the domain name, username, and password to join the local machine to a domain. 
+If the domain is joined successfully, the output is displayed in a textbox.
 
 .PARAMETER None
 
