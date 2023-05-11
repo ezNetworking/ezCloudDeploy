@@ -57,10 +57,12 @@ Write-Host -ForegroundColor green "  Zed says: Let's setup the OSD environment"
 # Install-Module OSD -Force # Was already installed
 Import-Module OSD -Force
 
-# Ask user for the computer name and local admins password
-Write-Host -ForegroundColor green "   Zed Needs to know the computer name and password"
+# Ask user for the computer name 
+Write-Host -ForegroundColor green "   Zed Needs to know the computer name."
 $computerName = Read-Host "Enter the computer name"
-$localAdminPassword = Read-Host "Enter the local admin password (check in 1P)" -AsSecureString
+Write-Host -ForegroundColor Red "   Zed says: I will set the password of the new ezAdminLocal to our super secure password MakesYourNetWork! :):),"
+Write-Host -ForegroundColor green "          as I can't do it securly here. But no panic, windows will demand you change it at first login. check 1P for the correct password."
+
 
 # Put our autoUnattend xml template for Local AD OOBE in a variable
 Write-Host -ForegroundColor green " Zed says: I will put our autoUnattend xml template for Local AD OOBE (no online useraccount page) in a variable"
@@ -104,20 +106,17 @@ $unattendXml = @"
                 <ProtectYourPC>3</ProtectYourPC>
             </OOBE>
             <UserAccounts>
-                <AdministratorPassword>
-                    <Value>$localAdminPassword</Value>
-                    <PlainText>true</PlainText>
-                </AdministratorPassword>
                 <LocalAccounts>
                     <LocalAccount wcm:action="add">
                         <Password>
-                            <Value>$localAdminPassword</Value>
+                            <Value>MakesYourNetWork!</Value>
                             <PlainText>true</PlainText>
                         </Password>
-                        <Description>ezAdmin Local | ez Networking</Description>
+                        <Description>Local Admin Account for ez Networking</Description>
                         <DisplayName>ezAdmin Local | ez Networking</DisplayName>
                         <Group>Administrators</Group>
                         <Name>ezAdminLocal</Name>
+                        <MustChangePassword>true</MustChangePassword>
                     </LocalAccount>
                 </LocalAccounts>
             </UserAccounts>
@@ -135,7 +134,7 @@ $unattendXml = @"
                     <Order>2</Order>
                     <Description>Install TreeSize via Chocolatey</Description>
                     <RequiresUserInput>false</RequiresUserInput>
-                    <CommandLine>powershell.exe -NoProfile -ExecutionPolicy unrestricted -Command &quot;choco install tree-size-free -y&quot;</CommandLine>
+                    <CommandLine>powershell.exe -NoProfile -ExecutionPolicy unrestricted -Command "choco install tree-size-free -y";</CommandLine>
                 </SynchronousCommand>
                 <SynchronousCommand wcm:action="add">
                     <Order>3</Order>
@@ -147,7 +146,7 @@ $unattendXml = @"
                     <Description>Join Domain at first login</Description>
                     <Order>4</Order>
                     <CommandLine>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1</CommandLine>
-                    <RequiresUserInput>false</RequiresUserInput>
+                    <RequiresUserInput>true</RequiresUserInput>
                 </SynchronousCommand>
             </FirstLogonCommands>
             <TimeZone>Romance Standard Time</TimeZone>
