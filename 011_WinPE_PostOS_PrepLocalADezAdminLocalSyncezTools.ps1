@@ -150,12 +150,11 @@ $unattendXml = @"
                     <CommandLine>cmd /C wmic useraccount where name="ezAdminLocal" set PasswordExpires=false</CommandLine>
                     <Description>Password Never Expires</Description>
                 </SynchronousCommand>
-                <RunSynchronousCommand wcm:action="add">
+                <SynchronousCommand wcm:action="add">
                     <Description>Join Domain at first login</Description>
                     <Order>4</Order>
-                    <Path>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1</Path>
-                <RequiresUserInput>false</RequiresUserInput>
-                </RunSynchronousCommand>
+                    <CommandLine>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1</CommandLine>
+                    <RequiresUserInput>false</RequiresUserInput>
                 </SynchronousCommand>
             </FirstLogonCommands>
             <TimeZone>Romance Standard Time</TimeZone>
