@@ -26,6 +26,9 @@ Block-WindowsVersionNe10
 Block-PowerShellVersionLt5
 
 # Check if folder exist, if not create them
+Write-Host -ForegroundColor green "_______________________________________________________________________"
+Write-Host -ForegroundColor green "                    Azure AD Deployment Script"
+Write-Host -ForegroundColor green "_______________________________________________________________________"
 Write-Host -ForegroundColor green -ForegroundColor green "  Zed says: Let's check if the folders exist, if not create them"
 $folders = "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy", 'C:\Windows\Panther'
 foreach ($folder in $folders) {
