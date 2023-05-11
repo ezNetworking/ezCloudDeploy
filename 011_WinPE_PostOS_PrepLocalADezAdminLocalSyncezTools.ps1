@@ -31,7 +31,7 @@ Write-Host -ForegroundColor green "_____________________________________________
 Write-Host -ForegroundColor green "                    Local AD Deployment Script"
 Write-Host -ForegroundColor green "_______________________________________________________________________"
 Write-Host -ForegroundColor green "  Zed says: Let's check if the folders exist, if not create them"
-$folders = "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy", 'C:\Windows\Panther'
+$folders = "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
 foreach ($folder in $folders) {
     if (!(Test-Path $folder)) {
         try {
