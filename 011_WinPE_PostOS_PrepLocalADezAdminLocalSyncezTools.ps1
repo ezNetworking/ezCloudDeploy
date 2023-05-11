@@ -170,8 +170,8 @@ catch {
 # Download the JoinDomainAtFirstLogin.ps1 script from github
 Write-Host -ForegroundColor green " Zed says: downloading the JoinDomainAtFirstLogin.ps1 script from ezCloudDeploy github..."
 try {
-    $JoinDomainAtFirstLoginScript = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/101_Windows_PostOOBE_JoinDomainAtFirstLogin.ps1" -UseBasicParsing 
-    
+    $JoinDomainAtFirstLoginResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/101_Windows_PostOOBE_JoinDomainAtFirstLogin.ps1" -UseBasicParsing 
+    $JoinDomainAtFirstLoginScript = $JoinDomainAtFirstLoginResponse.content
 }
 catch {
     Write-Error " Zed says: I was unable to download the JoinDomainAtFirstLogin.ps1 script from github"
