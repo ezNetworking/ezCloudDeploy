@@ -92,19 +92,25 @@ $unattendXml = @"
             <TimeZone>Central European Standard Time</TimeZone>
             <ComputerName>$computerName</ComputerName>
             <RunSynchronous>
-            <RunSynchronousCommand wcm:action="add">
-                <Order>1</Order>
-                <CommandLine>powershell.exe -NoProfile -ExecutionPolicy unrestricted -Command "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))"</CommandLine>
-                <Description>Install Chocolatey</Description>
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>1</Order>
+                    <CommandLine>powershell.exe -NoProfile -ExecutionPolicy unrestricted -Command "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))"</CommandLine>
+                    <Description>Install Chocolatey</Description>
+                    <RequiresUserInput>false</RequiresUserInput>
+                </RunSynchronousCommand>
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>2</Order>
+                    <CommandLine>powershell.exe -NoProfile -ExecutionPolicy unrestricted -Command "choco install tree-size-free -y"</CommandLine>
+                    <Description>Install TreeSize via Chocolatey</Description>
+                    <RequiresUserInput>false</RequiresUserInput>
+                </RunSynchronousCommand>
+                <RunSynchronousCommand wcm:action="add">
+                    <Description>Join Domain at first login</Description>
+                    <Order>3</Order>
+                    <Path>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1</Path>
                 <RequiresUserInput>false</RequiresUserInput>
-            </RunSynchronousCommand>
-            <RunSynchronousCommand wcm:action="add">
-                <Order>2</Order>
-                <CommandLine>powershell.exe -NoProfile -ExecutionPolicy unrestricted -Command "choco install tree-size-free -y"</CommandLine>
-                <Description>Install TreeSize via Chocolatey</Description>
-                <RequiresUserInput>false</RequiresUserInput>
-            </RunSynchronousCommand>
-        </RunSynchronous>
+                </RunSynchronousCommand>
+            </RunSynchronous>
             <OOBE>
                 <OEMInformation>
                     <SupportProvider>ez Networking Support</SupportProvider>
@@ -119,12 +125,6 @@ $unattendXml = @"
                 <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
                 <ProtectYourPC>3</ProtectYourPC>
             </OOBE>
-            <RunSynchronousCommand wcm:action="add">
-                <Description>Join Domain at first login</Description>
-                <Order>1</Order>
-                <Path>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1</Path>
-                <RequiresUserInput>false</RequiresUserInput>
-            </RunSynchronousCommand>
             <UserAccounts>
                 <AdministratorPassword>
                     <Value>$localAdminPassword</Value>
