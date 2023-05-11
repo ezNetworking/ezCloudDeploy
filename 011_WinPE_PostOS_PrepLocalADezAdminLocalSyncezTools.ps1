@@ -67,33 +67,32 @@ Write-Host -ForegroundColor green " Zed says: I will put our autoUnattend xml te
 $unattendXml = @"
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend">
-    <settings pass="oobeSystem">
-        <component name="Microsoft-Windows-International-Core" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+    <settings pass="windowsPE">
+        <component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <SetupUILanguage>
+                <UILanguage>en-US</UILanguage>
+            </SetupUILanguage>
             <InputLocale>0813:00000813</InputLocale>
-            <SystemLocale>nl-BE</SystemLocale>
+            <SystemLocale>en-US</SystemLocale>
             <UILanguage>en-US</UILanguage>
             <UILanguageFallback>en-US</UILanguageFallback>
-            <UserLocale>nl-BE</UserLocale>
-            <UILanguage_DefaultUser>en-US</UILanguage_DefaultUser>
-            <UILanguageFallback_DefaultUser>en-US</UILanguageFallback_DefaultUser>
-            <UserLocale_DefaultUser>nl-BE</UserLocale_DefaultUser>
-            <InputLocale_DefaultUser>0813:00000813</InputLocale_DefaultUser>
-            <SystemLocale_DefaultUser>nl-BE</SystemLocale_DefaultUser>
-            <TimeZone>Central European Standard Time</TimeZone>
+            <UserLocale>en-GB</UserLocale>
         </component>
-        <component name="Microsoft-Windows-Shell-Setup" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+    </settings>
+    <settings pass="specialize">
+        <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <InputLocale>0813:00000813</InputLocale>
-            <SystemLocale>nl-BE</SystemLocale>
-            <UILanguage>nl-BE</UILanguage>
-            <UILanguageFallback>en-US</UILanguageFallback>
-            <UserLocale>nl-BES</UserLocale>
-            <UILanguage_DefaultUser>en-US</UILanguage_DefaultUser>
-            <UILanguageFallback_DefaultUser>en-US</UILanguageFallback_DefaultUser>
-            <UserLocale_DefaultUser>nl-BE</UserLocale_DefaultUser>
-            <InputLocale_DefaultUser>0813:00000813</InputLocale_DefaultUser>
-            <SystemLocale_DefaultUser>nl-BES</SystemLocale_DefaultUser>
-            <TimeZone>Central European Standard Time</TimeZone>
-            <ComputerName>$computerName</ComputerName>
+            <SystemLocale>en-GB</SystemLocale>
+            <UILanguage>en-GB</UILanguage>
+            <UILanguageFallback>en-GB</UILanguageFallback>
+            <UserLocale>en-GB</UserLocale>
+        </component>
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <ComputerName>$ComputerName</ComputerName>
+        </component>
+    </settings>
+    <settings pass="oobeSystem">
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <OOBE>
                 <OEMInformation>
                     <SupportProvider>ez Networking Support</SupportProvider>
@@ -101,11 +100,14 @@ $unattendXml = @"
                     <SupportHours>8/5 to 24/7 depending on contract</SupportHours>
                     <SupportPhone>+32 3 376 14 25</SupportPhone>
                     <SupportURL>http://www.ez.be</SupportURL>
-                </OEMInformation>
+                </OEMInformation>            
                 <HideEULAPage>true</HideEULAPage>
                 <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>
                 <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
-                <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+                <HideWirelessSetupInOOBE>false</HideWirelessSetupInOOBE>
+                <NetworkLocation>Work</NetworkLocation>
+                <SkipUserOOBE>true</SkipUserOOBE>
+                <SkipMachineOOBE>true</SkipMachineOOBE>
                 <ProtectYourPC>3</ProtectYourPC>
             </OOBE>
             <UserAccounts>
@@ -116,15 +118,47 @@ $unattendXml = @"
                 <LocalAccounts>
                     <LocalAccount wcm:action="add">
                         <Password>
-                        <Value>$localAdminPassword</Value>
-                        <PlainText>true</PlainText>
+                            <Value>$localAdminPassword</Value>
+                            <PlainText>true</PlainText>
                         </Password>
-                        <DisplayName>ezAdminLocal | ez Networking</DisplayName>
+                        <Description>ezAdmin Local | ez Networking</Description>
+                        <DisplayName>ezAdmin Local | ez Networking</DisplayName>
                         <Group>Administrators</Group>
                         <Name>ezAdminLocal</Name>
                     </LocalAccount>
                 </LocalAccounts>
             </UserAccounts>
+            <RegisteredOrganization>ez Networking</RegisteredOrganization>
+            <RegisteredOwner>ezAdminLocal</RegisteredOwner>
+            <DisableAutoDaylightTimeSet>false</DisableAutoDaylightTimeSet>
+            <FirstLogonCommands>
+                <SynchronousCommand wcm:action="add">
+                    <Description>Install Chocolatey</Description>
+                    <Order>1</Order>
+                    <CommandLine>powershell.exe -NoProfile -ExecutionPolicy unrestricted -Command &quot;iex ((new-object net.webclient).DownloadString(&apos;https://chocolatey.org/install.ps1&apos;))&quot;</CommandLine>
+                    <RequiresUserInput>false</RequiresUserInput>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <Order>2</Order>
+                    <Description>Install TreeSize via Chocolatey</Description>
+                    <RequiresUserInput>false</RequiresUserInput>
+                    <CommandLine>powershell.exe -NoProfile -ExecutionPolicy unrestricted -Command &quot;choco install tree-size-free -y&quot;</CommandLine>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <Order>3</Order>
+                    <RequiresUserInput>false</RequiresUserInput>
+                    <CommandLine>cmd /C wmic useraccount where name="ezAdminLocal" set PasswordExpires=false</CommandLine>
+                    <Description>Password Never Expires</Description>
+                </SynchronousCommand>
+                <RunSynchronousCommand wcm:action="add">
+                    <Description>Join Domain at first login</Description>
+                    <Order>4</Order>
+                    <Path>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1</Path>
+                <RequiresUserInput>false</RequiresUserInput>
+                </RunSynchronousCommand>
+                </SynchronousCommand>
+            </FirstLogonCommands>
+            <TimeZone>Romance Standard Time</TimeZone>
         </component>
     </settings>
 </unattend>
