@@ -78,22 +78,6 @@ $unattendXml = @"
             <SystemLocale_DefaultUser>nl-BE</SystemLocale_DefaultUser>
             <TimeZone>Central European Standard Time</TimeZone>
         </component>
-        <component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
-        <RunSynchronous>
-            <RunSynchronousCommand wcm:action="add">
-            <Order>1</Order>
-            <CommandLine>powershell.exe -NoProfile -ExecutionPolicy unrestricted -Command "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))"</CommandLine>
-            <Description>Install Chocolatey</Description>
-            <RequiresUserInput>false</RequiresUserInput>
-            </RunSynchronousCommand>
-            <RunSynchronousCommand wcm:action="add">
-            <Order>2</Order>
-            <CommandLine>powershell.exe -NoProfile -ExecutionPolicy unrestricted -Command "choco install tree-size-free -y"</CommandLine>
-            <Description>Install TreeSize via Chocolatey</Description>
-            <RequiresUserInput>false</RequiresUserInput>
-            </RunSynchronousCommand>
-        </RunSynchronous>
-        </component>
         <component name="Microsoft-Windows-Shell-Setup" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
             <InputLocale>0813:00000813</InputLocale>
             <SystemLocale>nl-BE</SystemLocale>
@@ -107,6 +91,20 @@ $unattendXml = @"
             <SystemLocale_DefaultUser>nl-BES</SystemLocale_DefaultUser>
             <TimeZone>Central European Standard Time</TimeZone>
             <ComputerName>$computerName</ComputerName>
+            <RunSynchronous>
+            <RunSynchronousCommand wcm:action="add">
+                <Order>1</Order>
+                <CommandLine>powershell.exe -NoProfile -ExecutionPolicy unrestricted -Command "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))"</CommandLine>
+                <Description>Install Chocolatey</Description>
+                <RequiresUserInput>false</RequiresUserInput>
+            </RunSynchronousCommand>
+            <RunSynchronousCommand wcm:action="add">
+                <Order>2</Order>
+                <CommandLine>powershell.exe -NoProfile -ExecutionPolicy unrestricted -Command "choco install tree-size-free -y"</CommandLine>
+                <Description>Install TreeSize via Chocolatey</Description>
+                <RequiresUserInput>false</RequiresUserInput>
+            </RunSynchronousCommand>
+        </RunSynchronous>
             <OOBE>
                 <OEMInformation>
                     <SupportProvider>ez Networking Support</SupportProvider>
