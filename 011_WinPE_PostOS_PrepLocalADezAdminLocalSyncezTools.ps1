@@ -54,7 +54,7 @@ Start-Transcript -Path $transcriptPath
 # Setup
 Write-Host -ForegroundColor green "  Zed says: Let's setup the OSD environment"
 #Set-ExecutionPolicy RemoteSigned -Force # Was unable to set that
-Install-Module OSD -Force
+# Install-Module OSD -Force # Was already installed
 Import-Module OSD -Force
 
 # Ask user for the computer name and local admins password
