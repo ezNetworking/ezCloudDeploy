@@ -78,19 +78,8 @@ $unattendXml = @"
             <SystemLocale_DefaultUser>nl-BE</SystemLocale_DefaultUser>
             <TimeZone>Central European Standard Time</TimeZone>
         </component>
-        <component name="Microsoft-Windows-Shell-Setup" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
-            <InputLocale>0813:00000813</InputLocale>
-            <SystemLocale>nl-BE</SystemLocale>
-            <UILanguage>nl-BE</UILanguage>
-            <UILanguageFallback>en-US</UILanguageFallback>
-            <UserLocale>nl-BES</UserLocale>
-            <UILanguage_DefaultUser>en-US</UILanguage_DefaultUser>
-            <UILanguageFallback_DefaultUser>en-US</UILanguageFallback_DefaultUser>
-            <UserLocale_DefaultUser>nl-BE</UserLocale_DefaultUser>
-            <InputLocale_DefaultUser>0813:00000813</InputLocale_DefaultUser>
-            <SystemLocale_DefaultUser>nl-BES</SystemLocale_DefaultUser>
-            <TimeZone>Central European Standard Time</TimeZone>
-            <ComputerName>$computerName</ComputerName>
+        <component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+            <!-- Deployment settings -->
             <RunSynchronous>
                 <RunSynchronousCommand wcm:action="add">
                     <Order>1</Order>
@@ -108,9 +97,23 @@ $unattendXml = @"
                     <Description>Join Domain at first login</Description>
                     <Order>3</Order>
                     <Path>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1</Path>
-                <RequiresUserInput>false</RequiresUserInput>
+                    <RequiresUserInput>false</RequiresUserInput>
                 </RunSynchronousCommand>
             </RunSynchronous>
+        </component>
+        <component name="Microsoft-Windows-Shell-Setup" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+            <InputLocale>0813:00000813</InputLocale>
+            <SystemLocale>nl-BE</SystemLocale>
+            <UILanguage>nl-BE</UILanguage>
+            <UILanguageFallback>en-US</UILanguageFallback>
+            <UserLocale>nl-BES</UserLocale>
+            <UILanguage_DefaultUser>en-US</UILanguage_DefaultUser>
+            <UILanguageFallback_DefaultUser>en-US</UILanguageFallback_DefaultUser>
+            <UserLocale_DefaultUser>nl-BE</UserLocale_DefaultUser>
+            <InputLocale_DefaultUser>0813:00000813</InputLocale_DefaultUser>
+            <SystemLocale_DefaultUser>nl-BES</SystemLocale_DefaultUser>
+            <TimeZone>Central European Standard Time</TimeZone>
+            <ComputerName>$computerName</ComputerName>
             <OOBE>
                 <OEMInformation>
                     <SupportProvider>ez Networking Support</SupportProvider>
