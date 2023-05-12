@@ -1,13 +1,15 @@
-<#
-.SYNOPSIS
-Installes Chocolatey and minimal default packages and onboards the computer to ezRmm.
+Install-Module burnttoast
+Import-Module burnttoast
 
-.DESCRIPTION
-This script installs Chocolatey and minimal default packages. It reads the ezClientConfig.json and onboards the computer to ezRmm.
-
-.NOTES
-Author: Jurgen Verhelst | ez Networking | www.ez.be
-#>
+$Btn = New-BTButton -Content 'OK' -arguments 'ok'
+$Splat = @{
+    Text = 'Zed: Starting Installs' , "Let's give this PC some apps and settings. Started $Time"
+    Applogo = 'https://iili.io/H8B8JtI.png'
+    Sound = 'IM'
+    Button = $Btn
+    HeroImage = 'https://iili.io/HSYpCXf.jpg'
+}
+New-BurntToastNotification @splat 
 
 Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_111_Windows_PostOS_DefaultAppsAndOnboard.log"
 # Install Choco and minimal default packages
@@ -30,6 +32,13 @@ write-host " Zed says: reading the ezClientConfig.json file"
 $ezClientConfig = Get-Content -Path "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" | ConvertFrom-Json
 
 write-host " Zed says: Downloading ezRmmInstaller.msi and installing it"
+$Splat = @{
+    Text = 'Zed: Installing ez RMM' , "Downloading and installing... Started $Time"
+    Applogo = 'https://iili.io/H8B8JtI.png'
+    Sound = 'IM'
+}
+New-BurntToastNotification @splat 
+
 try {
     $ezRmmUrl = $ezRmmUrl = "http://support.ez.be/GetAgent/Msi/?customerId=$($ezClientConfig.ezRmmId)%26integratorLogin=jurgen.verhelst%40ez.be"
     Invoke-WebRequest -Uri $ezRmmUrl -OutFile "C:\ezNetworking\Automation\ezCloudDeploy\ezRmmInstaller.msi"
@@ -41,6 +50,14 @@ catch {
 }
 
 write-host " Zed says: Downloading and installing ezRS"
+write-host " Zed says: Downloading ezRmmInstaller.msi and installing it"
+$Splat = @{
+    Text = 'Zed: Installing ez Remote Support' , "Downloading and installing... Started $Time"
+    Applogo = 'https://iili.io/H8B8JtI.png'
+    Sound = 'IM'
+}
+New-BurntToastNotification @splat 
+
 try {
     $ezRsUrl = 'http://get.teamviewer.com/ezNetworkingHost'
     Invoke-WebRequest -Uri $ezRsUrl -OutFile "C:\ezNetworking\Automation\ezCloudDeploy\ezRsInstaller.exe"
@@ -51,3 +68,22 @@ catch {
 }
 
 Stop-Transcript
+
+$Time = Get-date -Format t
+$Splat = @{
+    Text = 'Zed: Default apps script finished' , "Installed Choco, ezRMM, ezRS. Finished $Time"
+    Applogo = 'https://iili.io/H8B8JtI.png'
+    Sound = 'IM'
+}
+New-BurntToastNotification @splat 
+
+<#
+.SYNOPSIS
+Installes Chocolatey and minimal default packages and onboards the computer to ezRmm.
+
+.DESCRIPTION
+This script installs Chocolatey and minimal default packages. It reads the ezClientConfig.json and onboards the computer to ezRmm.
+
+.NOTES
+Author: Jurgen Verhelst | ez Networking | www.ez.be
+#>

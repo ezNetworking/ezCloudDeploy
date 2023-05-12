@@ -113,8 +113,7 @@ $unattendXml = @"
                 <SynchronousCommand wcm:action="add">
                     <Description>Default Apps And Onboard</Description>
                     <Order>1</Order>
-                    <CommandLine>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1
-                    </CommandLine>
+                    <CommandLine>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1</CommandLine>
                     <RequiresUserInput>true</RequiresUserInput>
                 </SynchronousCommand>
                 <SynchronousCommand wcm:action="add">
@@ -184,8 +183,16 @@ Write-Host -ForegroundColor green "  Zed says: Use Start-OOBEDeploy to remove th
 Start-OOBEDeploy -RemoveAppx CommunicationsApps,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo
 
 #And stop the transcript.
-Write-Host -ForegroundColor green "  Zed says: And stopping the trancsript. Check out the log file at $transcriptPath and also check if the settings applied and the apps are removed."
 Stop-Transcript
+Write-Warning "  ____________________________________________________________________________________________________________"
+Write-Warning "  Zed says: I'm done mate! If you do not see any errors above you can shut down this PC and deliver it onsite."
+Write-Warning "            First Boot at Customer: Once logged in a Domain Join Gui will be displayed and in the background,"
+Write-Warning "            the default apps will be installed, so make sure the network cable is plugged in."
+Write-Warning "            If you do see errors, please check the log file at $transcriptPath and fix the errors."
+Write-Warning "  ____________________________________________________________________________________________________________"
+Read-Host -Prompt "            Press any key to shutdown this Computer"
+
+Stop-Computer -Force
 
 <#
 .SYNOPSIS

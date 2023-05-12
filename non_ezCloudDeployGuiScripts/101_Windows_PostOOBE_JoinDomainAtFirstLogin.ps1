@@ -1,20 +1,17 @@
-<#
-.SYNOPSIS
-GUI script for joining a machine to a local AD domain.
+Install-Module burnttoast
+Import-Module burnttoast
 
-.DESCRIPTION
-This script creates a GUI window that prompts the user to enter the domain name, username, and password to join the local machine to a domain. 
-If the domain is joined successfully, the output is displayed in a textbox.
+$Time = Get-date -Format t
+$Btn = New-BTButton -Content 'Got it!' -arguments 'ok'
+$Splat = @{
+    Text = 'Zed: Opened Domain Join GUI' , "BUT wait for the default apps to be installed before rebooting please. Started $Time"
+    Applogo = 'https://iili.io/H8B8JtI.png'
+    Sound = 'IM'
+    Button = $Btn
+    HeroImage = 'https://iili.io/HSYpKen.jpg'
+}
+New-BurntToastNotification @splat 
 
-.PARAMETER None
-
-.EXAMPLE
-JoinButton_Click
-
-.NOTES
-Author: Jurgen Verhelst | ez Networking | www.ez.be
-The script requires the following .NET assemblies: PresentationFramework, PresentationCore, WindowsBase, WindowsFormsIntegration.
-#>
 function JoinButton_Click {
     try {
         $domain = $DomainTextBox.Text
@@ -180,3 +177,22 @@ $mainGrid.Children.Add($Footer) | Out-Null
 
 # Show the window
 $window.ShowDialog()
+
+
+<#
+.SYNOPSIS
+GUI script for joining a machine to a local AD domain.
+
+.DESCRIPTION
+This script creates a GUI window that prompts the user to enter the domain name, username, and password to join the local machine to a domain. 
+If the domain is joined successfully, the output is displayed in a textbox.
+
+.PARAMETER None
+
+.EXAMPLE
+JoinButton_Click
+
+.NOTES
+Author: Jurgen Verhelst | ez Networking | www.ez.be
+The script requires the following .NET assemblies: PresentationFramework, PresentationCore, WindowsBase, WindowsFormsIntegration.
+#>
