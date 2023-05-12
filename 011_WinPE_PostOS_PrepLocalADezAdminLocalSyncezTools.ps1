@@ -57,12 +57,19 @@ Write-Host -ForegroundColor green "  Zed says: Let's setup the OSD environment"
 # Install-Module OSD -Force # Was already installed
 Import-Module OSD -Force
 
-# Ask user for the computer name 
-Write-Host -ForegroundColor green "   Zed Needs to know the computer name."
+# Ask user for the computer name and ezRmmId
+Write-Host -ForegroundColor green "   Zed Needs to know the computer name and ez RMM Customer ID."
 $computerName = Read-Host "Enter the computer name"
 Write-Host -ForegroundColor Red "   Zed says: I will set the password of the new ezAdminLocal to our super secure password MakesYourNetWork! :):),"
 Write-Host -ForegroundColor green "          as I can't do it securly here. But no panic, windows will demand you change it at first login. check 1P for the correct password."
+$ezRmmId = Read-Host "Enter the ezRmm Customer ID"
 
+# Create a json config file with the ezRmmId
+Write-Host -ForegroundColor green " Zed says: I will create a json config file with the ezRmmId"
+$ezClientConfig = @{
+    ezRmmId = $ezRmmId
+}
+$ezClientConfig | ConvertTo-Json | Out-File -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" -Encoding UTF8
 
 # Put our autoUnattend xml template for Local AD OOBE in a variable
 Write-Host -ForegroundColor green " Zed says: I will put our autoUnattend xml template for Local AD OOBE (no online useraccount page) in a variable"
@@ -125,10 +132,11 @@ $unattendXml = @"
             <DisableAutoDaylightTimeSet>false</DisableAutoDaylightTimeSet>
             <FirstLogonCommands>
                 <SynchronousCommand wcm:action="add">
-                    <Description>Install Chocolatey</Description>
-                    <Order>1</Order>
-                    <CommandLine>powershell.exe -NoProfile -ExecutionPolicy unrestricted -Command &quot;iex ((new-object net.webclient).DownloadString(&apos;https://chocolatey.org/install.ps1&apos;))&quot;</CommandLine>
-                    <RequiresUserInput>false</RequiresUserInput>
+                    <Description>Join Domain at first login</Description>
+                    <Order>4</Order>
+                    <CommandLine>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1
+                    </CommandLine>
+                    <RequiresUserInput>true</RequiresUserInput>
                 </SynchronousCommand>
                 <SynchronousCommand wcm:action="add">
                     <Order>2</Order>
@@ -166,27 +174,32 @@ try {
 catch {
     Write-Error " Zed says: $unattendPath already exists or you don't have the rights to create it"
 }
+
+# Download the DefaultAppsAndOnboard.ps1 script from github
+Write-Host -ForegroundColor green " Zed says: downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy github..."
+try {
+    $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/111_Windows_PostOS_DefaultAppsAndOnboard.ps1" -UseBasicParsing 
+    $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
+    Write-Host -ForegroundColor green " Zed says: Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
+    $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
+    $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
+}
+catch {
+    Write-Error " Zed says: I was unable to download the DefaultAppsAndOnboardScript.ps1 script from github"
+}
+
 # Download the JoinDomainAtFirstLogin.ps1 script from github
 Write-Host -ForegroundColor green " Zed says: downloading the JoinDomainAtFirstLogin.ps1 script from ezCloudDeploy github..."
 try {
     $JoinDomainAtFirstLoginResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/101_Windows_PostOOBE_JoinDomainAtFirstLogin.ps1" -UseBasicParsing 
     $JoinDomainAtFirstLoginScript = $JoinDomainAtFirstLoginResponse.content
-}
+    Write-Host -ForegroundColor green " Zed says: Saving the AD Join script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1"
+    $JoinDomainAtFirstLoginScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1"
+    $JoinDomainAtFirstLoginScript | Out-File -FilePath $JoinDomainAtFirstLoginScriptPath -Encoding UTF8
+    }
 catch {
     Write-Error " Zed says: I was unable to download the JoinDomainAtFirstLogin.ps1 script from github"
 }
-# Save the script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1
-Write-Host -ForegroundColor green " Zed says: Saving the script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1"
-$JoinDomainAtFirstLoginScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1"
-try {
-    $JoinDomainAtFirstLoginScript | Out-File -FilePath $JoinDomainAtFirstLoginScriptPath -Encoding UTF8
-    
-}
-catch {
-    Write-Error " Zed says: $JoinDomainAtFirstLoginScriptPath already exists or you don't have the rights to create it"
-}
-# Configure the script to run at first logon
-Write-Host -ForegroundColor green " Zed says: I already configured the script to run at first logon in the unattend.xml file"
 
 # Set the unattend.xml file in the offline registry
 Write-Host -ForegroundColor green " Zed says: Setting the unattend.xml file in the offline registry"
