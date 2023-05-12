@@ -147,7 +147,7 @@ catch {
 }
 
 # Download the DefaultAppsAndOnboard.ps1 script from github
-Write-Host -ForegroundColor green "  Zed says: Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy github..."
+Write-Host -ForegroundColor green "  Zed says: Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
 try {
     $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/111_Windows_PostOS_DefaultAppsAndOnboard.ps1" -UseBasicParsing 
     $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
@@ -156,20 +156,20 @@ try {
     $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
 }
 catch {
-    Write-Error "  Zed says: I was unable to download the DefaultAppsAndOnboardScript.ps1 script from github"
+    Write-Error "  Zed says: I was unable to download the DefaultAppsAndOnboardScript script."
 }
 
 # Download the JoinDomainAtFirstLogin.ps1 script from github
-Write-Host -ForegroundColor green "  Zed says: Downloading the JoinDomainAtFirstLogin.ps1 script from ezCloudDeploy github..."
+Write-Host -ForegroundColor green "  Zed says: Downloading the JoinDomainAtFirstLogin GUI."
 try {
     $JoinDomainAtFirstLoginResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/101_Windows_PostOOBE_JoinDomainAtFirstLogin.ps1" -UseBasicParsing 
     $JoinDomainAtFirstLoginScript = $JoinDomainAtFirstLoginResponse.content
-    Write-Host -ForegroundColor green "  Zed says: Saving the AD Join script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1"
+    Write-Host -ForegroundColor green "  Zed says: Saving the AD Join script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts"
     $JoinDomainAtFirstLoginScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1"
     $JoinDomainAtFirstLoginScript | Out-File -FilePath $JoinDomainAtFirstLoginScriptPath -Encoding UTF8
     }
 catch {
-    Write-Error "  Zed says: I was unable to download the JoinDomainAtFirstLogin.ps1 script from github"
+    Write-Error "  Zed says: I was unable to download the JoinDomainAtFirstLogin script from github"
 }
 
 # Set the unattend.xml file in the offline registry
@@ -178,9 +178,10 @@ reg load HKLM\TempSYSTEM "C:\Windows\System32\Config\SYSTEM"
 reg add HKLM\TempSYSTEM\Setup /v UnattendFile /d $unattendPath /f
 reg unload HKLM\TempSYSTEM
 
-# Use Start-OOBEDeploy to remove the following apps in the later OOBE phase: CommunicationsApps,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
-Write-Host -ForegroundColor green "  Zed says: Use Start-OOBEDeploy to remove the following apps in the later OOBE phase: CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
-Start-OOBEDeploy -RemoveAppx CommunicationsApps,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo
+# Use Start-OOBEDeploy to remove the following apps in the later OOBE phase: CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
+Write-Host -ForegroundColor green "  Zed says: Use Start-OOBEDeploy to remove apps in the later OOBE phase: "
+Write-Host -ForegroundColor green "            CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
+Start-OOBEDeploy -RemoveAppx CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo
 
 #And stop the transcript.
 Stop-Transcript
