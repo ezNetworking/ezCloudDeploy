@@ -1,24 +1,4 @@
-<#
-.SYNOPSIS
-Configures OOBE with Azure Active Directory (AAD) and removes specified default apps.
 
-.DESCRIPTION
-This script checks if the required folders exist, creates them if they don't, sets up the environment, 
-prompts the user to input a computer name, generates an unattend.xml file to customize the Windows 10 installation with Azure AD, 
-starts OOBEDeploy with the customized unattend.xml file, and removes specified default apps. It also creates a transcript of the deployment process.
-
-.INPUTS
-This script prompts the user to input the computer name.
-
-.EXAMPLE
-012_WinPE_PostOS_PrepAzureADezAdminLocalSyncezTools.ps1 -ComputerName "MyComputer01" -LocalAdminPassword "MyPassword"
-
-This command configures a Windows 10/11 image with Azure AD on a computer named "MyComputer01" and localAdminPassword "MyPassword" . 
-It removes the default apps CommunicationsApps, OfficeHub, People, Skype, Solitaire, Xbox, ZuneMusic, and ZuneVideo.
-
-.NOTES
-Author: Jurgen Verhelst | ez Networking | www.ez.be
-#>
 
 # Block the script from running on Windows pre w10 and PowerShell pre v5
 Block-WinOS
@@ -169,3 +149,25 @@ Start-OOBEDeploy -RemoveAppx CommunicationsApps,OfficeHub,People,Skype,Solitaire
 #And stop the transcript.
 Write-Host -ForegroundColor green "  Zed says: And stopping the trancsript. Check out the log file at $transcriptPath and also check if the settings applied and the apps are removed."
 Stop-Transcript
+
+<#
+.SYNOPSIS
+Configures OOBE with Azure Active Directory (AAD) and removes specified default apps.
+
+.DESCRIPTION
+This script checks if the required folders exist, creates them if they don't, sets up the environment, 
+prompts the user to input a computer name, generates an unattend.xml file to customize the Windows 10 installation with Azure AD, 
+starts OOBEDeploy with the customized unattend.xml file, and removes specified default apps. It also creates a transcript of the deployment process.
+
+.INPUTS
+This script prompts the user to input the computer name.
+
+.EXAMPLE
+012_WinPE_PostOS_PrepAzureADezAdminLocalSyncezTools.ps1 -ComputerName "MyComputer01" -LocalAdminPassword "MyPassword"
+
+This command configures a Windows 10/11 image with Azure AD on a computer named "MyComputer01" and localAdminPassword "MyPassword" . 
+It removes the default apps CommunicationsApps, OfficeHub, People, Skype, Solitaire, Xbox, ZuneMusic, and ZuneVideo.
+
+.NOTES
+Author: Jurgen Verhelst | ez Networking | www.ez.be
+#>

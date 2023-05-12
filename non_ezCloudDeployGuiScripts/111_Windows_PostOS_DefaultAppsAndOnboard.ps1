@@ -1,6 +1,7 @@
 Install-Module burnttoast
 Import-Module burnttoast
 
+$Time = Get-date -Format t
 $Btn = New-BTButton -Content 'OK' -arguments 'ok'
 $Splat = @{
     Text = 'Zed: Starting Installs' , "Let's give this PC some apps and settings. Started $Time"
