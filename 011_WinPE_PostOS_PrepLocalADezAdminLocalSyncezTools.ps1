@@ -96,10 +96,6 @@ $unattendXml = @"
             <UserAccounts>
                 <LocalAccounts>
                     <LocalAccount wcm:action="add">
-                        <Password>
-                            <Value>MakesYourNetWork!</Value>
-                            <PlainText>true</PlainText>
-                        </Password>
                         <Description>Local Admin Account for ez Networking</Description>
                         <DisplayName>ezAdmin Local | ez Networking</DisplayName>
                         <Group>Administrators</Group>
@@ -118,13 +114,8 @@ $unattendXml = @"
                     <RequiresUserInput>true</RequiresUserInput>
                 </SynchronousCommand>
                 <SynchronousCommand wcm:action="add">
-                    <Order>2</Order>
-                    <RequiresUserInput>false</RequiresUserInput>
-                    <CommandLine>cmd /C wmic useraccount where name="ezAdminLocal" set PasswordExpires=false</CommandLine>
-                </SynchronousCommand>
-                <SynchronousCommand wcm:action="add">
                     <Description>Join Domain at first login</Description>
-                    <Order>3</Order>
+                    <Order>2</Order>
                     <CommandLine>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1</CommandLine>
                     <RequiresUserInput>true</RequiresUserInput>
                 </SynchronousCommand>
