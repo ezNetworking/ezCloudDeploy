@@ -132,27 +132,21 @@ $unattendXml = @"
             <DisableAutoDaylightTimeSet>false</DisableAutoDaylightTimeSet>
             <FirstLogonCommands>
                 <SynchronousCommand wcm:action="add">
-                    <Description>Join Domain at first login</Description>
-                    <Order>4</Order>
+                    <Description>Default Apps And Onboard</Description>
+                    <Order>1</Order>
                     <CommandLine>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1
                     </CommandLine>
                     <RequiresUserInput>true</RequiresUserInput>
                 </SynchronousCommand>
                 <SynchronousCommand wcm:action="add">
                     <Order>2</Order>
-                    <Description>Install TreeSize via Chocolatey</Description>
-                    <RequiresUserInput>false</RequiresUserInput>
-                    <CommandLine>powershell.exe -NoProfile -ExecutionPolicy unrestricted -Command "choco install tree-size-free -y";</CommandLine>
-                </SynchronousCommand>
-                <SynchronousCommand wcm:action="add">
-                    <Order>3</Order>
                     <RequiresUserInput>false</RequiresUserInput>
                     <CommandLine>cmd /C wmic useraccount where name="ezAdminLocal" set PasswordExpires=false</CommandLine>
                     <Description>Password Never Expires</Description>
                 </SynchronousCommand>
                 <SynchronousCommand wcm:action="add">
                     <Description>Join Domain at first login</Description>
-                    <Order>4</Order>
+                    <Order>3</Order>
                     <CommandLine>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1</CommandLine>
                     <RequiresUserInput>true</RequiresUserInput>
                 </SynchronousCommand>
