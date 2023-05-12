@@ -15,6 +15,9 @@ New-BurntToastNotification @splat
 
 Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_111_Windows_PostOS_DefaultAppsAndOnboard.log"
 # Install Choco and minimal default packages
+write-host "1._____________________________________________________________"
+write-host " Zed says: Installing Chocolatey"
+
 try {
     Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
     Start-Sleep -s 30
@@ -29,6 +32,8 @@ choco install googlechrome -y
 choco install treesizefree -y
 choco install tailblazer -y
 
+write-host "2._____________________________________________________________"
+
 # Install ezRmm and ezRS
 write-host " Zed says: reading the ezClientConfig.json file"
 $ezClientConfig = Get-Content -Path "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" | ConvertFrom-Json
@@ -42,7 +47,8 @@ $Splat = @{
 New-BurntToastNotification @splat 
 
 try {
-    $ezRmmUrl = "http://support.ez.be/GetAgent/Msi/?customerId=$($ezClientConfig.ezRmmId)%26integratorLogin=jurgen.verhelst%40ez.be"
+    $ezRmmUrl = "http://support.ez.be/GetAgent/Msi/?customerId=$($ezClientConfig.ezRmmId)" + '&integratorLogin=jurgen.verhelst%40ez.be'
+    write-host " Zed says: Downloading ezRmmInstaller.msi from $ezRmmUrl"
     Invoke-WebRequest -Uri $ezRmmUrl -OutFile "C:\ezNetworking\Automation\ezCloudDeploy\ezRmmInstaller.msi"
     Start-Process -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezRmmInstaller.msi" -ArgumentList "/quiet" -Wait
     
@@ -51,6 +57,7 @@ catch {
     Write-Error " Zed says: ezRmm is already installed or had an error $($_.Exception.Message)"
 }
 
+write-host "3._____________________________________________________________"
 write-host " Zed says: Downloading and installing ezRS"
 write-host " Zed says: Downloading ezRmmInstaller.msi and installing it"
 $Splat = @{
