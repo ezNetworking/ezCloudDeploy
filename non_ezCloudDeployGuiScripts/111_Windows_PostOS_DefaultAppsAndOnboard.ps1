@@ -7,7 +7,7 @@ $Splat = @{
     Applogo = 'https://iili.io/H8B8JtI.png'
     Sound = 'IM'
     Button = $Btn
-    HeroImage = 'https://iili.io/HSYpCXf.jpg'
+    HeroImage = 'https://iili.io/HU77iLN.jpg'
 }
 New-BurntToastNotification @splat 
 
