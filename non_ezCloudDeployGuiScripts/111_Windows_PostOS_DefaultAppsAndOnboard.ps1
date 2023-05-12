@@ -1,3 +1,4 @@
+Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
 Install-Module burnttoast
 Import-Module burnttoast
 
