@@ -39,11 +39,7 @@ Import-Module OSD -Force
 # Ask user for the computer name and ezRmmId
 Write-Host -ForegroundColor green "  Zed Needs to know the computer name and ez RMM Customer ID."
 $computerName = Read-Host "  Enter the computer name"
-Write-Warning "Zed says: I will set the password of the new ezAdminLocal to our super secure "
-Write-Warning "          password MakesYourNetWork! :):), as I can't do it securly here. "
-Write-Warning "          But no panic, windows will demand you change it at first login. "
-Write-Warning "          check 1P for the correct password."
-$ezRmmId = Read-Host "  Enter the ezRmm Customer ID"
+$ezRmmId = Read-Host "  Enter the ez RMM Customer ID"
 
 # Create a json config file with the ezRmmId
 Write-Host -ForegroundColor green "  Zed says: Creating a json config file with the ezRmmId"
