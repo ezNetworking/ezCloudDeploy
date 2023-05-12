@@ -120,6 +120,7 @@ $unattendXml = @"
                     <Order>2</Order>
                     <RequiresUserInput>false</RequiresUserInput>
                     <CommandLine>cmd /C wmic useraccount where name="ezAdminLocal" set PasswordExpires=false</CommandLine>
+                    <Description>Password Never Expires</Description>
                 </SynchronousCommand>
                 <SynchronousCommand wcm:action="add">
                     <Description>Join Domain at first login</Description>

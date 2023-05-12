@@ -7,7 +7,7 @@ Block-PowerShellVersionLt5
 
 # Check if folder exist, if not create them
 Write-Host -ForegroundColor green "_______________________________________________________________________"
-Write-Host -ForegroundColor green "                    Local AD Deployment Script"
+Write-Host -ForegroundColor green "                    ThinClient Deployment Script"
 Write-Host -ForegroundColor green "_______________________________________________________________________"
 Write-Host -ForegroundColor green "  Zed says: Let's check if the folders exist, if not create them"
 $folders = "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
@@ -25,9 +25,9 @@ foreach ($folder in $folders) {
     }
 }
 
-# Start transcript to c:\ezNetworking\Automation\ezCloudDeploy\Logs\ezCloudDeploy_011WinPePostOS_PrepLocalADezAdminLocalSyncezTools.log
-Write-Host -ForegroundColor green "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_011WinPePostOS_PrepLocalADezAdminLocalSyncezTools.log"
-$transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_011WinPePostOS_PrepLocalADezAdminLocalSyncezTools.log"
+# Start transcript to c:\ezNetworking\Automation\ezCloudDeploy\Logs\ezCloudDeploy_011WinPePostOS_PrepThinClientezAdminLocalSyncezTools.log
+Write-Host -ForegroundColor green "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_011WinPePostOS_PrepThinClientezAdminLocalSyncezTools.log"
+$transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_011WinPePostOS_PrepThinClientezAdminLocalSyncezTools.log"
 Start-Transcript -Path $transcriptPath
 
 # Setup
@@ -120,12 +120,7 @@ $unattendXml = @"
                     <Order>2</Order>
                     <RequiresUserInput>false</RequiresUserInput>
                     <CommandLine>cmd /C wmic useraccount where name="ezAdminLocal" set PasswordExpires=false</CommandLine>
-                </SynchronousCommand>
-                <SynchronousCommand wcm:action="add">
-                    <Description>Join Domain at first login</Description>
-                    <Order>3</Order>
-                    <CommandLine>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1</CommandLine>
-                    <RequiresUserInput>true</RequiresUserInput>
+                    <Description>Password Never Expires</Description>
                 </SynchronousCommand>
             </FirstLogonCommands>
             <TimeZone>Romance Standard Time</TimeZone>
