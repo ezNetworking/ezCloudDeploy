@@ -102,7 +102,6 @@ $unattendXml = @"
                         <DisplayName>ezAdmin Local | ez Networking</DisplayName>
                         <Group>Administrators</Group>
                         <Name>ezAdminLocal</Name>
-                        <MustChangePassword>true</MustChangePassword>
                     </LocalAccount>
                 </LocalAccounts>
             </UserAccounts>
