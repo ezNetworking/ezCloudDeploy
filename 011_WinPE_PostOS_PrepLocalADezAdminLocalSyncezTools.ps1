@@ -182,12 +182,15 @@ Start-OOBEDeploy -RemoveAppx CommunicationsApps,OfficeHub,People,Skype,Solitaire
 
 #And stop the transcript.
 Stop-Transcript
-Write-Warning "  ____________________________________________________________________________________________________________"
-Write-Warning "  Zed says: I'm done mate! If you do not see any errors above you can shut down this PC and deliver it onsite."
-Write-Warning "            First Boot at Customer: Once logged in a Domain Join Gui will be displayed and in the background,"
-Write-Warning "            the default apps will be installed, so make sure the network cable is plugged in."
-Write-Warning "            If you do see errors, please check the log file at $transcriptPath and fix the errors."
-Write-Warning "  ____________________________________________________________________________________________________________"
+Write-Warning "  ________________________________________________________________________________________"
+Write-Warning "  Zed says: I'm done mate! If you do not see any errors above you can shut down this PC "
+Write-Warning "            and send it to the customer. The first boot will take a while, so be patient."
+Write-Warning " "
+Write-Warning "            First Boot at Customer: Once logged in a Domain Join Gui will be displayed "
+Write-Warning "            and in the background the default apps will be installed, so make sure the "
+Write-Warning "            network cable is plugged in. If you do see errors, please check the log file "
+write-warning "            at $transcriptPath and fix the errors."
+Write-Warning "  _________________________________________________________________________________________"
 Read-Host -Prompt "            Press any key to shutdown this Computer"
 
 Stop-Computer -Force
