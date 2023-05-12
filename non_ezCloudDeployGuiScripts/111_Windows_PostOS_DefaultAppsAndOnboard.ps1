@@ -26,14 +26,14 @@ catch {
 # -y confirm yes for any prompt during the install process
 write-host " Zed says: Installing Chocolatey packages"
 choco install googlechrome -y
-choco install tree-size-free -y
+choco install treesizefree -y
 choco install tailblazer -y
 
 # Install ezRmm and ezRS
 write-host " Zed says: reading the ezClientConfig.json file"
 $ezClientConfig = Get-Content -Path "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" | ConvertFrom-Json
 
-write-host " Zed says: Downloading ezRmmInstaller.msi and installing it"
+write-host " Zed says: Downloading ezRmmInstaller.msi and installing it for customer $($ezClientConfig.ezRmmId)"
 $Splat = @{
     Text = 'Zed: Installing ez RMM' , "Downloading and installing... Started $Time"
     Applogo = 'https://iili.io/H8B8JtI.png'
@@ -42,7 +42,7 @@ $Splat = @{
 New-BurntToastNotification @splat 
 
 try {
-    $ezRmmUrl = $ezRmmUrl = "http://support.ez.be/GetAgent/Msi/?customerId=$($ezClientConfig.ezRmmId)%26integratorLogin=jurgen.verhelst%40ez.be"
+    $ezRmmUrl = "http://support.ez.be/GetAgent/Msi/?customerId=$($ezClientConfig.ezRmmId)%26integratorLogin=jurgen.verhelst%40ez.be"
     Invoke-WebRequest -Uri $ezRmmUrl -OutFile "C:\ezNetworking\Automation\ezCloudDeploy\ezRmmInstaller.msi"
     Start-Process -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezRmmInstaller.msi" -ArgumentList "/quiet" -Wait
     
@@ -61,7 +61,7 @@ $Splat = @{
 New-BurntToastNotification @splat 
 
 try {
-    $ezRsUrl = 'http://get.teamviewer.com/ezNetworkingHost'
+    $ezRsUrl = 'https://get.teamviewer.com/ezNetworkingHost'
     Invoke-WebRequest -Uri $ezRsUrl -OutFile "C:\ezNetworking\Automation\ezCloudDeploy\ezRsInstaller.exe"
     Start-Process -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezRsInstaller.exe" -ArgumentList "/S" -Wait
 }
