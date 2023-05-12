@@ -46,14 +46,14 @@ Write-Warning "          check 1P for the correct password."
 $ezRmmId = Read-Host "  Enter the ezRmm Customer ID"
 
 # Create a json config file with the ezRmmId
-Write-Host -ForegroundColor green "  Zed says: I will create a json config file with the ezRmmId"
+Write-Host -ForegroundColor green "  Zed says: Creating a json config file with the ezRmmId"
 $ezClientConfig = @{
     ezRmmId = $ezRmmId
 }
 $ezClientConfig | ConvertTo-Json | Out-File -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" -Encoding UTF8
 
 # Put our autoUnattend xml template for Local AD OOBE in a variable
-Write-Host -ForegroundColor green "  Zed says: I will put our autoUnattend xml template for Local AD OOBE (no online useraccount page) in a variable"
+Write-Host -ForegroundColor green "  Zed says: Updating our Unattend xml for Local AD OOBE (no online useraccount page)"
 $unattendXml = @"
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend">
@@ -147,7 +147,7 @@ catch {
 }
 
 # Download the DefaultAppsAndOnboard.ps1 script from github
-Write-Host -ForegroundColor green "  Zed says: downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy github..."
+Write-Host -ForegroundColor green "  Zed says: Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy github..."
 try {
     $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/111_Windows_PostOS_DefaultAppsAndOnboard.ps1" -UseBasicParsing 
     $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
@@ -160,7 +160,7 @@ catch {
 }
 
 # Download the JoinDomainAtFirstLogin.ps1 script from github
-Write-Host -ForegroundColor green "  Zed says: downloading the JoinDomainAtFirstLogin.ps1 script from ezCloudDeploy github..."
+Write-Host -ForegroundColor green "  Zed says: Downloading the JoinDomainAtFirstLogin.ps1 script from ezCloudDeploy github..."
 try {
     $JoinDomainAtFirstLoginResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/101_Windows_PostOOBE_JoinDomainAtFirstLogin.ps1" -UseBasicParsing 
     $JoinDomainAtFirstLoginScript = $JoinDomainAtFirstLoginResponse.content
@@ -190,8 +190,8 @@ Write-Warning "            and send it to the customer. The first boot will take
 Write-Warning " "
 Write-Warning "            First Boot at Customer: Once logged in a Domain Join Gui will be displayed "
 Write-Warning "            and in the background the default apps will be installed, so make sure the "
-Write-Warning "            network cable is plugged in. If you do see errors, please check the log file "
-write-warning "            at $transcriptPath and fix the errors."
+Write-Warning "            network cable is plugged in. If you do see errors, please check the log file at "
+write-warning "            $transcriptPath."
 Write-Warning "  _________________________________________________________________________________________"
 Read-Host -Prompt "            Press any key to shutdown this Computer"
 
