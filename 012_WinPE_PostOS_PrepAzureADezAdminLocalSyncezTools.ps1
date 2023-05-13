@@ -88,9 +88,27 @@ $unattendXml = @"
                 <SkipMachineOOBE>true</SkipMachineOOBE>
                 <ProtectYourPC>3</ProtectYourPC>
             </OOBE>
+            <UserAccounts>
+                <LocalAccounts>
+                    <LocalAccount wcm:action="add">
+                        <Description>Local Admin Account for ez Networking</Description>
+                        <DisplayName>ezAdmin Local | ez Networking</DisplayName>
+                        <Group>Administrators</Group>
+                        <Name>ezAdminLocal</Name>
+                    </LocalAccount>
+                </LocalAccounts>
+            </UserAccounts>
             <RegisteredOrganization>ez Networking</RegisteredOrganization>
             <RegisteredOwner>ezAdminLocal</RegisteredOwner>
             <DisableAutoDaylightTimeSet>false</DisableAutoDaylightTimeSet>
+            <FirstLogonCommands>
+                <SynchronousCommand wcm:action="add">
+                    <Description>Default Apps And Onboard</Description>
+                    <Order>1</Order>
+                    <CommandLine>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1</CommandLine>
+                    <RequiresUserInput>true</RequiresUserInput>
+                </SynchronousCommand>
+            </FirstLogonCommands>
             <TimeZone>Romance Standard Time</TimeZone>
         </component>
     </settings>
