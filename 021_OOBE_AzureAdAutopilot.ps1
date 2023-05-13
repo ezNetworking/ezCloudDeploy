@@ -23,9 +23,13 @@ Write-Host -ForegroundColor green "  Zed says: Let's start the transcript to c:\
 $transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_021_OOBE_AzureAdAutopilot.log"
 Start-Transcript -Path $transcriptPath
 
-# Setup
-Write-Host -ForegroundColor green "  Zed says: Let's setup the OOBE environment"
-Set-ExecutionPolicy RemoteSigned -Force # Was unable to set that
+# starting the onboarding script
+Write-Host -ForegroundColor green "  Zed says: Starting the onboarding script"
+#powershell.exe c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1
+
+# Setup OOBE environment
+Write-Host -ForegroundColor green "  Zed says: Let's setup the and launch ez Deploy OOBE"
+#Set-ExecutionPolicy RemoteSigned -Force # Was unable to set that
 Install-Module AutopilotOOBE -Force
 Import-Module AutopilotOOBE -Force
 
@@ -38,12 +42,6 @@ $Params = @{
 }
 Start-AutopilotOOBE @Params
 
-powershell.exe c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1
-
-
-
-
-
 #And stop the transcript.
 Stop-Transcript
 Write-Warning "  ____________________________________________________________________________________________________________"
@@ -52,9 +50,7 @@ Write-Warning "            First Boot at Customer: Once logged in a Domain Join 
 Write-Warning "            the default apps will be installed, so make sure the network cable is plugged in."
 Write-Warning "            If you do see errors, please check the log file at $transcriptPath and fix the errors."
 Write-Warning "  ____________________________________________________________________________________________________________"
-Read-Host -Prompt "            Press any key to shutdown this Computer"
 
-Stop-Computer -Force
 
 <#
 .SYNOPSIS
