@@ -167,7 +167,13 @@ reg unload HKLM\TempSYSTEM
 # Use Start-OOBEDeploy to remove the following apps in the later OOBE phase: CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
 Write-Host -ForegroundColor green "  Zed says: Use Start-OOBEDeploy to remove apps in the later OOBE phase: "
 Write-Host -ForegroundColor green "            CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
-Start-OOBEDeploy -RemoveAppx CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo
+$Params = @{
+    Autopilot = $false
+    RemoveAppx = "CommunicationsApps","OfficeHub","People","Skype","Solitaire","Xbox","ZuneMusic","ZuneVideo"
+    UpdateDrivers = $true
+    UpdateWindows = $true
+}
+Start-OOBEDeploy @Params
 
 #And stop the transcript.
 Stop-Transcript

@@ -3,10 +3,10 @@ Block-WinOS
 Block-WindowsVersionNe10
 Block-PowerShellVersionLt5
 
-Write-Host -ForegroundColor green "_______________________________________________________________________"
-Write-Host -ForegroundColor green "                    Azure AD Deployment Script"
-Write-Host -ForegroundColor green "_______________________________________________________________________"
-
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Cyan "                    Azure AD Deployment Script"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host ""
 Write-Host -ForegroundColor green "  Zed says: Let's check if the folders exist, if not create them"
 # Check if folder exist, if not create them
 $folders = "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
@@ -38,10 +38,16 @@ Import-Module OSD -Force
 # Copy ezCloudDeploy.exe to c:\ezNetworking\Automation\ezCloudDeploy\Scripts
 Write-Host -ForegroundColor green "  Zed says: Copying ezCloudDeploy.exe to c:\ezNetworking\Automation\ezCloudDeploy\Scripts"
 Copy-Item -Path "x:\OSDCloud\config\scripts\startup\ezCloudDeploy.exe" -Destination "c:\ezNetworking\Automation\ezCloudDeploy\ezCloudDeploy.exe" -Force
+$WshShell = New-Object -comObject WScript.Shell
+$Shortcut = $WshShell.CreateShortcut("c:\Windows\System32\ezCloudDeploy.lnk")
+$Shortcut.TargetPath = "c:\ezNetworking\Automation\ezCloudDeploy\ezCloudDeploy.exe"
+$Shortcut.Save()
 
 # Ask user for the computer name and ezRmmId
-Write-Host -ForegroundColor green "  Zed Needs to know the computer name and ez RMM Customer ID."
-$ezRmmId = Read-Host "  Enter the ez RMM Customer ID"
+Write-Host "========================================================================================="
+Write-Host -ForegroundColor green "  Zed Needs to know the ez RMM Customer ID."
+$ezRmmId = Read-Host "  Enter the ez RMM Customer ID: "
+Write-Host "========================================================================================="
 
 # Create a json config file with the ezRmmId
 Write-Host -ForegroundColor green "  Zed says: Creating a json config file with the ezRmmId"
@@ -50,6 +56,7 @@ $ezClientConfig = @{
 }
 $ezClientConfig | ConvertTo-Json | Out-File -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" -Encoding UTF8
 
+Write-Host "========================================================================================="
 # Download the DefaultAppsAndOnboard.ps1 script from github
 Write-Host -ForegroundColor green "  Zed says: Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
 try {
@@ -63,22 +70,18 @@ catch {
     Write-Error "  Zed says: I was unable to download the DefaultAppsAndOnboardScript script."
 }
 
-# Use Start-OOBEDeploy to remove the following apps in the later OOBE phase: CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
-Write-Host -ForegroundColor green "  Zed says: Use Start-OOBEDeploy to remove apps in the later OOBE phase: "
-Write-Host -ForegroundColor green "            CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
-
 #And stop the transcript.
 Stop-Transcript
-Write-Warning "  ________________________________________________________________________________________"
+Write-Host "========================================================================================="
 Write-Warning "  Zed says: I'm done mate! If you do not see any errors above you can reboot this PC "
 Write-Warning "            1. press Shift+F10 in OOBE to open a command prompt, then: "
 Write-Warning "            2. c:\ezNetworking\Automation\ezCloudDeploy\ezCloudDeploy.exe to run it."
 Write-Warning "            3. Select 021_OOBE_AzureADAutopilot and run it to Predeploy to Azure."
 Write-Warning "            First Boot by Customer: The user can login using his work account,"
 Write-Warning "            and in the background the default apps will be installed, so make sure the "
-Write-Warning "            network cable is plugged in. If you do see errors, please check the log file at "
+Write-Warning "            network cable is plugged in. If you do see errors, please check the log at "
 write-warning "            $transcriptPath."
-Write-Warning "  _________________________________________________________________________________________"
+Write-Host "========================================================================================="
 Read-Host -Prompt "            Press any key to shutdown this Computer"
 
 Stop-Computer -Force
