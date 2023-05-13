@@ -1,7 +1,8 @@
 # Check if folder exist, if not create them
-Write-Host -ForegroundColor green "_______________________________________________________________________"
-Write-Host -ForegroundColor green "                    Azure AD OOBE Script"
-Write-Host -ForegroundColor green "_______________________________________________________________________"
+Write-Host -ForegroundColor Cyan "================================================================================"
+Write-Host -ForegroundColor Cyan "                    Azure AD OOBE Script"
+Write-Host -ForegroundColor Cyan "================================================================================"
+Write-Host ""
 Write-Host -ForegroundColor green "  Zed says: Let's check if the folders exist, if not create them"
 $folders = "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
 foreach ($folder in $folders) {
@@ -24,10 +25,13 @@ $transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_021_OOBE_AzureA
 Start-Transcript -Path $transcriptPath
 
 # starting the onboarding script
+Write-Host "  ==========================================================================================================="
 Write-Host -ForegroundColor green "  Zed says: Starting the onboarding script"
 #powershell.exe c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1
+Write-Host "  ==========================================================================================================="
 
 # Setup OOBE environment
+Write-Host "  ==========================================================================================================="
 Write-Host -ForegroundColor green "  Zed says: Let's setup the and launch ez Deploy OOBE"
 #Set-ExecutionPolicy RemoteSigned -Force # Was unable to set that
 Install-Module AutopilotOOBE -Force
@@ -41,15 +45,17 @@ $Params = @{
     Run = 'NetworkingWireless'
 }
 Start-AutopilotOOBE @Params
+Write-Host "  ==========================================================================================================="
 
 #And stop the transcript.
 Stop-Transcript
-Write-Warning "  ____________________________________________________________________________________________________________"
-Write-Warning "  Zed says: I'm done mate! If you do not see any errors above you can shut down this PC and deliver it onsite."
-Write-Warning "            First Boot at Customer: Once logged in a Domain Join Gui will be displayed and in the background,"
-Write-Warning "            the default apps will be installed, so make sure the network cable is plugged in."
+Write-Warning "  ==========================================================================================================="
+Write-Warning "  Zed says: I'm done mate! If you do not see any errors above you can shut down this PC "
+Write-Warning "            and deliver it onsite."
+Write-Warning "            First Boot at Customer: Once logged in a Domain Join Gui will be displayed "
+Write-Warning "            and in the background,the default apps will be installed, so make sure the network cable is plugged in."
 Write-Warning "            If you do see errors, please check the log file at $transcriptPath and fix the errors."
-Write-Warning "  ____________________________________________________________________________________________________________"
+Write-Warning "  ==========================================================================================================="
 
 
 <#
