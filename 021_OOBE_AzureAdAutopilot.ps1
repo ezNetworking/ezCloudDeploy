@@ -27,7 +27,7 @@ Start-Transcript -Path $transcriptPath
 # starting the onboarding script
 Write-Host "========================================================================================="
 Write-Host -ForegroundColor green "  Zed says: Starting the onboarding script"
-#powershell.exe c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1
+powershell.exe c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1
 Write-Host "========================================================================================="
 
 # Setup OOBE environment
