@@ -88,16 +88,6 @@ $unattendXml = @"
                 <SkipMachineOOBE>true</SkipMachineOOBE>
                 <ProtectYourPC>3</ProtectYourPC>
             </OOBE>
-            <UserAccounts>
-                <LocalAccounts>
-                    <LocalAccount wcm:action="add">
-                        <Description>Local Admin Account for ez Networking</Description>
-                        <DisplayName>ezAdmin Local | ez Networking</DisplayName>
-                        <Group>Administrators</Group>
-                        <Name>ezAdminLocal</Name>
-                    </LocalAccount>
-                </LocalAccounts>
-            </UserAccounts>
             <RegisteredOrganization>ez Networking</RegisteredOrganization>
             <RegisteredOwner>ezAdminLocal</RegisteredOwner>
             <DisableAutoDaylightTimeSet>false</DisableAutoDaylightTimeSet>
