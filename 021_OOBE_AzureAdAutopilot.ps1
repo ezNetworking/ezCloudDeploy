@@ -1,7 +1,7 @@
 # Check if folder exist, if not create them
-Write-Host -ForegroundColor Cyan "================================================================================"
+Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan "                    Azure AD OOBE Script"
-Write-Host -ForegroundColor Cyan "================================================================================"
+Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host ""
 Write-Host -ForegroundColor green "  Zed says: Let's check if the folders exist, if not create them"
 $folders = "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
@@ -25,37 +25,41 @@ $transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_021_OOBE_AzureA
 Start-Transcript -Path $transcriptPath
 
 # starting the onboarding script
-Write-Host "  ==========================================================================================================="
+Write-Host "========================================================================================="
 Write-Host -ForegroundColor green "  Zed says: Starting the onboarding script"
 #powershell.exe c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1
-Write-Host "  ==========================================================================================================="
+Write-Host "========================================================================================="
 
 # Setup OOBE environment
-Write-Host "  ==========================================================================================================="
+Write-Host "========================================================================================="
 Write-Host -ForegroundColor green "  Zed says: Let's setup the and launch ez Deploy OOBE"
 #Set-ExecutionPolicy RemoteSigned -Force # Was unable to set that
 Install-Module AutopilotOOBE -Force
+Install-Module OSD -Force
+import-module OSD -Force
 Import-Module AutopilotOOBE -Force
+
+
+Start-OOBEDeploy -UpdateWindows -UpdateDrivers -RemoveAppx CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo
 
 # Set some variables
 $Params = @{
-    Title = 'ez Cloud Deploy Autopilot Registration'
+    Title = 'ez Cloud Deploy Autopilot'
     GroupTag = 'Win-AutoPilot01'
     Assign = $true
     Run = 'NetworkingWireless'
 }
 Start-AutopilotOOBE @Params
-Write-Host "  ==========================================================================================================="
+Write-Host "========================================================================================="
 
 #And stop the transcript.
 Stop-Transcript
-Write-Warning "  ==========================================================================================================="
+Write-Warning "========================================================================================="
 Write-Warning "  Zed says: I'm done mate! If you do not see any errors above you can shut down this PC "
-Write-Warning "            and deliver it onsite."
-Write-Warning "            First Boot at Customer: Once logged in a Domain Join Gui will be displayed "
-Write-Warning "            and in the background,the default apps will be installed, so make sure the network cable is plugged in."
-Write-Warning "            If you do see errors, please check the log file at $transcriptPath and fix the errors."
-Write-Warning "  ==========================================================================================================="
+Write-Warning "            and deliver it onsite. The user can then login with his Azure AD account."
+Write-Warning "            If you do see errors, please check the log file at: " 
+Write-Warning "            $transcriptPath "
+Write-Warning "========================================================================================="
 
 
 <#
