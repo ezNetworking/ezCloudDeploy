@@ -1,16 +1,15 @@
-
-
 # Block the script from running on Windows pre w10 and PowerShell pre v5
 Block-WinOS
 Block-WindowsVersionNe10
 Block-PowerShellVersionLt5
 
-# Check if folder exist, if not create them
 Write-Host -ForegroundColor green "_______________________________________________________________________"
 Write-Host -ForegroundColor green "                    Azure AD Deployment Script"
 Write-Host -ForegroundColor green "_______________________________________________________________________"
-Write-Host -ForegroundColor green -ForegroundColor green "  Zed says: Let's check if the folders exist, if not create them"
-$folders = "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy", 'C:\Windows\Panther'
+
+Write-Host -ForegroundColor green "  Zed says: Let's check if the folders exist, if not create them"
+# Check if folder exist, if not create them
+$folders = "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
 foreach ($folder in $folders) {
     if (!(Test-Path $folder)) {
         try {
@@ -25,130 +24,146 @@ foreach ($folder in $folders) {
     }
 }
 
-# Start transcript to c:\ezNetworking\Automation\ezCloudDeploy\Logs\ezCloudDeploy_011WinPePostOS_PrepLocalADezAdminLocalSyncezTools.log
-Write-Host -ForegroundColor green "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_011WinPePostOS_PrepAzureADezAdminLocalSyncezTools.log"
-$transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_011WinPePostOS_PrepLocalADezAdminLocalSyncezTools.log"
+# Start transcript to c:\ezNetworking\Automation\ezCloudDeploy\Logs\ezCloudDeploy_012WinPePostOS_PrepAzureADezAdminLocalSyncezTools.log
+Write-Host -ForegroundColor green "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_012WinPePostOS_PrepAzureADezAdminLocalSyncezTools.log"
+$transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_012WinPePostOS_PrepAzureADezAdminLocalSyncezTools.log"
 Start-Transcript -Path $transcriptPath
 
 # Setup
-Write-Host -ForegroundColor green "  Zed says: Let's setup the environment"
+Write-Host -ForegroundColor green "  Zed says: Let's setup the OSD environment"
 #Set-ExecutionPolicy RemoteSigned -Force # Was unable to set that
-Install-Module OSD -Force
+# Install-Module OSD -Force # Was already installed
 Import-Module OSD -Force
 
-# Ask user for the computer name and local admins password
-Write-Host -ForegroundColor green "   Zed Needs to know the computer name and password"
-$computerName = Read-Host "Enter the computer name"
-$localAdminPassword = Read-Host "Enter the local admin password (check in 1P)" -AsSecureString
+# Ask user for the computer name and ezRmmId
+Write-Host -ForegroundColor green "  Zed Needs to know the computer name and ez RMM Customer ID."
+$computerName = Read-Host "  Enter the computer name"
+$ezRmmId = Read-Host "  Enter the ez RMM Customer ID"
+
+# Create a json config file with the ezRmmId
+Write-Host -ForegroundColor green "  Zed says: Creating a json config file with the ezRmmId"
+$ezClientConfig = @{
+    ezRmmId = $ezRmmId
+}
+$ezClientConfig | ConvertTo-Json | Out-File -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" -Encoding UTF8
 
 # Put our autoUnattend xml template for Azure AD OOBE in a variable
-Write-Host -ForegroundColor green " Zed says: I will put our autoUnattend xml template for Azure AD OOBE (no online useraccount page) in a variable"
+Write-Host -ForegroundColor green "  Zed says: Updating our Unattend xml for Azure AD OOBE (no online useraccount page)"
 $unattendXml = @"
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend">
-    <settings pass="oobeSystem">
-        <component name="Microsoft-Windows-International-Core" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+    <settings pass="windowsPE">
+        <component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <SetupUILanguage>
+                <UILanguage>en-US</UILanguage>
+            </SetupUILanguage>
             <InputLocale>0813:00000813</InputLocale>
             <SystemLocale>nl-BE</SystemLocale>
             <UILanguage>en-US</UILanguage>
             <UILanguageFallback>en-US</UILanguageFallback>
             <UserLocale>nl-BE</UserLocale>
-            <UILanguage_DefaultUser>en-US</UILanguage_DefaultUser>
-            <UILanguageFallback_DefaultUser>en-US</UILanguageFallback_DefaultUser>
-            <UserLocale_DefaultUser>nl-BE</UserLocale_DefaultUser>
-            <InputLocale_DefaultUser>0813:00000813</InputLocale_DefaultUser>
-            <SystemLocale_DefaultUser>nl-BE</SystemLocale_DefaultUser>
-            <TimeZone>Central European Standard Time</TimeZone>
         </component>
-        <component name="Microsoft-Windows-Shell-Setup" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+    </settings>
+    <settings pass="specialize">
+        <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <InputLocale>0813:00000813</InputLocale>
             <SystemLocale>nl-BE</SystemLocale>
-            <UILanguage>nl-BE</UILanguage>
-            <UILanguageFallback>en-US</UILanguageFallback>
-            <UserLocale>nl-BES</UserLocale>
-            <UILanguage_DefaultUser>en-US</UILanguage_DefaultUser>
-            <UILanguageFallback_DefaultUser>en-US</UILanguageFallback_DefaultUser>
-            <UserLocale_DefaultUser>nl-BE</UserLocale_DefaultUser>
-            <InputLocale_DefaultUser>0813:00000813</InputLocale_DefaultUser>
-            <SystemLocale_DefaultUser>nl-BES</SystemLocale_DefaultUser>
-            <TimeZone>Central European Standard Time</TimeZone>
-            <ComputerName>$computerName</ComputerName>
-            <OOBE>
-                <OEMInformation>
-                    <SupportProvider>ez Networking Support</SupportProvider>
-                    <Manufacturer>HP</Manufacturer>
-                    <SupportHours>8/5 to 24/7 depending on contract</SupportHours>
-                    <SupportPhone>+32 3 376 14 25</SupportPhone>
-                    <SupportURL>http://www.ez.be</SupportURL>
-                </OEMInformation>
+            <UILanguage>en-GB</UILanguage>
+            <UILanguageFallback>en-GB</UILanguageFallback>
+            <UserLocale>nl-BE</UserLocale>
+        </component>
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <ComputerName>$ComputerName</ComputerName>
+        </component>
+    </settings>
+    <settings pass="oobeSystem">
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <OOBE>        
                 <HideEULAPage>true</HideEULAPage>
                 <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>
                 <HideOnlineAccountScreens>false</HideOnlineAccountScreens>
                 <HideWirelessSetupInOOBE>false</HideWirelessSetupInOOBE>
+                <NetworkLocation>Work</NetworkLocation>
+                <SkipUserOOBE>false</SkipUserOOBE>
+                <SkipMachineOOBE>true</SkipMachineOOBE>
                 <ProtectYourPC>3</ProtectYourPC>
-                <RunSynchronous>
-                    <RunSynchronousCommand wcm:action="add">
-                        <Order>1</Order>
-                        <CommandLine>powershell.exe -NoProfile -ExecutionPolicy unrestricted -Command "iex ((new-object net.webclient).DownloadString('https://chocolatey.org/install.ps1'))"</CommandLine>
-                        <Description>Install Chocolatey</Description>
-                        <RequiresUserInput>false</RequiresUserInput>
-                    </RunSynchronousCommand>
-                    <RunSynchronousCommand wcm:action="add">
-                        <Order>2</Order>
-                        <CommandLine>powershell.exe -NoProfile -ExecutionPolicy unrestricted -Command "choco install tree-size-free -y"</CommandLine>
-                        <Description>Install TreeSize via Chocolatey</Description>
-                        <RequiresUserInput>false</RequiresUserInput>
-                    </RunSynchronousCommand>
-                </RunSynchronous>
-    
             </OOBE>
             <UserAccounts>
-                <AdministratorPassword>
-                    <Value>$localAdminPassword</Value>
-                    <PlainText>true</PlainText>
-                </AdministratorPassword>
                 <LocalAccounts>
                     <LocalAccount wcm:action="add">
-                        <Password>
-                        <Value>$localAdminPassword</Value>
-                        <PlainText>true</PlainText>
-                        </Password>
-                        <DisplayName>ezAdminLocal | ez Networking</DisplayName>
+                        <Description>Local Admin Account for ez Networking</Description>
+                        <DisplayName>ezAdmin Local | ez Networking</DisplayName>
                         <Group>Administrators</Group>
                         <Name>ezAdminLocal</Name>
                     </LocalAccount>
                 </LocalAccounts>
             </UserAccounts>
+            <RegisteredOrganization>ez Networking</RegisteredOrganization>
+            <RegisteredOwner>ezAdminLocal</RegisteredOwner>
+            <DisableAutoDaylightTimeSet>false</DisableAutoDaylightTimeSet>
+            <FirstLogonCommands>
+                <SynchronousCommand wcm:action="add">
+                    <Description>Default Apps And Onboard</Description>
+                    <Order>1</Order>
+                    <CommandLine>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1</CommandLine>
+                    <RequiresUserInput>true</RequiresUserInput>
+                </SynchronousCommand>
+            </FirstLogonCommands>
+            <TimeZone>Romance Standard Time</TimeZone>
         </component>
     </settings>
 </unattend>
 "@
-Write-Host -ForegroundColor green " Zed says: I have a nice unattend.xml template for you: $unattendXml"
 
 # Write the updated unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\
-Write-Host -ForegroundColor green " Zed says: Writing the unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\"
+Write-Host -ForegroundColor green "  Zed says: Writing the unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\"
 $unattendPath = "C:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\AzureAdUnattend.xml"
 try {
     $unattendXml | Out-File -FilePath $unattendPath -Encoding UTF8
     
 }
 catch {
-    Write-Error " Zed says: $unattendPath already exists or you don't have the rights to create it"
+    Write-Error "  Zed says: $unattendPath already exists or you don't have the rights to create it"
+}
+
+# Download the DefaultAppsAndOnboard.ps1 script from github
+Write-Host -ForegroundColor green "  Zed says: Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
+try {
+    $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/111_Windows_PostOS_DefaultAppsAndOnboard.ps1" -UseBasicParsing 
+    $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
+    Write-Host -ForegroundColor green "  Zed says: Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
+    $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
+    $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
+}
+catch {
+    Write-Error "  Zed says: I was unable to download the DefaultAppsAndOnboardScript script."
 }
 
 # Set the unattend.xml file in the offline registry
-Write-Host -ForegroundColor green " Zed says: Setting the unattend.xml file in the offline registry"
+Write-Host -ForegroundColor green "  Zed says: Setting the unattend.xml file in the offline registry"
 reg load HKLM\TempSYSTEM "C:\Windows\System32\Config\SYSTEM"
 reg add HKLM\TempSYSTEM\Setup /v UnattendFile /d $unattendPath /f
 reg unload HKLM\TempSYSTEM
 
-# Use Start-OOBEDeploy to remove the following apps in the later OOBE phase: CommunicationsApps,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
-Write-Host -ForegroundColor green "  Zed says: Use Start-OOBEDeploy to remove the following apps in the later OOBE phase: CommunicationsApps,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
-Start-OOBEDeploy -RemoveAppx CommunicationsApps,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo
+# Use Start-OOBEDeploy to remove the following apps in the later OOBE phase: CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
+Write-Host -ForegroundColor green "  Zed says: Use Start-OOBEDeploy to remove apps in the later OOBE phase: "
+Write-Host -ForegroundColor green "            CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
+Start-OOBEDeploy -RemoveAppx CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo
 
 #And stop the transcript.
-Write-Host -ForegroundColor green "  Zed says: And stopping the trancsript. Check out the log file at $transcriptPath and also check if the settings applied and the apps are removed."
 Stop-Transcript
+Write-Warning "  ________________________________________________________________________________________"
+Write-Warning "  Zed says: I'm done mate! If you do not see any errors above you can shut down this PC "
+Write-Warning "            and send it to the customer. The first boot will take a while, so be patient."
+Write-Warning " "
+Write-Warning "            First Boot at Customer: The user can login using his work account,"
+Write-Warning "            and in the background the default apps will be installed, so make sure the "
+Write-Warning "            network cable is plugged in. If you do see errors, please check the log file at "
+write-warning "            $transcriptPath."
+Write-Warning "  _________________________________________________________________________________________"
+Read-Host -Prompt "            Press any key to shutdown this Computer"
+
+Stop-Computer -Force
 
 <#
 .SYNOPSIS

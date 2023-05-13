@@ -1,15 +1,14 @@
-
-
 # Block the script from running on Windows pre w10 and PowerShell pre v5
 Block-WinOS
 Block-WindowsVersionNe10
 Block-PowerShellVersionLt5
 
-# Check if folder exist, if not create them
 Write-Host -ForegroundColor green "_______________________________________________________________________"
 Write-Host -ForegroundColor green "                    Local AD Deployment Script"
 Write-Host -ForegroundColor green "_______________________________________________________________________"
+
 Write-Host -ForegroundColor green "  Zed says: Let's check if the folders exist, if not create them"
+# Check if folder exist, if not create them
 $folders = "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
 foreach ($folder in $folders) {
     if (!(Test-Path $folder)) {
@@ -59,7 +58,7 @@ $unattendXml = @"
                 <UILanguage>en-US</UILanguage>
             </SetupUILanguage>
             <InputLocale>0813:00000813</InputLocale>
-            <SystemLocale>en-US</SystemLocale>
+            <SystemLocale>nl-BE</SystemLocale>
             <UILanguage>en-US</UILanguage>
             <UILanguageFallback>en-US</UILanguageFallback>
             <UserLocale>en-GB</UserLocale>
@@ -68,10 +67,10 @@ $unattendXml = @"
     <settings pass="specialize">
         <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <InputLocale>0813:00000813</InputLocale>
-            <SystemLocale>en-GB</SystemLocale>
+            <SystemLocale>nl-BE</SystemLocale>
             <UILanguage>en-GB</UILanguage>
             <UILanguageFallback>en-GB</UILanguageFallback>
-            <UserLocale>en-GB</UserLocale>
+            <UserLocale>nl-BE</UserLocale>
         </component>
         <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <ComputerName>$ComputerName</ComputerName>
