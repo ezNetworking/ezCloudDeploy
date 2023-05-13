@@ -35,6 +35,10 @@ Write-Host -ForegroundColor green "  Zed says: Let's setup the OSD environment"
 # Install-Module OSD -Force # Was already installed
 Import-Module OSD -Force
 
+# Copy ezCloudDeploy.exe to c:\ezNetworking\Automation\ezCloudDeploy\Scripts
+Write-Host -ForegroundColor green "  Zed says: Copying ezCloudDeploy.exe to c:\ezNetworking\Automation\ezCloudDeploy\Scripts"
+Copy-Item -Path "x:\OSDCloud\config\scripts\startup\ezCloudDeploy.exe" -Destination "c:\ezNetworking\Automation\ezCloudDeploy\ezCloudDeploy.exe" -Force
+
 # Ask user for the computer name and ezRmmId
 Write-Host -ForegroundColor green "  Zed Needs to know the computer name and ez RMM Customer ID."
 $ezRmmId = Read-Host "  Enter the ez RMM Customer ID"
