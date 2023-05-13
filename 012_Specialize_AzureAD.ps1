@@ -24,9 +24,9 @@ foreach ($folder in $folders) {
     }
 }
 
-# Start transcript to c:\ezNetworking\Automation\ezCloudDeploy\Logs\ezCloudDeploy_012WinPePostOS_PrepAzureADezAdminLocalSyncezTools.log
-Write-Host -ForegroundColor green "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_012WinPePostOS_PrepAzureADezAdminLocalSyncezTools.log"
-$transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_012WinPePostOS_PrepAzureADezAdminLocalSyncezTools.log"
+# Start transcript to c:\ezNetworking\Automation\ezCloudDeploy\Logs\ezCloudDeploy_Specialize_AzureAD.log
+Write-Host -ForegroundColor green "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_Specialize_AzureAD.log"
+$transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_Specialize_AzureAD.log"
 Start-Transcript -Path $transcriptPath
 
 # Setup
@@ -66,14 +66,14 @@ catch {
 # Use Start-OOBEDeploy to remove the following apps in the later OOBE phase: CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
 Write-Host -ForegroundColor green "  Zed says: Use Start-OOBEDeploy to remove apps in the later OOBE phase: "
 Write-Host -ForegroundColor green "            CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
-Start-OOBEDeploy -RemoveAppx CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo
 
 #And stop the transcript.
 Stop-Transcript
 Write-Warning "  ________________________________________________________________________________________"
 Write-Warning "  Zed says: I'm done mate! If you do not see any errors above you can reboot this PC "
-Write-Warning "            remember to press Shift+F10 in OOBE to open a command prompt, "
-Write-Warning "            then ezCloudDeploy.exe select this script and run it."
+Write-Warning "            1. press Shift+F10 in OOBE to open a command prompt, then: "
+Write-Warning "            2. c:\ezNetworking\Automation\ezCloudDeploy\ezCloudDeploy.exe to run it."
+Write-Warning "            3. Select 021_OOBE_AzureADAutopilot and run it to Predeploy to Azure."
 Write-Warning "            First Boot by Customer: The user can login using his work account,"
 Write-Warning "            and in the background the default apps will be installed, so make sure the "
 Write-Warning "            network cable is plugged in. If you do see errors, please check the log file at "
@@ -96,9 +96,9 @@ starts OOBEDeploy with the customized unattend.xml file, and removes specified d
 This script prompts the user to input the computer name.
 
 .EXAMPLE
-012_WinPE_PostOS_PrepAzureADezAdminLocalSyncezTools.ps1 -ComputerName "MyComputer01" -LocalAdminPassword "MyPassword"
+012_Specialize_PrepAzureAD.ps1 -RmmId 1234567890
 
-This command configures a Windows 10/11 image with Azure AD on a computer named "MyComputer01" and localAdminPassword "MyPassword" . 
+This command configures a Windows 10/11 image with Azure AD and downloads ez RMM . 
 It removes the default apps CommunicationsApps, OfficeHub, People, Skype, Solitaire, Xbox, ZuneMusic, and ZuneVideo.
 
 .NOTES

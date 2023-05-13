@@ -24,9 +24,9 @@ foreach ($folder in $folders) {
     }
 }
 
-# Start transcript to c:\ezNetworking\Automation\ezCloudDeploy\Logs\ezCloudDeploy_011WinPePostOS_PrepLocalADezAdminLocalSyncezTools.log
-Write-Host -ForegroundColor green "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_011WinPePostOS_PrepLocalADezAdminLocalSyncezTools.log"
-$transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_011WinPePostOS_PrepLocalADezAdminLocalSyncezTools.log"
+# Start transcript to c:\ezNetworking\Automation\ezCloudDeploy\Logs\ezCloudDeploy_Specialize_LocalAD.log
+Write-Host -ForegroundColor green "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_Specialize_LocalAD.log"
+$transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_Specialize_LocalAD.log"
 Start-Transcript -Path $transcriptPath
 
 # Setup
