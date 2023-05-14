@@ -53,6 +53,28 @@ $Params = @{
     SkipODT = $true
 }
 Start-OSDCloud @Params
+
+Write-Host -ForegroundColor green "  Zed says: Let's check if the folders exist, if not create them"
+$folders = "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
+foreach ($folder in $folders) {
+    if (!(Test-Path $folder)) {
+        try {
+            New-Item -ItemType Directory -Path $folder | Out-Null
+    
+        }
+        catch {
+            Write-Error "  Zed says: $folder already exists or you don't have the rights to create it"
+        }    }
+    else {
+        Write-Warning "  Zed says: $folder already exists"
+    }
+}
+
+# Start transcript to c:\ezNetworking\Automation\ezCloudDeploy\Logs\ezCloudDeploy_TaskSequence_AzureAD.log
+Write-Host -ForegroundColor green "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
+$transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
+Start-Transcript -Path $transcriptPath
+
 #================================================
 #   WinPE PostOS Sample
 #   AutopilotOOBE Offline Staging
