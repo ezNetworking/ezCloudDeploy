@@ -1,8 +1,11 @@
-Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor DarkCyan "========================================================================================="
 Write-Host -ForegroundColor Cyan "             Azure AD Deployment Task Sequence (Win11 22H2 Pro en-US Retail)"
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "  Zed says: 1. OS Install"
-
+Write-Host -ForegroundColor Cyan ""
+Write-Host -ForegroundColor DarkCyan "========================================================================================="
+Write-Host -ForegroundColor DarkCyan "                                Zed says: 1. OS Install"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Cyan ""
 # Block the script from running on Windows pre w10 and PowerShell pre v5
 Block-WinOS
 Block-WindowsVersionNe10
@@ -27,8 +30,9 @@ $Params = @{
 Start-OSDCloud @Params
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "  Zed says: 2. Specialize"
-
+Write-Host -ForegroundColor Cyan "                                Section: 2. Specialize"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Cyan ""
 
 Write-Host -ForegroundColor Cyan "  Zed says: Let's check if the folders exist, if not create them"
 $folders = "c:\programdata\osdeploy", "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
@@ -71,7 +75,9 @@ $Params = @{
 Start-OOBEDeploy @Params
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "  Zed says: 3. OOBE prep"
+Write-Host -ForegroundColor Cyan "                                Section 3. OOBE prep"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Cyan ""
 
 
 Write-Host -ForegroundColor Cyan "  Zed says: Creating shortcusts to the ezCloudDeploy scripts"
@@ -132,6 +138,10 @@ $SetCommand | Out-File -FilePath "C:\Windows\ezAutopilot.cmd" -Encoding ascii -F
 
 #And stop the transcript.
 Stop-Transcript
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Cyan "                                Zed's finished!"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Cyan ""
 
 Write-Warning "  ========================================================================================="
 Write-Warning "  Zed says: I'm done mate! If you do not see any errors above you can shut down this PC and deliver it onsite."
