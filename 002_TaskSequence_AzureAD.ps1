@@ -57,7 +57,6 @@ $Params = @{
     GroupTagOptions = 'Development','Enterprise'
     Assign = $true
     Run = 'NetworkingWireless'
-    Autopilot = $true
 }
 AutopilotOOBE @Params
 
