@@ -33,6 +33,9 @@ $Params = @{
     OSLicense = "Retail"
     SkipAutopilot = $true
     SkipODT = $true
+    Firmware = $true
+    Screenshot = $true
+    ZTI = $true
 }
 Start-OSDCloud @Params
 Start-OSDCloud -
@@ -159,7 +162,7 @@ Write-Warning "            If you do see errors, please check the log file at $t
 Write-Warning "  ____________________________________________________________________________________________________________"
 Read-Host -Prompt "            Press any key to shutdown this Computer"
 
-Stop-Computer -Force
+#Stop-Computer -Force
 
 <#
 .SYNOPSIS
