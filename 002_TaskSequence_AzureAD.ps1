@@ -9,26 +9,7 @@ Block-PowerShellVersionLt5
 Write-Host -ForegroundColor green "_______________________________________________________________________"
 Write-Host -ForegroundColor green "                    Azure AD Deployment Task Sequence"
 Write-Host -ForegroundColor green "_______________________________________________________________________"
-Write-Host -ForegroundColor green "  Zed says: Let's check if the folders exist, if not create them"
-$folders = "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
-foreach ($folder in $folders) {
-    if (!(Test-Path $folder)) {
-        try {
-            New-Item -ItemType Directory -Path $folder | Out-Null
-    
-        }
-        catch {
-            Write-Error "  Zed says: $folder already exists or you don't have the rights to create it"
-        }    }
-    else {
-        Write-Warning "  Zed says: $folder already exists"
-    }
-}
 
-# Start transcript to c:\ezNetworking\Automation\ezCloudDeploy\Logs\ezCloudDeploy_TaskSequence_AzureAD.log
-Write-Host -ForegroundColor green "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
-$transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
-Start-Transcript -Path $transcriptPath
 
 #================================================
 #   OSDCloud Task Sequence
@@ -55,7 +36,7 @@ $Params = @{
 Start-OSDCloud @Params
 
 Write-Host -ForegroundColor green "  Zed says: Let's check if the folders exist, if not create them"
-$folders = "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
+$folders = "c:\programdata\osdeploy", "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
 foreach ($folder in $folders) {
     if (!(Test-Path $folder)) {
         try {
@@ -88,6 +69,7 @@ $Params = @{
     GroupTagOptions = 'Development','Enterprise'
     Assign = $true
     Run = 'NetworkingWireless'
+    Autopilot = $true
 }
 AutopilotOOBE @Params
 #================================================
@@ -95,7 +77,7 @@ AutopilotOOBE @Params
 #   OOBEDeploy Offline Staging
 #================================================
 $Params = @{
-    Autopilot = $true
+    Autopilot = $false
     RemoveAppx = "CommunicationsApps","OfficeHub","People","Skype","Solitaire","Xbox","ZuneMusic","ZuneVideo"
     UpdateDrivers = $true
     UpdateWindows = $true
@@ -123,9 +105,9 @@ start "Install-Module OSD" /wait PowerShell -NoL -C Install-Module OSD -Force -V
 :: Start-OOBEDeploy
 :: There are multiple example lines. Make sure only one is uncommented
 :: The next line assumes that you have a configuration saved in C:\ProgramData\OSDeploy\OSDeploy.OOBEDeploy.json
-start "Start-OOBEDeploy" PowerShell -NoL -C Start-OOBEDeploy
+REM start "Start-OOBEDeploy" PowerShell -NoL -C Start-OOBEDeploy
 :: The next line assumes that you do not have a configuration saved in or want to ensure that these are applied
-REM start "Start-OOBEDeploy" PowerShell -NoL -C Start-OOBEDeploy -AddNetFX3 -UpdateDrivers -UpdateWindows
+start "Start-OOBEDeploy" PowerShell -NoL -C Start-OOBEDeploy -AddNetFX3 -UpdateDrivers -UpdateWindows -removeappx "CommunicationsApps","OfficeHub","People","Skype","Solitaire","Xbox","ZuneMusic","ZuneVideo"
 
 exit
 '@
@@ -152,11 +134,11 @@ start "Install-Module AutopilotOOBE" /wait PowerShell -NoL -C Install-Module Aut
 :: Start-AutopilotOOBE
 :: There are multiple example lines. Make sure only one is uncommented
 :: The next line assumes that you have a configuration saved in C:\ProgramData\OSDeploy\OSDeploy.AutopilotOOBE.json
-start "Start-AutopilotOOBE" PowerShell -NoL -C Start-AutopilotOOBE
+REM start "Start-AutopilotOOBE" PowerShell -NoL -C Start-AutopilotOOBE
 :: The next line is how you would apply a CustomProfile
 REM start "Start-AutopilotOOBE" PowerShell -NoL -C Start-AutopilotOOBE -CustomProfile OSDeploy
 :: The next line is how you would configure everything from the command line
-REM start "Start-AutopilotOOBE" PowerShell -NoL -C Start-AutopilotOOBE -Title 'OSDeploy Autopilot Registration' -GroupTag Enterprise -GroupTagOptions Development,Enterprise -Assign
+start "Start-AutopilotOOBE" PowerShell -NoL -C Start-AutopilotOOBE -Title 'ez Cloud Deploy Autopilot Reg' -GroupTag Win-Autopilot01 -Assign
 
 exit
 '@
