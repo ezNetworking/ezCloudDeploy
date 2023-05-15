@@ -3,7 +3,7 @@ Write-Host -ForegroundColor Cyan "             Azure AD Deployment Task Sequence
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
 Write-Host -ForegroundColor DarkCyan "========================================================================================="
-Write-Host -ForegroundColor DarkCyan "                                Zed says: 1. OS Install"
+Write-Host -ForegroundColor DarkCyan "                                # 1. OS Install"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
 # Block the script from running on Windows pre w10 and PowerShell pre v5
@@ -12,7 +12,7 @@ Block-WindowsVersionNe10
 Block-PowerShellVersionLt5
 
 #Install-Module OSD -Force
-Write-Host -ForegroundColor Cyan "  Zed says: Installing Modules and starting OS Deploy"
+Write-Host -ForegroundColor Cyan "  # Installing Modules and starting OS Deploy"
 Import-Module OSD -Force
 Import-Module AutopilotOOBE -Force
 $Params = @{
@@ -34,7 +34,7 @@ Write-Host -ForegroundColor Cyan "                                Section: 2. Sp
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
 
-Write-Host -ForegroundColor Cyan "  Zed says: Let's check if the folders exist, if not create them"
+Write-Host -ForegroundColor Cyan "  # Let's check if the folders exist, if not create them"
 $folders = "c:\programdata\osdeploy", "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
 foreach ($folder in $folders) {
     if (!(Test-Path $folder)) {
@@ -42,19 +42,19 @@ foreach ($folder in $folders) {
             New-Item -ItemType Directory -Path $folder | Out-Null    
         }
         catch {
-            Write-Error "  Zed says: $folder already exists or you don't have the rights to create it"
+            Write-Error "  # $folder already exists or you don't have the rights to create it"
         }    }
     else {
-        Write-Warning "  Zed says: $folder already exists"
+        Write-Host -ForegroundColor White "  # $folder already exists"
     }
 }
 
 # Start transcript to c:\ezNetworking\Automation\ezCloudDeploy\Logs\ezCloudDeploy_TaskSequence_AzureAD.log
-Write-Host -ForegroundColor Cyan "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
+Write-Host -ForegroundColor Cyan "  # Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
 $transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
 Start-Transcript -Path $transcriptPath
 
-Write-Host -ForegroundColor Cyan "  Zed says: Configuring OOBE with Azure AD"
+Write-Host -ForegroundColor Cyan "  # Configuring OOBE with Azure AD"
 $Params = @{
     Title = 'ez Cloud Deploy Autopilot'
     GroupTag = 'Enterprise'
@@ -65,7 +65,7 @@ $Params = @{
 AutopilotOOBE @Params
 
 
-Write-Host -ForegroundColor Cyan "  Zed says: Configuring OOBE Apps Removal, Driver and Windows Update"
+Write-Host -ForegroundColor Cyan "  # Configuring OOBE Apps Removal, Driver and Windows Update"
 $Params = @{
     Autopilot = $false
     RemoveAppx = "CommunicationsApps","OfficeHub","People","Skype","Solitaire","Xbox","ZuneMusic","ZuneVideo"
@@ -80,7 +80,7 @@ Write-Host -ForegroundColor Cyan "==============================================
 Write-Host -ForegroundColor Cyan ""
 
 
-Write-Host -ForegroundColor Cyan "  Zed says: Creating shortcusts to the ezCloudDeploy scripts"
+Write-Host -ForegroundColor Cyan "  # Creating shortcusts to the ezCloudDeploy scripts"
 $SetCommand = @'
 @echo off
 
@@ -144,10 +144,10 @@ Write-Host -ForegroundColor Cyan "==============================================
 Write-Host -ForegroundColor Cyan ""
 
 Write-Warning "  ========================================================================================="
-Write-Warning "  Zed says: I'm done mate! If you do not see any errors above you can shut down this PC and deliver it onsite."
-Write-Warning "            First Boot at Customer: Once logged in a Domain Join Gui will be displayed and in the background,"
-Write-Warning "            the default apps will be installed, so make sure the network cable is plugged in."
-Write-Warning "            If you do see errors, please check the log file at $transcriptPath and fix the errors."
+Write-Warning "  # I'm done mate! If you do not see any errors above you can shut down this PC and deliver it onsite."
+Write-Warning "    First Boot at Customer: Once logged in a Domain Join Gui will be displayed and in the background,"
+Write-Warning "    the default apps will be installed, so make sure the network cable is plugged in."
+Write-Warning "    If you do see errors, please check the log file at $transcriptPath and fix the errors."
 Write-Warning "  ========================================================================================="
 Read-Host -Prompt "            Press any key to shutdown this Computer"
 
