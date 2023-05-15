@@ -1,14 +1,12 @@
+Write-Host -ForegroundColor green "========================================================================================="
+Write-Host -ForegroundColor green "             Azure AD Deployment Task Sequence (Win11 22H2 Pro en-US Retail)"
+Write-Host -ForegroundColor green "========================================================================================="
 
 
 # Block the script from running on Windows pre w10 and PowerShell pre v5
 Block-WinOS
 Block-WindowsVersionNe10
 Block-PowerShellVersionLt5
-
-# Check if folder exist, if not create them
-Write-Host -ForegroundColor green "========================================================================================="
-Write-Host -ForegroundColor green "             Azure AD Deployment Task Sequence (Win11 22H2 Pro en-US Retail)"
-Write-Host -ForegroundColor green "========================================================================================="
 
 #Install-Module OSD -Force
 Write-Host -ForegroundColor green "  Zed says: Installing Modules and starting OS Deploy"
@@ -27,7 +25,7 @@ $Params = @{
     Restart = $false   
 }
 Start-OSDCloud @Params
-
+break
 Write-Host -ForegroundColor green "  Zed says: Let's check if the folders exist, if not create them"
 $folders = "c:\programdata\osdeploy", "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
 foreach ($folder in $folders) {
