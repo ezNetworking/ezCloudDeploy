@@ -6,25 +6,14 @@ Block-WindowsVersionNe10
 Block-PowerShellVersionLt5
 
 # Check if folder exist, if not create them
-Write-Host -ForegroundColor green "_______________________________________________________________________"
-Write-Host -ForegroundColor green "                    Azure AD Deployment Task Sequence"
-Write-Host -ForegroundColor green "_______________________________________________________________________"
+Write-Host -ForegroundColor green "========================================================================================="
+Write-Host -ForegroundColor green "             Azure AD Deployment Task Sequence (Win11 22H2 Pro en-US Retail)"
+Write-Host -ForegroundColor green "========================================================================================="
 
-
-#================================================
-#   OSDCloud Task Sequence
-#   Windows 10 21H1 Pro nl-BE Retail
-#   No Autopilot
-#   No Office Deployment Tool
-#================================================
-#   PreOS
-#   Install and Import OSD Module
-#================================================
 #Install-Module OSD -Force
+Write-Host -ForegroundColor green "  Zed says: Installing Modules and starting OS Deploy"
 Import-Module OSD -Force
-#================================================
-#   [OS] Start-OSDCloud with Params
-#================================================
+Import-Module AutopilotOOBE -Force
 $Params = @{
     OSVersion = "Windows 11"
     OSBuild = "22H2"
@@ -59,13 +48,7 @@ Write-Host -ForegroundColor green "  Zed says: Let's start the transcript to c:\
 $transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
 Start-Transcript -Path $transcriptPath
 
-#================================================
-#   WinPE PostOS Sample
-#   AutopilotOOBE Offline Staging
-#================================================
-Install-Module AutopilotOOBE -Force
-Import-Module AutopilotOOBE -Force
-
+Write-Host -ForegroundColor green "  Zed says: Configuring OOBE with Azure AD"
 $Params = @{
     Title = 'ez Cloud Deploy Autopilot'
     GroupTag = 'Enterprise'
@@ -75,10 +58,9 @@ $Params = @{
     Autopilot = $true
 }
 AutopilotOOBE @Params
-#================================================
-#   WinPE PostOS Sample
-#   OOBEDeploy Offline Staging
-#================================================
+
+
+Write-Host -ForegroundColor green "  Zed says: Configuring OOBE Apps Removal, Driver and Windows Update"
 $Params = @{
     Autopilot = $false
     RemoveAppx = "CommunicationsApps","OfficeHub","People","Skype","Solitaire","Xbox","ZuneMusic","ZuneVideo"
@@ -86,10 +68,8 @@ $Params = @{
     UpdateWindows = $true
 }
 Start-OOBEDeploy @Params
-#================================================
-#   WinPE PostOS
-#   Set OOBEDeploy CMD.ps1
-#================================================
+
+Write-Host -ForegroundColor green "  Zed says: Creating shortcusts to the ezCloudDeploy scripts"
 $SetCommand = @'
 @echo off
 
@@ -115,10 +95,8 @@ start "Start-OOBEDeploy" PowerShell -NoL -C Start-OOBEDeploy -AddNetFX3 -UpdateD
 exit
 '@
 $SetCommand | Out-File -FilePath "C:\Windows\ezDeploy.cmd" -Encoding ascii -Force
-#================================================
-#   WinPE PostOS
-#   Set AutopilotOOBE CMD.ps1
-#================================================
+
+
 $SetCommand = @'
 @echo off
 
@@ -146,22 +124,19 @@ start "Start-AutopilotOOBE" PowerShell -NoL -C Start-AutopilotOOBE -Title 'ez Cl
 exit
 '@
 $SetCommand | Out-File -FilePath "C:\Windows\ezAutopilot.cmd" -Encoding ascii -Force
-#================================================
-#   PostOS
-#   Restart-Computer
-#================================================
-Restart-Computer
+
 #And stop the transcript.
 Stop-Transcript
-Write-Warning "  ____________________________________________________________________________________________________________"
+
+Write-Warning "  ========================================================================================="
 Write-Warning "  Zed says: I'm done mate! If you do not see any errors above you can shut down this PC and deliver it onsite."
 Write-Warning "            First Boot at Customer: Once logged in a Domain Join Gui will be displayed and in the background,"
 Write-Warning "            the default apps will be installed, so make sure the network cable is plugged in."
 Write-Warning "            If you do see errors, please check the log file at $transcriptPath and fix the errors."
-Write-Warning "  ____________________________________________________________________________________________________________"
+Write-Warning "  ========================================================================================="
 Read-Host -Prompt "            Press any key to shutdown this Computer"
 
-#Stop-Computer -Force
+Stop-Computer -Force
 
 <#
 .SYNOPSIS
@@ -184,4 +159,5 @@ It removes the default apps CommunicationsApps, OfficeHub, People, Skype, Solita
 
 .NOTES
 Author: Jurgen Verhelst | ez Networking | www.ez.be
+Modules Used: OSD, AutopilotOOBE
 #>
