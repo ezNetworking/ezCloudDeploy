@@ -34,8 +34,8 @@ $Params = @{
     SkipAutopilot = $true
     SkipODT = $true
     Firmware = $true
-    Screenshot = $true
-    ZTI = $true
+    Screenshot = $true 
+    Restart = $false   
 }
 Start-OSDCloud @Params
 Start-OSDCloud -
@@ -44,8 +44,7 @@ $folders = "c:\programdata\osdeploy", "c:\ezNetworking\Automation\ezCloudDeploy\
 foreach ($folder in $folders) {
     if (!(Test-Path $folder)) {
         try {
-            New-Item -ItemType Directory -Path $folder | Out-Null
-    
+            New-Item -ItemType Directory -Path $folder | Out-Null    
         }
         catch {
             Write-Error "  Zed says: $folder already exists or you don't have the rights to create it"

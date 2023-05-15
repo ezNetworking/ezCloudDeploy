@@ -188,7 +188,7 @@ write-warning "            $transcriptPath."
 Write-Warning "  _________________________________________________________________________________________"
 Read-Host -Prompt "            Press any key to shutdown this Computer"
 
-Stop-Computer -Force
+#Stop-Computer -Force
 
 <#
 .SYNOPSIS
