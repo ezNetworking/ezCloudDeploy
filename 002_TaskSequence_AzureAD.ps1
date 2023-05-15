@@ -26,7 +26,8 @@ Import-Module OSD -Force
 #   [OS] Start-OSDCloud with Params
 #================================================
 $Params = @{
-    OSBuild = "21H1"
+    OSVersion = "Windows 11"
+    OSBuild = "22H2"
     OSEdition = "Pro"
     OSLanguage = "en-us"
     OSLicense = "Retail"
@@ -34,7 +35,7 @@ $Params = @{
     SkipODT = $true
 }
 Start-OSDCloud @Params
-
+Start-OSDCloud -
 Write-Host -ForegroundColor green "  Zed says: Let's check if the folders exist, if not create them"
 $folders = "c:\programdata\osdeploy", "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
 foreach ($folder in $folders) {
