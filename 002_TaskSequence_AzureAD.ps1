@@ -1,7 +1,7 @@
-Write-Host -ForegroundColor green "========================================================================================="
-Write-Host -ForegroundColor green "             Azure AD Deployment Task Sequence (Win11 22H2 Pro en-US Retail)"
-Write-Host -ForegroundColor green "========================================================================================="
-
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Cyan "             Azure AD Deployment Task Sequence (Win11 22H2 Pro en-US Retail)"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Cyan "  Zed says: 1. OS Install"
 
 # Block the script from running on Windows pre w10 and PowerShell pre v5
 Block-WinOS
@@ -9,7 +9,7 @@ Block-WindowsVersionNe10
 Block-PowerShellVersionLt5
 
 #Install-Module OSD -Force
-Write-Host -ForegroundColor green "  Zed says: Installing Modules and starting OS Deploy"
+Write-Host -ForegroundColor Cyan "  Zed says: Installing Modules and starting OS Deploy"
 Import-Module OSD -Force
 Import-Module AutopilotOOBE -Force
 $Params = @{
@@ -26,7 +26,11 @@ $Params = @{
 }
 Start-OSDCloud @Params
 
-Write-Host -ForegroundColor green "  Zed says: Let's check if the folders exist, if not create them"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Cyan "  Zed says: 2. Specialize"
+
+
+Write-Host -ForegroundColor Cyan "  Zed says: Let's check if the folders exist, if not create them"
 $folders = "c:\programdata\osdeploy", "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
 foreach ($folder in $folders) {
     if (!(Test-Path $folder)) {
@@ -42,11 +46,11 @@ foreach ($folder in $folders) {
 }
 
 # Start transcript to c:\ezNetworking\Automation\ezCloudDeploy\Logs\ezCloudDeploy_TaskSequence_AzureAD.log
-Write-Host -ForegroundColor green "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
+Write-Host -ForegroundColor Cyan "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
 $transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
 Start-Transcript -Path $transcriptPath
 
-Write-Host -ForegroundColor green "  Zed says: Configuring OOBE with Azure AD"
+Write-Host -ForegroundColor Cyan "  Zed says: Configuring OOBE with Azure AD"
 $Params = @{
     Title = 'ez Cloud Deploy Autopilot'
     GroupTag = 'Enterprise'
@@ -58,7 +62,7 @@ $Params = @{
 AutopilotOOBE @Params
 
 
-Write-Host -ForegroundColor green "  Zed says: Configuring OOBE Apps Removal, Driver and Windows Update"
+Write-Host -ForegroundColor Cyan "  Zed says: Configuring OOBE Apps Removal, Driver and Windows Update"
 $Params = @{
     Autopilot = $false
     RemoveAppx = "CommunicationsApps","OfficeHub","People","Skype","Solitaire","Xbox","ZuneMusic","ZuneVideo"
@@ -67,7 +71,11 @@ $Params = @{
 }
 Start-OOBEDeploy @Params
 
-Write-Host -ForegroundColor green "  Zed says: Creating shortcusts to the ezCloudDeploy scripts"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Cyan "  Zed says: 3. OOBE prep"
+
+
+Write-Host -ForegroundColor Cyan "  Zed says: Creating shortcusts to the ezCloudDeploy scripts"
 $SetCommand = @'
 @echo off
 

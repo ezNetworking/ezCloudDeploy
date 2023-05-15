@@ -3,7 +3,7 @@ Write-Host -ForegroundColor Cyan "==============================================
 Write-Host -ForegroundColor Cyan "                    Azure AD OOBE Script"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host ""
-Write-Host -ForegroundColor green "  Zed says: Let's check if the folders exist, if not create them"
+Write-Host -ForegroundColor Cyan "  Zed says: Let's check if the folders exist, if not create them"
 $folders = "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
 foreach ($folder in $folders) {
     if (!(Test-Path $folder)) {
@@ -20,19 +20,19 @@ foreach ($folder in $folders) {
 }
 
 # Start transcript to c:\ezNetworking\Automation\ezCloudDeploy\Logs\ezCloudDeploy_021_OOBE_AzureAdAutopilot.log
-Write-Host -ForegroundColor green "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_021_OOBE_AzureAdAutopilot.log"
+Write-Host -ForegroundColor Cyan "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_021_OOBE_AzureAdAutopilot.log"
 $transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_021_OOBE_AzureAdAutopilot.log"
 Start-Transcript -Path $transcriptPath
 
 # starting the onboarding script
 Write-Host "========================================================================================="
-Write-Host -ForegroundColor green "  Zed says: Starting the onboarding script"
+Write-Host -ForegroundColor Cyan "  Zed says: Starting the onboarding script"
 powershell.exe c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1
 Write-Host "========================================================================================="
 
 # Setup OOBE environment
 Write-Host "========================================================================================="
-Write-Host -ForegroundColor green "  Zed says: Let's setup the and launch ez Deploy OOBE"
+Write-Host -ForegroundColor Cyan "  Zed says: Let's setup the and launch ez Deploy OOBE"
 #Set-ExecutionPolicy RemoteSigned -Force # Was unable to set that
 Install-Module AutopilotOOBE -Force
 Install-Module OSD -Force

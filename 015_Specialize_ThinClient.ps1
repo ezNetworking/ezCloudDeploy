@@ -6,10 +6,10 @@ Block-WindowsVersionNe10
 Block-PowerShellVersionLt5
 
 # Check if folder exist, if not create them
-Write-Host -ForegroundColor green "_______________________________________________________________________"
-Write-Host -ForegroundColor green "                    ThinClient Deployment Script"
-Write-Host -ForegroundColor green "_______________________________________________________________________"
-Write-Host -ForegroundColor green "  Zed says: Let's check if the folders exist, if not create them"
+Write-Host -ForegroundColor Cyan "_______________________________________________________________________"
+Write-Host -ForegroundColor Cyan "                    ThinClient Deployment Script"
+Write-Host -ForegroundColor Cyan "_______________________________________________________________________"
+Write-Host -ForegroundColor Cyan "  Zed says: Let's check if the folders exist, if not create them"
 $folders = "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
 foreach ($folder in $folders) {
     if (!(Test-Path $folder)) {
@@ -26,32 +26,32 @@ foreach ($folder in $folders) {
 }
 
 # Start transcript to c:\ezNetworking\Automation\ezCloudDeploy\Logs\ezCloudDeploy_011WinPePostOS_PrepThinClientezAdminLocalSyncezTools.log
-Write-Host -ForegroundColor green "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_011WinPePostOS_PrepThinClientezAdminLocalSyncezTools.log"
+Write-Host -ForegroundColor Cyan "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_011WinPePostOS_PrepThinClientezAdminLocalSyncezTools.log"
 $transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_011WinPePostOS_PrepThinClientezAdminLocalSyncezTools.log"
 Start-Transcript -Path $transcriptPath
 
 # Setup
-Write-Host -ForegroundColor green "  Zed says: Let's setup the OSD environment"
+Write-Host -ForegroundColor Cyan "  Zed says: Let's setup the OSD environment"
 #Set-ExecutionPolicy RemoteSigned -Force # Was unable to set that
 # Install-Module OSD -Force # Was already installed
 Import-Module OSD -Force
 
 # Ask user for the computer name and ezRmmId
-Write-Host -ForegroundColor green "  Zed Needs to know the computer name and ez RMM Customer ID."
+Write-Host -ForegroundColor Cyan "  Zed Needs to know the computer name and ez RMM Customer ID."
 $computerName = Read-Host "  Enter the computer name"
 Write-Warning "  Zed says: I will set the password of the new ezAdminLocal to our super secure password MakesYourNetWork! :):),"
 Write-Warning "            as I can't do it securly here. But no panic, windows will demand you change it at first login. check 1P for the correct password."
 $ezRmmId = Read-Host "  Enter the ezRmm Customer ID"
 
 # Create a json config file with the ezRmmId
-Write-Host -ForegroundColor green "  Zed says: I will create a json config file with the ezRmmId"
+Write-Host -ForegroundColor Cyan "  Zed says: I will create a json config file with the ezRmmId"
 $ezClientConfig = @{
     ezRmmId = $ezRmmId
 }
 $ezClientConfig | ConvertTo-Json | Out-File -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" -Encoding UTF8
 
 # Put our autoUnattend xml template for Local AD OOBE in a variable
-Write-Host -ForegroundColor green "  Zed says: I will put our autoUnattend xml template for Local AD OOBE (no online useraccount page) in a variable"
+Write-Host -ForegroundColor Cyan "  Zed says: I will put our autoUnattend xml template for Local AD OOBE (no online useraccount page) in a variable"
 $unattendXml = @"
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend">
@@ -130,7 +130,7 @@ $unattendXml = @"
 "@
 
 # Write the updated unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\
-Write-Host -ForegroundColor green "  Zed says: Writing the unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\"
+Write-Host -ForegroundColor Cyan "  Zed says: Writing the unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\"
 $unattendPath = "C:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\LocalAdUnattend.xml"
 try {
     $unattendXml | Out-File -FilePath $unattendPath -Encoding UTF8
@@ -141,11 +141,11 @@ catch {
 }
 
 # Download the DefaultAppsAndOnboard.ps1 script from github
-Write-Host -ForegroundColor green "  Zed says: downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy github..."
+Write-Host -ForegroundColor Cyan "  Zed says: downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy github..."
 try {
     $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/111_Windows_PostOS_DefaultAppsAndOnboard.ps1" -UseBasicParsing 
     $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
-    Write-Host -ForegroundColor green "  Zed says: Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
+    Write-Host -ForegroundColor Cyan "  Zed says: Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
     $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
     $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
 }
@@ -154,11 +154,11 @@ catch {
 }
 
 # Download the JoinDomainAtFirstLogin.ps1 script from github
-Write-Host -ForegroundColor green "  Zed says: downloading the JoinDomainAtFirstLogin.ps1 script from ezCloudDeploy github..."
+Write-Host -ForegroundColor Cyan "  Zed says: downloading the JoinDomainAtFirstLogin.ps1 script from ezCloudDeploy github..."
 try {
     $JoinDomainAtFirstLoginResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/101_Windows_PostOOBE_JoinDomainAtFirstLogin.ps1" -UseBasicParsing 
     $JoinDomainAtFirstLoginScript = $JoinDomainAtFirstLoginResponse.content
-    Write-Host -ForegroundColor green "  Zed says: Saving the AD Join script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1"
+    Write-Host -ForegroundColor Cyan "  Zed says: Saving the AD Join script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1"
     $JoinDomainAtFirstLoginScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1"
     $JoinDomainAtFirstLoginScript | Out-File -FilePath $JoinDomainAtFirstLoginScriptPath -Encoding UTF8
     }
@@ -167,13 +167,13 @@ catch {
 }
 
 # Set the unattend.xml file in the offline registry
-Write-Host -ForegroundColor green "  Zed says: Setting the unattend.xml file in the offline registry"
+Write-Host -ForegroundColor Cyan "  Zed says: Setting the unattend.xml file in the offline registry"
 reg load HKLM\TempSYSTEM "C:\Windows\System32\Config\SYSTEM"
 reg add HKLM\TempSYSTEM\Setup /v UnattendFile /d $unattendPath /f
 reg unload HKLM\TempSYSTEM
 
 # Use Start-OOBEDeploy to remove the following apps in the later OOBE phase: CommunicationsApps,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
-Write-Host -ForegroundColor green "  Zed says: Use Start-OOBEDeploy to remove the following apps in the later OOBE phase: CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
+Write-Host -ForegroundColor Cyan "  Zed says: Use Start-OOBEDeploy to remove the following apps in the later OOBE phase: CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
 Start-OOBEDeploy -RemoveAppx CommunicationsApps,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo
 
 #And stop the transcript.

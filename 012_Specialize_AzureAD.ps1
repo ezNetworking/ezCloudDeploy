@@ -7,7 +7,7 @@ Write-Host -ForegroundColor Cyan "==============================================
 Write-Host -ForegroundColor Cyan "                    Azure AD Deployment Script"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host ""
-Write-Host -ForegroundColor green "  Zed says: Let's check if the folders exist, if not create them"
+Write-Host -ForegroundColor Cyan "  Zed says: Let's check if the folders exist, if not create them"
 # Check if folder exist, if not create them
 $folders = "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
 foreach ($folder in $folders) {
@@ -25,18 +25,18 @@ foreach ($folder in $folders) {
 }
 
 # Start transcript to c:\ezNetworking\Automation\ezCloudDeploy\Logs\ezCloudDeploy_Specialize_AzureAD.log
-Write-Host -ForegroundColor green "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_Specialize_AzureAD.log"
+Write-Host -ForegroundColor Cyan "  Zed says: Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_Specialize_AzureAD.log"
 $transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_Specialize_AzureAD.log"
 Start-Transcript -Path $transcriptPath
 
 # Setup
-Write-Host -ForegroundColor green "  Zed says: Let's setup the OSD environment"
+Write-Host -ForegroundColor Cyan "  Zed says: Let's setup the OSD environment"
 #Set-ExecutionPolicy RemoteSigned -Force # Was unable to set that
 # Install-Module OSD -Force # Was already installed
 Import-Module OSD -Force
 
 # Copy ezCloudDeploy.exe to c:\ezNetworking\Automation\ezCloudDeploy\Scripts
-Write-Host -ForegroundColor green "  Zed says: Copying ezCloudDeploy.exe to c:\ezNetworking\Automation\ezCloudDeploy\Scripts"
+Write-Host -ForegroundColor Cyan "  Zed says: Copying ezCloudDeploy.exe to c:\ezNetworking\Automation\ezCloudDeploy\Scripts"
 Copy-Item -Path "x:\OSDCloud\config\scripts\startup\ezCloudDeploy.exe" -Destination "c:\ezNetworking\Automation\ezCloudDeploy\ezCloudDeploy.exe" -Force
 $WshShell = New-Object -comObject WScript.Shell
 $Shortcut = $WshShell.CreateShortcut("c:\Windows\System32\ezCloudDeploy.lnk")
@@ -45,12 +45,12 @@ $Shortcut.Save()
 
 # Ask user for the computer name and ezRmmId
 Write-Host "========================================================================================="
-Write-Host -ForegroundColor green "  Zed Needs to know the ez RMM Customer ID."
+Write-Host -ForegroundColor Cyan "  Zed Needs to know the ez RMM Customer ID."
 $ezRmmId = Read-Host "  Enter the ez RMM Customer ID: "
 Write-Host "========================================================================================="
 
 # Create a json config file with the ezRmmId
-Write-Host -ForegroundColor green "  Zed says: Creating a json config file with the ezRmmId"
+Write-Host -ForegroundColor Cyan "  Zed says: Creating a json config file with the ezRmmId"
 $ezClientConfig = @{
     ezRmmId = $ezRmmId
 }
@@ -58,11 +58,11 @@ $ezClientConfig | ConvertTo-Json | Out-File -FilePath "C:\ezNetworking\Automatio
 
 Write-Host "========================================================================================="
 # Download the DefaultAppsAndOnboard.ps1 script from github
-Write-Host -ForegroundColor green "  Zed says: Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
+Write-Host -ForegroundColor Cyan "  Zed says: Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
 try {
     $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/111_Windows_PostOS_DefaultAppsAndOnboard.ps1" -UseBasicParsing 
     $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
-    Write-Host -ForegroundColor green "  Zed says: Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
+    Write-Host -ForegroundColor Cyan "  Zed says: Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
     $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
     $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
 }
