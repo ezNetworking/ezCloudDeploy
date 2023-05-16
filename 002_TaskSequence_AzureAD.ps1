@@ -212,10 +212,11 @@ This script prompts the user to input the computer name.
 .EXAMPLE
 002_TaskSequence_AzureAD.ps1 -ComputerName "CUST-SITE-DTxx" -ezRmmId 123456789
 
-This command configures a Windows 10/11 image with Local AD on a computer named "MyComputer01". 
-It removes the default apps CommunicationsApps, OfficeHub, People, Skype, Solitaire, Xbox, ZuneMusic, and ZuneVideo.
+This command configures a Windows 11 22H2 Pro image with Azure AD on a computer named "MyComputer01" and installs the ez RMM tool. 
+It loads an OOBE.XML for region and KBD settings and removes the default apps CommunicationsApps, OfficeHub, People, Skype, Solitaire, Xbox, ZuneMusic, and ZuneVideo.
+Then sets up OOBE Azure GUI (ezAutopilot.cmd) and ezOnboard.cmd which you can launch doing Shift + F10 at the OOBE screen.
 
 .NOTES
 Author: Jurgen Verhelst | ez Networking | www.ez.be
-Modules Used: @Segura: OSD, AutopilotOOBE @
+Modules Used: @Segura: OSD, AutopilotOOBE @WindosNZ: BurntToast
 #>
