@@ -139,44 +139,22 @@ set path=%path%;C:\Program Files\WindowsPowerShell\Scripts
 :: Open and Minimize a PowerShell instance just in case
 start PowerShell -NoL -W Mi
 
-:: Install the latest OSD Module
+:: Install the latest OSD and AutopilotOOBE Modules
 start "Install-Module OSD" /wait PowerShell -NoL -C Install-Module OSD -Force -Verbose
+start "Install-Module AutopilotOOBE" /wait PowerShell -NoL -C Install-Module AutopilotOOBE -Force -Verbose
+
+:: Start ez Onboarding
+start "ez Onboarding" PowerShell -NoL -C "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
 
 :: Start-OOBEDeploy
 start "Start-OOBEDeploy" PowerShell -NoL -C Start-OOBEDeploy -AddNetFX3 -UpdateDrivers -UpdateWindows -removeappx "CommunicationsApps","OfficeHub","People","Skype","Solitaire","Xbox","ZuneMusic","ZuneVideo"
 
-exit
-'@
-$SetCommand | Out-File -FilePath "C:\Windows\ezDeploy.cmd" -Encoding ascii -Force
-
-
-$SetCommand = @'
-@echo off
-
-:: Set the PowerShell Execution Policy
-PowerShell -NoL -Com Set-ExecutionPolicy RemoteSigned -Force
-
-:: Add PowerShell Scripts to the Path
-set path=%path%;C:\Program Files\WindowsPowerShell\Scripts
-
-:: Open and Minimize a PowerShell instance just in case
-start PowerShell -NoL -W Mi
-
-:: Install the latest AutopilotOOBE Module
-start "Install-Module AutopilotOOBE" /wait PowerShell -NoL -C Install-Module AutopilotOOBE -Force -Verbose
-
 :: Start-AutopilotOOBE
-:: There are multiple example lines. Make sure only one is uncommented
-:: The next line assumes that you have a configuration saved in C:\ProgramData\OSDeploy\OSDeploy.AutopilotOOBE.json
-REM start "Start-AutopilotOOBE" PowerShell -NoL -C Start-AutopilotOOBE
-:: The next line is how you would apply a CustomProfile
-REM start "Start-AutopilotOOBE" PowerShell -NoL -C Start-AutopilotOOBE -CustomProfile OSDeploy
-:: The next line is how you would configure everything from the command line
-start "Start-AutopilotOOBE" PowerShell -NoL -C Start-AutopilotOOBE -Title 'ez Cloud Deploy Autopilot Reg' -GroupTag Win-Autopilot01 -Assign
+start "Start-AutopilotOOBE" PowerShell -NoL -C Start-AutopilotOOBE -Title 'ez Cloud Deploy Autopilot Reg' -GroupTag Win-Autopilot01 -Assign -AssignedComputerName $computerName
 
 exit
 '@
-$SetCommand | Out-File -FilePath "C:\Windows\ezAutopilot.cmd" -Encoding ascii -Force
+$SetCommand | Out-File -FilePath "C:\Windows\ezOOBE.cmd" -Encoding ascii -Force
 
 #And stop the transcript.
 Stop-Transcript
