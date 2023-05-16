@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FirstExperience>
+    <oobe>
+        <oem>
+            <name>ez Networking</name>
+            <computername>$Computername</computername>
+        </oem>
+        <defaults>
+            <language>1033</language>
+            <location>21</location>
+            <locale>2067</locale>
+            <keyboard>0813:00000813</keyboard>
+            <timezone>Romance Standard Time</timezone>
+            <adjustForDST>true</adjustForDST>
+            <hideRegionalSettings>true</hideRegionalSettings>
+            <hideTimeAndDate>true</hideTimeAndDate>
+        </defaults>
+    </oobe>
+</FirstExperience>
