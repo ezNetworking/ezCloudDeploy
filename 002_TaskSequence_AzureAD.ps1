@@ -2,8 +2,18 @@ Write-Host -ForegroundColor DarkCyan "==========================================
 Write-Host -ForegroundColor Cyan "             Azure AD Deployment Task Sequence (Win11 22H2 Pro en-US Retail)"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
+
 Write-Host -ForegroundColor DarkCyan "========================================================================================="
-Write-Host -ForegroundColor DarkCyan "                                # 1. OS Install"
+Write-Host -ForegroundColor DarkCyan "                                # 1. Parameters"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Cyan ""
+# Ask user for the computer name and ezRmmId
+Write-Host -ForegroundColor Yellow "  Zed Needs to know the Computer name and ez RMM Customer ID."
+$computerName = Read-Host "  Enter the computer name"
+$ezRmmId = Read-Host "  Enter the ez RMM Customer ID"
+
+Write-Host -ForegroundColor DarkCyan "========================================================================================="
+Write-Host -ForegroundColor DarkCyan "                                # 2. OS Install"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
 # Block the script from running on Windows pre w10 and PowerShell pre v5
@@ -12,7 +22,7 @@ Block-WindowsVersionNe10
 Block-PowerShellVersionLt5
 
 #Install-Module OSD -Force
-Write-Host -ForegroundColor Cyan "  # Installing Modules and starting OS Deploy"
+Write-Host -ForegroundColor White "  # Installing Modules and starting OS Deploy"
 Import-Module OSD -Force
 Import-Module AutopilotOOBE -Force
 $Params = @{
@@ -30,11 +40,11 @@ $Params = @{
 Start-OSDCloud @Params
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "                                Section: 2. Specialize"
+Write-Host -ForegroundColor Cyan "                                Section: 3. Specialize"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
 
-Write-Host -ForegroundColor Cyan "  # Let's check if the folders exist, if not create them"
+Write-Host -ForegroundColor White "  # Let's check if the folders exist, if not create them"
 $folders = "c:\programdata\osdeploy", "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
 foreach ($folder in $folders) {
     if (!(Test-Path $folder)) {
@@ -45,12 +55,12 @@ foreach ($folder in $folders) {
             Write-Error "  # $folder already exists or you don't have the rights to create it"
         }    }
     else {
-        Write-Host -ForegroundColor White "  # $folder already exists"
+        Write-Host -ForegroundColor Gray "  # $folder already exists"
     }
 }
 
 # Start transcript to c:\ezNetworking\Automation\ezCloudDeploy\Logs\ezCloudDeploy_TaskSequence_AzureAD.log
-Write-Host -ForegroundColor Cyan "  # Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
+Write-Host -ForegroundColor White "  # Let's start the transcript to c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
 $transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
 Start-Transcript -Path $transcriptPath
 
@@ -75,12 +85,24 @@ $Params = @{
 Start-OOBEDeploy @Params
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "                                Section 3. OOBE prep"
+Write-Host -ForegroundColor Cyan "                                Section 4. OOBE prep"
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan ""
+Write-Host ""
+
+Write-Host -ForegroundColor White "  Zed says: Downloading the OOBE.xml script from ezCloudDeploy."
+try {
+    $OOBEDefaultXMLResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/OOBE.xml" -UseBasicParsing 
+    $OOBEDefaultXMLScript = $OOBEDefaultXMLResponse.content
+    $OOBEDefaultXMLScriptPath = "c:\Windows\System32\Oobe\Info\Oobe.xml"
+    Write-Host -ForegroundColor Gray "  Zed says: Saving the Onboard script to $OOBEDefaultXMLScriptPath"
+    $OOBEDefaultXMLScript | Out-File -FilePath $OOBEDefaultXMLScriptPath -Encoding UTF8
+}
+catch {
+    Write-Error "  Zed says: I was unable to download the OOBEDefaultXMLScript script."
+}
 
 
-Write-Host -ForegroundColor Cyan "  # Creating shortcusts to the ezCloudDeploy scripts"
+Write-Host -ForegroundColor White "  # Creating shortcusts to the ezCloudDeploy scripts"
 $SetCommand = @'
 @echo off
 
