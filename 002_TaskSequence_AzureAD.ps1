@@ -219,7 +219,7 @@ Write-Warning "    If you do see errors, please check the log file at $transcrip
 Write-Warning "  ========================================================================================="
 Read-Host -Prompt "            Press any key to shutdown this Computer"
 
-Stop-Computer -Force
+#Stop-Computer -Force
 
 <#
 .SYNOPSIS
