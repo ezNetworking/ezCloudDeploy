@@ -64,7 +64,7 @@ Write-Host -ForegroundColor White "  # Let's start the transcript to c:\ezNetwor
 $transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
 Start-Transcript -Path $transcriptPath
 
-Write-Host -ForegroundColor Cyan "  # Configuring OOBE with Azure AD"
+Write-Host -ForegroundColor White "  # Configuring OOBE with Azure AD"
 $Params = @{
     Title = 'ez Cloud Deploy Autopilot'
     GroupTag = 'Enterprise'
@@ -75,7 +75,7 @@ $Params = @{
 AutopilotOOBE @Params
 
 
-Write-Host -ForegroundColor Cyan "  # Configuring OOBE Apps Removal, Driver and Windows Update"
+Write-Host -ForegroundColor White "  # Configuring OOBE Apps Removal, Driver and Windows Update"
 $Params = @{
     Autopilot = $false
     RemoveAppx = "CommunicationsApps","OfficeHub","People","Skype","Solitaire","Xbox","ZuneMusic","ZuneVideo"
@@ -90,7 +90,7 @@ Write-Host -ForegroundColor Cyan "==============================================
 Write-Host ""
 
 # Put our OOBE xml template for Local AD OOBE in a variable
-Write-Host -ForegroundColor Cyan "  Zed says: Updating our OOBE xml for Local AD OOBE (no online useraccount page)"
+Write-Host -ForegroundColor White "  Zed says: Updating our OOBE xml for Region, Language, Keyboard, Timezone, etc."
 $OobeXml = @"
 <?xml version="1.0" encoding="utf-8"?>
 <FirstExperience>
