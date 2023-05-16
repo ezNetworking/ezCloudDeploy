@@ -7,15 +7,18 @@ Write-Host -ForegroundColor Cyan "==============================================
 Write-Host -ForegroundColor Cyan "                                1. Parameters"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
+
 # Ask user for the computer name and ezRmmId
 Write-Host -ForegroundColor Yellow "  Zed Needs to know the Computer name and ez RMM Customer ID."
 $computerName = Read-Host "  Enter the computer name"
 $ezRmmId = Read-Host "  Enter the ez RMM Customer ID"
+Write-Host -ForegroundColor Cyan ""
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan "                                2. OS Install"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
+
 # Block the script from running on Windows pre w10 and PowerShell pre v5
 Block-WinOS
 Block-WindowsVersionNe10
@@ -37,7 +40,7 @@ $Params = @{
     Screenshot = $true 
     Restart = $false   
 }
-Start-OSDCloud @Params
+Start-OSDCloud @Params | ECHO Y 
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan "                                Section: 3. Specialize"
@@ -45,7 +48,7 @@ Write-Host -ForegroundColor Cyan "==============================================
 Write-Host -ForegroundColor Cyan ""
 
 Write-Host -ForegroundColor White "  Z: Let's check if the folders exist, if not create them"
-$folders = "c:\System32\Oobe\Info", "c:\System32\Oobe\Info\Default", "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
+$folders = "c:\Windows\System32\Oobe\Info", "c:\windows\System32\Oobe\Info\Default", "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
 foreach ($folder in $folders) {
     if (!(Test-Path $folder)) {
         try {
