@@ -1,10 +1,10 @@
-Write-Host -ForegroundColor DarkCyan "========================================================================================="
+Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan "             Azure AD Deployment Task Sequence (Win11 22H2 Pro en-US Retail)"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
 
-Write-Host -ForegroundColor DarkCyan "========================================================================================="
-Write-Host -ForegroundColor DarkCyan "                                # 1. Parameters"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Cyan "                                # 1. Parameters"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
 # Ask user for the computer name and ezRmmId
@@ -12,8 +12,8 @@ Write-Host -ForegroundColor Yellow "  Zed Needs to know the Computer name and ez
 $computerName = Read-Host "  Enter the computer name"
 $ezRmmId = Read-Host "  Enter the ez RMM Customer ID"
 
-Write-Host -ForegroundColor DarkCyan "========================================================================================="
-Write-Host -ForegroundColor DarkCyan "                                # 2. OS Install"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Cyan "                                # 2. OS Install"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
 # Block the script from running on Windows pre w10 and PowerShell pre v5
@@ -89,20 +89,43 @@ Write-Host -ForegroundColor Cyan "                                Section 4. OOB
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host ""
 
-Write-Host -ForegroundColor White "  Zed says: Downloading the OOBE.xml script from ezCloudDeploy."
+# Put our OOBE xml template for Local AD OOBE in a variable
+Write-Host -ForegroundColor Cyan "  Zed says: Updating our OOBE xml for Local AD OOBE (no online useraccount page)"
+$OobeXml = @"
+<?xml version="1.0" encoding="utf-8"?>
+<FirstExperience>
+    <oobe>
+        <oem>
+            <name>ez Networking</name>
+            <computername>$Computername</computername>
+        </oem>
+        <defaults>
+            <language>1033</language>
+            <location>21</location>
+            <locale>2067</locale>
+            <keyboard>0813:00000813</keyboard>
+            <timezone>Romance Standard Time</timezone>
+            <adjustForDST>true</adjustForDST>
+            <hideRegionalSettings>true</hideRegionalSettings>
+            <hideTimeAndDate>true</hideTimeAndDate>
+        </defaults>
+    </oobe>
+</FirstExperience>
+"@
+
+# Write the updated unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\
+Write-Host -ForegroundColor White "  Zed says: Writing the OOBE.xml file to c:\Windows\System32\Oobe\Info\Oobe.xml"
+$OobeXMLPath = "c:\Windows\System32\Oobe\Info\Oobe.xml"
 try {
-    $OOBEDefaultXMLResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/OOBE.xml" -UseBasicParsing 
-    $OOBEDefaultXMLScript = $OOBEDefaultXMLResponse.content
-    $OOBEDefaultXMLScriptPath = "c:\Windows\System32\Oobe\Info\Oobe.xml"
-    Write-Host -ForegroundColor Gray "  Zed says: Saving the Onboard script to $OOBEDefaultXMLScriptPath"
-    $OOBEDefaultXMLScript | Out-File -FilePath $OOBEDefaultXMLScriptPath -Encoding UTF8
+    $OobeXml | Out-File -FilePath $OobeXMLPath -Encoding UTF8
+    
 }
 catch {
-    Write-Error "  Zed says: I was unable to download the OOBEDefaultXMLScript script."
+    Write-Error "  Zed says: $OobeXMLPath already exists or you don't have the rights to create it"
 }
 
 
-Write-Host -ForegroundColor White "  # Creating shortcusts to the ezCloudDeploy scripts"
+Write-Host -ForegroundColor White "  # Creating shortcusts to the ezCloudDeploy OOBE and AutoPilot scripts"
 $SetCommand = @'
 @echo off
 
