@@ -189,12 +189,13 @@ Write-Host -ForegroundColor Cyan "==============================================
 Write-Host -ForegroundColor Cyan ""
 
 Write-Warning "  ========================================================================================="
-Write-Warning "  # I'm done mate! If you do not see any errors above you can shut down this PC and deliver it onsite."
-Write-Warning "    First Boot at Customer: Once logged in a Domain Join Gui will be displayed and in the background,"
-Write-Warning "    the default apps will be installed, so make sure the network cable is plugged in."
-Write-Warning "    If you do see errors, please check the log file at $transcriptPath and fix the errors."
+Write-Warning "  I'm done mate! If you do not see any errors above you can shut down this PC and deliver"
+Write-Warning "  it onsite."
+Write-Warning "  First Boot at Customer: The OOBE should be limited to logging in using M365 creds now. "
+Write-Warning "  The default apps will be installed, so make sure the network cable is plugged in."
+Write-Warning "  If you do see errors, please check the log file at $transcriptPath and fix the errors."
 Write-Warning "  ========================================================================================="
-Read-Host -Prompt "            Press any key to shutdown this Computer"
+#Read-Host -Prompt "            Press any key to shutdown this Computer"
 
 #Stop-Computer -Force
 
