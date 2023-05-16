@@ -40,7 +40,7 @@ $Params = @{
     Screenshot = $true 
     Restart = $false   
 }
-Start-OSDCloud @Params | ECHO Y 
+Start-OSDCloud @Params
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan "                                Section: 3. Specialize"
