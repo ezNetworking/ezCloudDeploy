@@ -35,7 +35,6 @@ $Params = @{
     OSLicense = "Retail"
     SkipAutopilot = $true
     SkipODT = $true
-    Firmware = $true
     Screenshot = $true 
     Restart = $false   
 }
@@ -85,27 +84,6 @@ try {
 catch {
     Write-Error "  Zed says: I was unable to download the DefaultAppsAndOnboardScript script."
 }
-
-start "Install-Module OSD" /wait PowerShell -NoL -C Install-Module OSD -Force -Verbose
-Write-Host -ForegroundColor White "  # Configuring OOBE with Azure AD"
-$Params = @{
-    Title = 'ez Cloud Deploy Autopilot'
-    GroupTag = 'Enterprise'
-    GroupTagOptions = 'Development','Enterprise'
-    Assign = $true
-    Run = 'NetworkingWireless'
-}
-AutopilotOOBE @Params
-
-
-Write-Host -ForegroundColor White "  # Configuring OOBE Apps Removal, Driver and Windows Update"
-$Params = @{
-    Autopilot = $false
-    RemoveAppx = "CommunicationsApps","OfficeHub","People","Skype","Solitaire","Xbox","ZuneMusic","ZuneVideo"
-    UpdateDrivers = $true
-    UpdateWindows = $true
-}
-Start-OOBEDeploy @Params
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan "                                Section 4. OOBE prep"
