@@ -23,7 +23,9 @@ Block-PowerShellVersionLt5
 
 #Install-Module OSD -Force
 Write-Host -ForegroundColor White "  # Installing Modules and starting OS Deploy"
+Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 Import-Module OSD -Force
+Install-Module autopilotOOBE -Force
 Import-Module AutopilotOOBE -Force
 $Params = @{
     OSVersion = "Windows 11"
