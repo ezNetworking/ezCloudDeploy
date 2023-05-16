@@ -66,6 +66,27 @@ Write-Host -ForegroundColor White "  # Let's start the transcript to c:\ezNetwor
 $transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
 Start-Transcript -Path $transcriptPath
 
+# Create a json config file with the ezRmmId
+Write-Host -ForegroundColor White "  Zed says: Creating a json config file with the ezRmmId"
+$ezClientConfig = @{
+    ezRmmId = $ezRmmId
+}
+$ezClientConfig | ConvertTo-Json | Out-File -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" -Encoding UTF8
+
+# Download the DefaultAppsAndOnboard.ps1 script from github
+Write-Host -ForegroundColor White "  Zed says: Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
+try {
+    $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/111_Windows_PostOS_DefaultAppsAndOnboard.ps1" -UseBasicParsing 
+    $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
+    Write-Host -ForegroundColor Cyan "  Zed says: Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
+    $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
+    $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
+}
+catch {
+    Write-Error "  Zed says: I was unable to download the DefaultAppsAndOnboardScript script."
+}
+
+
 Write-Host -ForegroundColor White "  # Configuring OOBE with Azure AD"
 $Params = @{
     Title = 'ez Cloud Deploy Autopilot'
