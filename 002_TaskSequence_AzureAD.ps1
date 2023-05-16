@@ -86,7 +86,7 @@ catch {
     Write-Error "  Zed says: I was unable to download the DefaultAppsAndOnboardScript script."
 }
 
-
+start "Install-Module OSD" /wait PowerShell -NoL -C Install-Module OSD -Force -Verbose
 Write-Host -ForegroundColor White "  # Configuring OOBE with Azure AD"
 $Params = @{
     Title = 'ez Cloud Deploy Autopilot'
