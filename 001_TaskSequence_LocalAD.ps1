@@ -44,7 +44,7 @@ $Params = @{
 Start-OSDCloud @Params
 Write-Host -ForegroundColor Gray "========================================================================================="
 # Start transcript
-$transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
+$transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_LocalAD.log"
 Start-Transcript -Path $transcriptPath
 Write-Host -ForegroundColor Gray "========================================================================================="
 Write-Host ""
@@ -245,7 +245,7 @@ starts OOBEDeploy with the customized unattend.xml file, and removes specified d
 This script prompts the user to input the computer name.
 
 .EXAMPLE
-002_TaskSequence_AzureAD.ps1 -ComputerName "CUST-SITE-DTxx" -ezRmmId 123456789
+002_TaskSequence_LocalAD.ps1 -ComputerName "CUST-SITE-DTxx" -ezRmmId 123456789
 
 This command configures a Windows 11 22H2 Pro image with Local AD on a computer named "MyComputer01" and installs the ez RMM tool. 
 It loads an OOBE.XML for region and KBD settings and removes the default apps CommunicationsApps, OfficeHub, People, Skype, Solitaire, Xbox, ZuneMusic, and ZuneVideo.
