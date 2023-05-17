@@ -1,4 +1,5 @@
 Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted
+Install-Module OSD
 Install-Module burnttoast
 Import-Module burnttoast
 
@@ -13,7 +14,21 @@ $Splat = @{
 }
 New-BurntToastNotification @splat 
 
+
+
 Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_111_Windows_PostOS_DefaultAppsAndOnboard.log"
+
+# Use Start-OOBEDeploy to remove the following apps
+Write-Host -ForegroundColor Cyan "  Zed says: Use Start-OOBEDeploy to remove apps and update Windows "
+Write-Host -ForegroundColor Cyan "            CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
+$Params = @{
+    Autopilot = $false
+    RemoveAppx = "CommunicationsApps","OfficeHub","People","Skype","Solitaire","Xbox","ZuneMusic","ZuneVideo"
+    UpdateDrivers = $true
+    UpdateWindows = $true
+}
+Start-OOBEDeploy @Params
+
 # Install Choco and minimal default packages
 write-host "1._____________________________________________________________"
 write-host " Zed says: Installing Chocolatey"
