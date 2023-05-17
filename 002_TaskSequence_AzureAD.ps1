@@ -40,6 +40,7 @@ $Params = @{
     SkipODT = $true
     Screenshot = $true 
     Restart = $false   
+    ZTI = $true
 }
 Start-OSDCloud @Params
 
