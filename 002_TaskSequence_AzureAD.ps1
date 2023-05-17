@@ -167,7 +167,7 @@ Write-Warning "  ===============================================================
 Write-Warning "  I'm done mate! If you don't see any errors above you can reboot the pc and wait for OOBE."
 Write-Warning "  the OOBE to boot. Then press Shift + F10 to open a command prompt and type:"
 Write-Warning "                           ezOOBE.cmd "
-Write-Warning "  Default apps isntall, onboard ez RMM, remove MS home apps and start the Autopilot GUI."
+Write-Warning "  Default apps install, onboard ez RMM, remove MS home apps and start the Autopilot GUI."
 Write-Warning "  ========================================================================================="
 Write-Host " "
 Write-Warning "  If you do see errors, please check the log file at $transcriptPath."
