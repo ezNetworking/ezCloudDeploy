@@ -15,8 +15,9 @@ $Splat = @{
 New-BurntToastNotification @splat 
 
 
-
+Write-Host -ForegroundColor Gray "========================================================================================="
 Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_111_Windows_PostOS_DefaultAppsAndOnboard.log"
+Write-Host -ForegroundColor Gray "========================================================================================="
 
 # Use Start-OOBEDeploy to remove the following apps
 Write-Host -ForegroundColor Cyan "  Zed says: Use Start-OOBEDeploy to remove apps and update Windows "
@@ -30,7 +31,7 @@ $Params = @{
 Start-OOBEDeploy @Params
 
 # Install Choco and minimal default packages
-write-host "1._____________________________________________________________"
+Write-Host -ForegroundColor Gray "========================================================================================="
 write-host " Zed says: Installing Chocolatey"
 
 try {
@@ -46,8 +47,7 @@ write-host " Zed says: Installing Chocolatey packages"
 choco install googlechrome -y
 choco install treesizefree -y
 choco install tailblazer -y
-
-write-host "2._____________________________________________________________"
+Write-Host -ForegroundColor Gray "========================================================================================="
 
 # Install ezRmm and ezRS
 write-host " Zed says: reading the ezClientConfig.json file"
@@ -72,7 +72,7 @@ catch {
     Write-Error " Zed says: ezRmm is already installed or had an error $($_.Exception.Message)"
 }
 
-write-host "3._____________________________________________________________"
+Write-Host -ForegroundColor Gray "========================================================================================="
 write-host " Zed says: Downloading and installing ezRS"
 write-host " Zed says: Downloading ezRmmInstaller.msi and installing it"
 $Splat = @{
@@ -90,8 +90,8 @@ try {
 catch {
     Write-Error " Zed says: ezRS is already installed or had an error $($_.Exception.Message)"
 }
+Write-Host -ForegroundColor Gray "========================================================================================="
 
-Stop-Transcript
 
 $Time = Get-date -Format t
 $Splat = @{
@@ -100,14 +100,15 @@ $Splat = @{
     Sound = 'IM'
 }
 New-BurntToastNotification @splat 
+Stop-Transcript
 
 <#
 .SYNOPSIS
-Installes Chocolatey and minimal default packages and onboards the computer to ezRmm.
+Installs Chocolatey and minimal default packages and onboards the computer to ezRmm.
 
 .DESCRIPTION
 This script installs Chocolatey and minimal default packages. It reads the ezClientConfig.json and onboards the computer to ezRmm.
-
+It also removes Windows Consumer Apps and updates Windows.
 .NOTES
 Author: Jurgen Verhelst | ez Networking | www.ez.be
 #>

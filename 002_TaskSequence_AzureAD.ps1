@@ -14,6 +14,7 @@ $computerName = Read-Host "  Enter the computer name"
 $ezRmmId = Read-Host "  Enter the ez RMM Customer ID"
 Write-Host -ForegroundColor Cyan ""
 
+#region OS Install
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan "                                2. OS Install"
 Write-Host -ForegroundColor Cyan "========================================================================================="
@@ -25,7 +26,7 @@ Block-WindowsVersionNe10
 Block-PowerShellVersionLt5
 
 #Install-Module OSD -Force
-Write-Host -ForegroundColor White "  Z: Installing Modules and starting OS Deploy"
+Write-Host -ForegroundColor White "Z> Installing Modules and starting OS Deploy"
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 Import-Module OSD -Force
 
@@ -42,12 +43,22 @@ $Params = @{
 }
 Start-OSDCloud @Params
 
+Write-Host -ForegroundColor Gray "========================================================================================="
+# Start transcript
+$transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
+Start-Transcript -Path $transcriptPath
+Write-Host -ForegroundColor Gray "========================================================================================="
+Write-Host ""
+#endregion
+
+#region Specialize
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan "                                Section: 3. Specialize"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
 
-Write-Host -ForegroundColor White "  Z: Let's check if the folders exist, if not create them"
+Write-Host -ForegroundColor Gray "========================================================================================="
+Write-Host -ForegroundColor White "Z> Let's check if the folders exist, if not create them"
 $folders = "c:\Windows\System32\Oobe\Info", "c:\windows\System32\Oobe\Info\Default", "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
 foreach ($folder in $folders) {
     if (!(Test-Path $folder)) {
@@ -55,44 +66,49 @@ foreach ($folder in $folders) {
             New-Item -ItemType Directory -Path $folder | Out-Null    
         }
         catch {
-            Write-Error "  Z: $folder already exists or you don't have the rights to create it"
+            Write-Error "Z> $folder already exists or you don't have the rights to create it"
         }    }
     else {
-        Write-Host -ForegroundColor Gray "  Z: $folder already exists"
+        Write-Host -ForegroundColor Gray "Z> $folder already exists"
     }
 }
 
-# Start transcript
-$transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
-Start-Transcript -Path $transcriptPath
-
 # Create a json config file with the ezRmmId
-Write-Host -ForegroundColor White "  Z: Creating a json config file with the ezRmmId"
+Write-Host -ForegroundColor Gray "========================================================================================="
+Write-Host -ForegroundColor White "Z> Creating a json config file with the ezRmmId"
 $ezClientConfig = @{
     ezRmmId = $ezRmmId
 }
 $ezClientConfig | ConvertTo-Json | Out-File -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" -Encoding UTF8
+Write-Host -ForegroundColor Gray "========================================================================================="
+Write-Host ""
 
 # Download the DefaultAppsAndOnboard.ps1 script from github
-Write-Host -ForegroundColor White " Z: Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
+Write-Host -ForegroundColor Gray "========================================================================================="
+Write-Host -ForegroundColor White "Z> Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
 try {
     $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/111_Windows_PostOS_DefaultAppsAndOnboard.ps1" -UseBasicParsing 
     $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
-    Write-Host -ForegroundColor Gray  "  Z: Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
+    Write-Host -ForegroundColor Gray  "Z> Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
     $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
     $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
 }
 catch {
-    Write-Error  "  Z: I was unable to download the DefaultAppsAndOnboardScript script."
+    Write-Error  "Z> I was unable to download the DefaultAppsAndOnboardScript script."
 }
+Write-Host -ForegroundColor Gray "========================================================================================="
+Write-Host ""
+#endregion
 
+#region OOBE
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan "                                Section 4. OOBE prep"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host ""
 
 # Put our OOBE xml template for Local AD OOBE in a variable
-Write-Host -ForegroundColor White  "  Z: Updating our OOBE xml for Region, Language, Keyboard, Timezone, etc."
+Write-Host -ForegroundColor Gray "========================================================================================="
+Write-Host -ForegroundColor White  "Z> Updating our OOBE xml for Region, Language, Keyboard, Timezone, etc."
 $OobeXml = @"
 <?xml version="1.0" encoding="utf-8"?>
 <FirstExperience>
@@ -115,18 +131,18 @@ $OobeXml = @"
 </FirstExperience>
 "@
 
-Write-Host -ForegroundColor White  "  Z: Writing the OOBE.xml file to c:\Windows\System32\Oobe\Info\Oobe.xml"
+Write-Host -ForegroundColor White  "Z> Writing the OOBE.xml file to c:\Windows\System32\Oobe\Info\Oobe.xml"
 $OobeXMLPath = "c:\Windows\System32\Oobe\Info\Oobe.xml"
 try {
     $OobeXml | Out-File -FilePath $OobeXMLPath -Encoding UTF8
     
 }
 catch {
-    Write-Error  "  Z: $OobeXMLPath already exists or you don't have the rights to create it"
+    Write-Error  "Z> $OobeXMLPath already exists or you don't have the rights to create it"
 }
 
-
-Write-Host -ForegroundColor White "  Z: Creating shortcusts to the ezCloudDeploy OOBE and AutoPilot scripts"
+Write-Host -ForegroundColor Gray "========================================================================================="
+Write-Host -ForegroundColor White "Z> Creating shortcusts to the ezCloudDeploy OOBE and AutoPilot scripts"
 $SetCommand = @'
 @echo off
 
@@ -151,10 +167,16 @@ start "Start-AutopilotOOBE" PowerShell -NoL -C Start-AutopilotOOBE -Title 'ez Cl
 
 exit
 '@
+$SetCommand
 $SetCommand | Out-File -FilePath "C:\Windows\ezOOBE.cmd" -Encoding ascii -Force
+Write-Host -ForegroundColor Gray "========================================================================================="
 
 #And stop the transcript.
 Stop-Transcript
+Write-Host -ForegroundColor Gray "========================================================================================="
+Write-Host ""
+#endregion
+
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan "                                Zed's finished!"
 Write-Host -ForegroundColor Cyan "========================================================================================="

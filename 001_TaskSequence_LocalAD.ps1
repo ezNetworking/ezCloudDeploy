@@ -1,3 +1,4 @@
+
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan "             Local AD Deployment Task Sequence (Win11 22H2 Pro en-US Retail)"
 Write-Host -ForegroundColor Cyan "========================================================================================="
@@ -25,7 +26,7 @@ Block-WindowsVersionNe10
 Block-PowerShellVersionLt5
 
 #Install-Module OSD -Force
-Write-Host -ForegroundColor White "  Z: Installing Modules and starting OS Deploy"
+Write-Host -ForegroundColor White "Z> Installing Modules and starting OS Deploy"
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 Import-Module OSD -Force
 
@@ -41,13 +42,21 @@ $Params = @{
     Restart = $false   
 }
 Start-OSDCloud @Params
+Write-Host -ForegroundColor Gray "========================================================================================="
+# Start transcript
+$transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
+Start-Transcript -Path $transcriptPath
+Write-Host -ForegroundColor Gray "========================================================================================="
+Write-Host ""
 
+#region Specialize
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan "                                Section: 3. Specialize"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
+Write-Host -ForegroundColor Gray "========================================================================================="
 
-Write-Host -ForegroundColor White "  Z: Let's check if the folders exist, if not create them"
+Write-Host -ForegroundColor White "Z> Let's check if the folders exist, if not create them"
 $folders = "c:\Windows\System32\Oobe\Info", "c:\windows\System32\Oobe\Info\Default", "c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend", "c:\ezNetworking\Automation\Logs", "c:\ezNetworking\Automation\ezCloudDeploy\Scripts", "C:\ProgramData\OSDeploy"
 foreach ($folder in $folders) {
     if (!(Test-Path $folder)) {
@@ -55,26 +64,23 @@ foreach ($folder in $folders) {
             New-Item -ItemType Directory -Path $folder | Out-Null    
         }
         catch {
-            Write-Error "  Z: $folder already exists or you don't have the rights to create it"
+            Write-Error "Z> $folder already exists or you don't have the rights to create it"
         }    }
     else {
-        Write-Host -ForegroundColor Gray "  Z: $folder already exists"
+        Write-Host -ForegroundColor Gray "Z> $folder already exists"
     }
 }
 
-# Start transcript
-$transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_AzureAD.log"
-Start-Transcript -Path $transcriptPath
-
+Write-Host -ForegroundColor Gray "========================================================================================="
 # Create a json config file with the ezRmmId
-Write-Host -ForegroundColor White "  Z: Creating a json config file with the ezRmmId"
+Write-Host -ForegroundColor White "Z> Creating a json config file with the ezRmmId"
 $ezClientConfig = @{
     ezRmmId = $ezRmmId
 }
 $ezClientConfig | ConvertTo-Json | Out-File -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" -Encoding UTF8
-
+Write-Host -ForegroundColor Gray "========================================================================================="
 # Put our autoUnattend xml template for Local AD OOBE in a variable
-Write-Host -ForegroundColor White "  Z: Updating our Unattend xml for Local AD OOBE (no online useraccount page)"
+Write-Host -ForegroundColor White "Z> Updating our Unattend xml for Local AD OOBE (no online useraccount page)"
 $unattendXml = @"
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend">
@@ -148,22 +154,24 @@ $unattendXml = @"
 "@
 
 # Write the updated unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\
-Write-Host -ForegroundColor White " Z>: Writing the unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\"
+Write-Host -ForegroundColor White "Z>Writing the unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\"
+write-host -ForegroundColor Gray "$unattendXml"
 $unattendPath = "C:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\LocalAdUnattend.xml"
 try {
     $unattendXml | Out-File -FilePath $unattendPath -Encoding UTF8
     
 }
 catch {
-    Write-Error " Z>: $unattendPath already exists or you don't have the rights to create it"
+    Write-Error "Z>$unattendPath already exists or you don't have the rights to create it"
 }
+Write-Host -ForegroundColor Gray "========================================================================================="
 
 # Download the DefaultAppsAndOnboard.ps1 script from github
-Write-Host -ForegroundColor Cyan " Z>: Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
+Write-Host -ForegroundColor Cyan "Z>Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
 try {
     $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/111_Windows_PostOS_DefaultAppsAndOnboard.ps1" -UseBasicParsing 
     $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
-    Write-Host -ForegroundColor Cyan " Z>: Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
+    Write-Host -ForegroundColor Cyan "Z>Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
     $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
     $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
 }
@@ -171,6 +179,7 @@ catch {
     Write-Error " Z> I was unable to download the DefaultAppsAndOnboardScript script."
 }
 
+Write-Host -ForegroundColor Gray "========================================================================================="
 # Download the JoinDomainAtFirstLogin.ps1 script from github
 Write-Host -ForegroundColor Cyan " Z> Downloading the JoinDomainAtFirstLogin GUI."
 try {
@@ -183,14 +192,16 @@ try {
 catch {
     Write-Error " Z> I was unable to download the JoinDomainAtFirstLogin script from github"
 }
-
+Write-Host -ForegroundColor Gray "========================================================================================="
 # Set the unattend.xml file in the offline registry
 Write-Host -ForegroundColor Cyan " Z> Setting the unattend.xml file in the offline registry"
 reg load HKLM\TempSYSTEM "C:\Windows\System32\Config\SYSTEM"
 reg add HKLM\TempSYSTEM\Setup /v UnattendFile /d $unattendPath /f
 reg unload HKLM\TempSYSTEM
+#endregion
 
-
+Write-Host -ForegroundColor Gray "========================================================================================="
+Write-Host ""
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan "                                Section 4. OOBE prep"
 Write-Host -ForegroundColor Cyan "========================================================================================="
@@ -199,8 +210,7 @@ Write-Host ""
 
 
 
-#And stop the transcript.
-Stop-Transcript
+
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan "                                Zed's finished!"
 Write-Host -ForegroundColor Cyan "========================================================================================="
@@ -219,7 +229,8 @@ Write-Host -ForegroundColor Cyan "==============================================
 Read-Host -Prompt "            Press any key to restart this Computer"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Restart-Computer -Force
-
+#And stop the transcript.
+Stop-Transcript
 <#
 .SYNOPSIS
 Configures OOBE with Local Active Directory (AD) and removes specified default apps and sets a domain join GUI to be loaded at first login.
