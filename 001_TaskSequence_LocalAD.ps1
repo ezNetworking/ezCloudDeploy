@@ -189,7 +189,7 @@ Write-Host -ForegroundColor Cyan " Z> Setting the unattend.xml file in the offli
 reg load HKLM\TempSYSTEM "C:\Windows\System32\Config\SYSTEM"
 reg add HKLM\TempSYSTEM\Setup /v UnattendFile /d $unattendPath /f
 reg unload HKLM\TempSYSTEM
-}
+
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan "                                Section 4. OOBE prep"
