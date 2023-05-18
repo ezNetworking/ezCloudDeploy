@@ -40,8 +40,10 @@ $Params = @{
     SkipODT = $true
     Screenshot = $true 
     Restart = $false   
+    ZTI = $true 
 }
 Start-OSDCloud @Params
+
 Write-Host -ForegroundColor Gray "========================================================================================="
 # Start transcript
 $transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_LocalAD.log"
