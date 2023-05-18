@@ -158,18 +158,14 @@ $unattendXml = @"
                         <Description>Customer Local User Account</Description>
                         <DisplayName>Customer Default User</DisplayName>
                         <Name>CustUser</Name>
-                        <Password>
-                            <Value></Value>
-                            <PlainText>true</PlainText>
-                        </Password>
-                        <AutoLogon>
-                            <Enabled>true</Enabled>
-                            <LogonCount>1</LogonCount>
-                            <Username>CustUser</Username>
-                        </AutoLogon>
                     </LocalAccount>
                 </LocalAccounts>
             </UserAccounts>
+            <AutoLogon>
+                <Enabled>true</Enabled>
+                <LogonCount>1</LogonCount>
+                <Username>CustUser</Username>
+            </AutoLogon>
             <RegisteredOrganization>ez Networking</RegisteredOrganization>
             <RegisteredOwner>ezAdminLocal</RegisteredOwner>
             <DisableAutoDaylightTimeSet>false</DisableAutoDaylightTimeSet>
@@ -260,8 +256,7 @@ write-warning "  $transcriptPath."
 Write-Host " "
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host "Press the 'Any' key to restart this computer, CTRL+C to abort"
-Write-Host "No time! I will restart anyway in 30 seconds if no key is pressed"
+Write-Host "Restarting this computer in 30s, press CTRL+C to abort"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Start-Sleep -Seconds 30
 Write-Host -ForegroundColor Yellow "Restarting the computer..."
