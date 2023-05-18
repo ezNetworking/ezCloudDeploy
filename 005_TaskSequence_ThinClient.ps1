@@ -122,30 +122,6 @@ $unattendXml = @"
                 <SkipMachineOOBE>true</SkipMachineOOBE>
                 <ProtectYourPC>3</ProtectYourPC>
             </OOBE>
-            <Desktop>
-                <DesktopIcons>
-                    <DesktopIcon>
-                        <Name>Remote Desktop</Name>
-                        <IconRef>%SystemRoot%\system32\shell32.dll,-31170</IconRef>
-                        <IsHidden>false</IsHidden>
-                    </DesktopIcon>
-                </DesktopIcons>
-            </Desktop>
-            <StartPanel>
-                <HideCommonPrograms>true</HideCommonPrograms>
-                <ShowRun>false</ShowRun>
-                <ShowSleep>false</ShowSleep>
-                <ShowHibernate>false</ShowHibernate>
-                <ShowLock>false</ShowLock>
-                <HideSearch>true</HideSearch>
-            </StartPanel>
-            <Explorer>
-                <ShowDriveLettersFirst>4</ShowDriveLettersFirst>
-                <HideDrives>
-                    <DriveLetter>D:</DriveLetter>
-                </HideDrives>
-                <NoToolbarsOnTaskbar>true</NoToolbarsOnTaskbar>
-            </Explorer>
             <UserAccounts>
                 <LocalAccounts>
                     <LocalAccount wcm:action="add">
