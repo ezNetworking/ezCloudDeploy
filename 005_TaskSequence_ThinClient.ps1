@@ -151,7 +151,6 @@ $unattendXml = @"
                     <LocalAccount wcm:action="add">
                         <Description>Local Admin Account for ez Networking</Description>
                         <DisplayName>ezAdmin Local | ez Networking</DisplayName>
-                        <PasswordExpires>false</PasswordExpires>
                         <Group>Administrators</Group>
                         <Name>ezAdminLocal</Name>
                     </LocalAccount>
@@ -163,7 +162,6 @@ $unattendXml = @"
                             <Value></Value>
                             <PlainText>true</PlainText>
                         </Password>
-                        <PasswordExpires>false</PasswordExpires>
                         <AutoLogon>
                             <Enabled>true</Enabled>
                             <LogonCount>1</LogonCount>
@@ -248,25 +246,12 @@ Write-Host " "
 Write-Warning "  If you do see errors, please check the log file at "
 write-warning "  $transcriptPath."
 Write-Host " "
-$timeout = 30 # Set the timeout value in seconds
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host "Press the 'Any' key to restart this computer, CTRL+C to abort"
-Write-Host "No time! I will restart anyway in $timeout seconds if no key is pressed"
+Write-Host "No time! I will restart anyway in 30 seconds if no key is pressed"
 Write-Host -ForegroundColor Cyan "========================================================================================="
-
-$startTime = Get-Date
-$elapsedTime = [TimeSpan]::Zero
-
-do {
-    if (Get-Host.UI.RawUI.KeyAvailable) {
-        $null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyUp')
-        break
-    }
-    Start-Sleep -Milliseconds 100
-    $elapsedTime = (Get-Date) - $startTime
-} while ($elapsedTime.TotalSeconds -lt $timeout)
-
+Start-Sleep -Seconds 30
 Write-Host -ForegroundColor Yellow "Restarting the computer..."
 Restart-Computer -Force
 #And stop the transcript.
