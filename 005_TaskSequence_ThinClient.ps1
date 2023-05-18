@@ -151,6 +151,7 @@ $unattendXml = @"
                     <LocalAccount wcm:action="add">
                         <Description>Local Admin Account for ez Networking</Description>
                         <DisplayName>ezAdmin Local | ez Networking</DisplayName>
+                        <PasswordExpires>false</PasswordExpires>
                         <Group>Administrators</Group>
                         <Name>ezAdminLocal</Name>
                     </LocalAccount>
@@ -168,6 +169,7 @@ $unattendXml = @"
                             <LogonCount>1</LogonCount>
                             <Username>CustUser</Username>
                         </AutoLogon>
+                    </LocalAccount>
                 </LocalAccounts>
             </UserAccounts>
             <RegisteredOrganization>ez Networking</RegisteredOrganization>
