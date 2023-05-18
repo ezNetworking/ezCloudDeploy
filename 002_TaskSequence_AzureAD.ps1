@@ -199,23 +199,22 @@ Restart-Computer -Force
 
 <#
 .SYNOPSIS
-Configures OOBE with Local Active Directory (AD) and removes specified default apps and sets a domain join GUI to be loaded at first login.
+Installs Win11, Configures OOBE Onboarding with Azure Active Directory (AAD), removes unused apps, 
+installs base apps and does a Azure Registration GUI.
 
-.DESCRIPTION
-This script checks if the required folders exist, creates them if they don't, sets up the environment, prompts the user to input a computer name, 
-generates an unattend.xml file to customize the Windows 10 installation with Local AD, 
-downloads a PowerShell script to join the domain at first login, saves it in the correct folder, configures the unattend.xml file to run the script, 
-starts OOBEDeploy with the customized unattend.xml file, and removes specified default apps. It also creates a transcript of the deployment process.
+.PREREQ
+Autopilot onboarding must be configured in the Azure Portal 
+(Profile and autopilot deployment group (Win-Autopilot01)).
 
 .INPUTS
-This script prompts the user to input the computer name.
+This script prompts the user to input the computer name and ez RMM ID.
 
 .EXAMPLE
 002_TaskSequence_AzureAD.ps1 -ComputerName "CUST-SITE-DTxx" -ezRmmId 123456789
 
-This command configures a Windows 11 22H2 Pro image with Azure AD on a computer named "MyComputer01" and installs the ez RMM tool. 
+This command configures a Windows 11 22H2 Pro image with Azure AD on a computer named "MyComputer01" and installs the ez RMM tool, 
 It loads an OOBE.XML for region and KBD settings and removes the default apps CommunicationsApps, OfficeHub, People, Skype, Solitaire, Xbox, ZuneMusic, and ZuneVideo.
-Then sets up OOBE Azure GUI (ezAutopilot.cmd) and ezOnboard.cmd which you can launch doing Shift + F10 at the OOBE screen.
+Then sets up OOBE ezOnboard.cmd which you can launch doing Shift + F10 at the OOBE screen.
 
 .NOTES
 Author: Jurgen Verhelst | ez Networking | www.ez.be

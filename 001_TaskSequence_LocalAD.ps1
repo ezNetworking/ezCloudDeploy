@@ -4,21 +4,21 @@ Write-Host -ForegroundColor Cyan "             Local AD Deployment Task Sequence
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
 
-Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "                                1. Parameters"
-Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan ""
+Write-Host -ForegroundColor White "========================================================================================="
+Write-Host -ForegroundColor White "                                1. Parameters"
+Write-Host -ForegroundColor White "========================================================================================="
+Write-Host -ForegroundColor White ""
 
 # Ask user for the computer name and ezRmmId
 Write-Host -ForegroundColor Yellow "  Zed Needs to know the Computer name and ez RMM Customer ID."
 $computerName = Read-Host "  Enter the computer name"
 $ezRmmId = Read-Host "  Enter the ez RMM Customer ID"
-Write-Host -ForegroundColor Cyan ""
+Write-Host -ForegroundColor White ""
 
-Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "                                2. OS Install"
-Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan ""
+Write-Host -ForegroundColor White "========================================================================================="
+Write-Host -ForegroundColor White "                                2. OS Install"
+Write-Host -ForegroundColor White "========================================================================================="
+Write-Host -ForegroundColor White ""
 
 # Block the script from running on Windows pre w10 and PowerShell pre v5
 Block-WinOS
@@ -52,9 +52,9 @@ Write-Host -ForegroundColor Gray "==============================================
 Write-Host ""
 
 #region Specialize
-Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "                                Section: 3. Specialize"
-Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor White "========================================================================================="
+Write-Host -ForegroundColor White "                                Section: 3. Specialize"
+Write-Host -ForegroundColor White "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
 Write-Host -ForegroundColor Gray "========================================================================================="
 
@@ -169,11 +169,11 @@ catch {
 Write-Host -ForegroundColor Gray "========================================================================================="
 
 # Download the DefaultAppsAndOnboard.ps1 script from github
-Write-Host -ForegroundColor Cyan "Z>Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
+Write-Host -ForegroundColor Gray "Z>Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
 try {
     $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/111_Windows_PostOS_DefaultAppsAndOnboard.ps1" -UseBasicParsing 
     $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
-    Write-Host -ForegroundColor Cyan "Z>Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
+    Write-Host -ForegroundColor Gray "Z>Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
     $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
     $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
 }
@@ -183,11 +183,11 @@ catch {
 
 Write-Host -ForegroundColor Gray "========================================================================================="
 # Download the JoinDomainAtFirstLogin.ps1 script from github
-Write-Host -ForegroundColor Cyan " Z> Downloading the JoinDomainAtFirstLogin GUI."
+Write-Host -ForegroundColor Gray " Z> Downloading the JoinDomainAtFirstLogin GUI."
 try {
     $JoinDomainAtFirstLoginResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/101_Windows_PostOOBE_JoinDomainAtFirstLogin.ps1" -UseBasicParsing 
     $JoinDomainAtFirstLoginScript = $JoinDomainAtFirstLoginResponse.content
-    Write-Host -ForegroundColor Cyan " Z> Saving the AD Join script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts"
+    Write-Host -ForegroundColor Gray " Z> Saving the AD Join script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts"
     $JoinDomainAtFirstLoginScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1"
     $JoinDomainAtFirstLoginScript | Out-File -FilePath $JoinDomainAtFirstLoginScriptPath -Encoding UTF8
     }
@@ -196,7 +196,7 @@ catch {
 }
 Write-Host -ForegroundColor Gray "========================================================================================="
 # Set the unattend.xml file in the offline registry
-Write-Host -ForegroundColor Cyan " Z> Setting the unattend.xml file in the offline registry"
+Write-Host -ForegroundColor Gray " Z> Setting the unattend.xml file in the offline registry"
 reg load HKLM\TempSYSTEM "C:\Windows\System32\Config\SYSTEM"
 reg add HKLM\TempSYSTEM\Setup /v UnattendFile /d $unattendPath /f
 reg unload HKLM\TempSYSTEM
@@ -204,19 +204,19 @@ reg unload HKLM\TempSYSTEM
 
 Write-Host -ForegroundColor Gray "========================================================================================="
 Write-Host ""
-Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "                                Section 4. OOBE prep"
-Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor White "========================================================================================="
+Write-Host -ForegroundColor White "                                Section 4. OOBE prep"
+Write-Host -ForegroundColor White "========================================================================================="
 Write-Host ""
 
 
 
 
 
-Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "                                Zed's finished!"
-Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan ""
+Write-Host -ForegroundColor White "========================================================================================="
+Write-Host -ForegroundColor White "                                Zed's finished!"
+Write-Host -ForegroundColor White "========================================================================================="
+Write-Host -ForegroundColor White ""
 
 Write-Warning "  ========================================================================================="
 Write-Warning "  I'm done mate! If you don't see any errors above you can reboot the pc and change the"
@@ -235,13 +235,15 @@ Restart-Computer -Force
 Stop-Transcript
 <#
 .SYNOPSIS
-Configures OOBE with Local Active Directory (AD) and removes specified default apps and sets a domain join GUI to be loaded at first login.
+Configures OOBE with Local Active Directory (AD) and removes specified default apps 
+and sets a domain join GUI to be loaded at first login.
 
 .DESCRIPTION
-This script checks if the required folders exist, creates them if they don't, sets up the environment, prompts the user to input a computer name, 
-generates an unattend.xml file to customize the Windows 10 installation with Local AD, 
-downloads a PowerShell script to join the domain at first login, saves it in the correct folder, configures the unattend.xml file to run the script, 
-starts OOBEDeploy with the customized unattend.xml file, and removes specified default apps. It also creates a transcript of the deployment process.
+This script checks if the required folders exist, creates them if they don't, sets up the environment, 
+prompts the user to input a computer name, generates an unattend.xml file to customize the Windows 10 installation 
+with Local AD, downloads a PowerShell script to join the domain at first login, saves it in the correct folder, 
+configures the unattend.xml file to run the script, starts OOBEDeploy with the customized unattend.xml file, 
+and removes specified default apps. It also creates a transcript of the deployment process.
 
 .INPUTS
 This script prompts the user to input the computer name.
@@ -249,9 +251,10 @@ This script prompts the user to input the computer name.
 .EXAMPLE
 002_TaskSequence_LocalAD.ps1 -ComputerName "CUST-SITE-DTxx" -ezRmmId 123456789
 
-This command configures a Windows 11 22H2 Pro image with Local AD on a computer named "MyComputer01" and installs the ez RMM tool. 
-It loads an OOBE.XML for region and KBD settings and removes the default apps CommunicationsApps, OfficeHub, People, Skype, Solitaire, Xbox, ZuneMusic, and ZuneVideo.
-Then sets up OOBE Azure GUI (ezAutopilot.cmd) and ezOnboard.cmd which you can launch doing Shift + F10 at the OOBE screen.
+This command configures a Windows 11 22H2 Pro image with Local AD on a computer named "MyComputer01" and loads 
+an unattend.XML for Users config, region and KBD settings, first run commands, and domain join at first login.
+It installs the ez RMM tool and removes the default apps CommunicationsApps, OfficeHub, People, Skype, Solitaire,
+Xbox, ZuneMusic, and ZuneVideo.
 
 .NOTES
 Author: Jurgen Verhelst | ez Networking | www.ez.be

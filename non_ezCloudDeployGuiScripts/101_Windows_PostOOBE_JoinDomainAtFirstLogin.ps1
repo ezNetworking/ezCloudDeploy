@@ -1,20 +1,17 @@
 Install-Module burnttoast
 Import-Module burnttoast
 
-# Disable "Do Not Disturb" mode (Quiet Hours)
-Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\QuietHours" -Name "Enabled" -Value 0
-
 # Send the toast notification
 $Time = Get-date -Format t
 $Btn = New-BTButton -Content 'Got it!' -arguments 'ok'
 $Splat = @{
     Text = 'Zed: Opened Domain Join GUI' , "BUT wait for the default apps to be installed before rebooting please. Started $Time"
     Applogo = 'https://iili.io/H8B8JtI.png'
-    Sound = 'IM'
+    Sound = 'Alarm10'
     Button = $Btn
     HeroImage = 'https://iili.io/HU7A5bV.jpg'
 }
-New-BurntToastNotification @splat 
+New-BurntToastNotification @splat
 
 function JoinButton_Click {
     try {
