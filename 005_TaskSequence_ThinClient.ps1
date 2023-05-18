@@ -180,6 +180,18 @@ $unattendXml = @"
                     <CommandLine>C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -ExecutionPolicy Bypass -File c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1</CommandLine>
                     <RequiresUserInput>true</RequiresUserInput>
                 </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <Order>2</Order>
+                    <RequiresUserInput>false</RequiresUserInput>
+                    <CommandLine>cmd /C wmic useraccount where name="ezAdminLocal" set PasswordExpires=false</CommandLine>
+                    <Description>Password Never Expires</Description>
+                </SynchronousCommand>
+                <SynchronousCommand wcm:action="add">
+                    <Order>3</Order>
+                    <RequiresUserInput>false</RequiresUserInput>
+                    <CommandLine>cmd /C wmic useraccount where name="CustUser" set PasswordExpires=false</CommandLine>
+                    <Description>Password Never Expires</Description>
+                </SynchronousCommand>
             </FirstLogonCommands>
             <TimeZone>Romance Standard Time</TimeZone>
         </component>
