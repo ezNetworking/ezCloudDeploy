@@ -1,6 +1,10 @@
 Install-Module burnttoast
 Import-Module burnttoast
 
+# Disable "Do Not Disturb" mode (Quiet Hours)
+Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\QuietHours" -Name "Enabled" -Value 0
+
+# Send the toast notification
 $Time = Get-date -Format t
 $Btn = New-BTButton -Content 'Got it!' -arguments 'ok'
 $Splat = @{
