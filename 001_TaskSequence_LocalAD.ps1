@@ -227,12 +227,11 @@ Write-Host " "
 Write-Warning "  If you do see errors, please check the log file at "
 write-warning "  $transcriptPath."
 Write-Host " "
-$timeout = 30 # Set the timeout value in seconds
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host "Restarting this computer in 30s, press CTRL+C to abort"
+Write-Host "Restarting this computer in 10s, press CTRL+C to abort"
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Start-Sleep -Seconds 30
+Start-Sleep -Seconds 10
 Write-Host -ForegroundColor Yellow "Restarting the computer..."
 Restart-Computer -Force
 #And stop the transcript.
