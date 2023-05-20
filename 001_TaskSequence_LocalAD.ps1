@@ -127,7 +127,6 @@ $unattendXml = @"
                     <LocalAccount wcm:action="add">
                         <Description>Local Admin Account for ez Networking</Description>
                         <DisplayName>ezAdmin Local | ez Networking</DisplayName>
-                        <PasswordExpires>false</PasswordExpires>
                         <Group>Administrators</Group>
                         <Name>ezAdminLocal</Name>
                     </LocalAccount>
