@@ -10,9 +10,12 @@ Write-Host -ForegroundColor White "=============================================
 Write-Host -ForegroundColor White ""
 
 # Ask user for the computer name and ezRmmId
-Write-Host -ForegroundColor Yellow "  Zed Needs to know the Computer name and ez RMM Customer ID."
+Write-Host -ForegroundColor Yellow "  Zed Needs to know some stuff:"
 $computerName = Read-Host "  Enter the computer name (CUST-SITE-TCxx)"
-$ezRmmId = Read-Host "  Enter the ez RMM Customer ID"
+$ezRmmId = Read-Host "  Enter the ez RMM Customer ID (2548701561)"
+$ezRdsUri = Read-Host "  Enter the customers RDS server or farm URI (ie rdsfarm.customer.cloud)"
+Write-Host -ForegroundColor Yellow "Z> Thanks! Getting on it now... Sit back for 10min and enjoy a cup of coffee!"
+
 Write-Host -ForegroundColor White ""
 
 Write-Host -ForegroundColor White "========================================================================================="
@@ -38,7 +41,7 @@ $Params = @{
     OSLicense = "Retail"
     SkipAutopilot = $true
     SkipODT = $true
-    Screenshot = $true 
+    Screenshot = $false 
     Restart = $false   
     ZTI = $true 
 }
@@ -75,9 +78,10 @@ foreach ($folder in $folders) {
 
 Write-Host -ForegroundColor Gray "========================================================================================="
 # Create a json config file with the ezRmmId
-Write-Host -ForegroundColor White "Z> Creating a json config file with the ezRmmId"
+Write-Host -ForegroundColor White "Z> Creating a json client config file (ezRmmId, RDP URI)"
 $ezClientConfig = @{
     ezRmmId = $ezRmmId
+    custRdsUri = $ezRdsUri
 }
 $ezClientConfig | ConvertTo-Json | Out-File -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" -Encoding UTF8
 Write-Host -ForegroundColor Gray "========================================================================================="
@@ -130,18 +134,8 @@ $unattendXml = @"
                         <Group>Administrators</Group>
                         <Name>ezAdminLocal</Name>
                     </LocalAccount>
-                    <LocalAccount wcm:action="add">
-                        <Description>Customer Local User Account</Description>
-                        <DisplayName>Customer Default User</DisplayName>
-                        <Name>CustUser</Name>
-                    </LocalAccount>
                 </LocalAccounts>
             </UserAccounts>
-            <AutoLogon>
-                <Enabled>true</Enabled>
-                <LogonCount>1</LogonCount>
-                <Username>CustUser</Username>
-            </AutoLogon>
             <RegisteredOrganization>ez Networking</RegisteredOrganization>
             <RegisteredOwner>ezAdminLocal</RegisteredOwner>
             <DisableAutoDaylightTimeSet>false</DisableAutoDaylightTimeSet>
@@ -156,12 +150,6 @@ $unattendXml = @"
                     <Order>2</Order>
                     <RequiresUserInput>false</RequiresUserInput>
                     <CommandLine>cmd /C wmic useraccount where name="ezAdminLocal" set PasswordExpires=false</CommandLine>
-                    <Description>Password Never Expires</Description>
-                </SynchronousCommand>
-                <SynchronousCommand wcm:action="add">
-                    <Order>3</Order>
-                    <RequiresUserInput>false</RequiresUserInput>
-                    <CommandLine>cmd /C wmic useraccount where name="CustUser" set PasswordExpires=false</CommandLine>
                     <Description>Password Never Expires</Description>
                 </SynchronousCommand>
             </FirstLogonCommands>
@@ -264,5 +252,5 @@ Xbox, ZuneMusic, and ZuneVideo.
 
 .NOTES
 Author: Jurgen Verhelst | ez Networking | www.ez.be
-Modules Used: @Segura: OSD, AutopilotOOBE @WindosNZ: BurntToast
+Modules Used: @Segura: OSD, AutopilotOOBE
 #>
