@@ -3,8 +3,9 @@ Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_111_Window
 Write-Host -ForegroundColor Gray "========================================================================================="
 Write-Host -ForegroundColor Gray "Z> Installing Modules."
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
-Install-Module OSD
-Install-Module OOBEDeploy
+Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+Install-Module OSD -Force -Verbose
+Install-Module OOBEDeploy -Force -Verbose
 Import-Module OOBEDeploy
 Install-Module burnttoast
 Import-Module burnttoast
