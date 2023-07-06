@@ -169,7 +169,7 @@ start "Start-AutopilotOOBE" PowerShell -NoL -C Start-AutopilotOOBE -Title 'ez Cl
 exit
 '@
 $SetCommand
-$SetCommand | Out-File -FilePath "C:\Windows\ezOOBE.cmd" -Encoding ascii -Force
+$SetCommand | Out-File -FilePath "C:\Windows\system32\ezOOBE.cmd" -Encoding ascii -Force
 Write-Host -ForegroundColor Gray "========================================================================================="
 
 #And stop the transcript.
