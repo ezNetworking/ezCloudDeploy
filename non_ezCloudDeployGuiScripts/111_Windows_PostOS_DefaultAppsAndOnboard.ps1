@@ -5,8 +5,7 @@ Write-Host -ForegroundColor Gray "Z> Installing Modules."
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 Install-Module OSD -Force -Verbose
-Install-Module OOBEDeploy -Force -Verbose
-Import-Module OOBEDeploy
+Import-Module OSD -Force
 Install-Module burnttoast
 Import-Module burnttoast
 Write-Host -ForegroundColor Gray "========================================================================================="
@@ -51,19 +50,6 @@ write-host -ForegroundColor Cyan "Z> User configuration"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Gray "Z> Setting ezadminlocal's password to never expire "
 Set-LocalUser -Name "ezAdminLocal" -PasswordNeverExpires $true
-Write-Host -ForegroundColor Cyan "========================================================================================="
-write-host -ForegroundColor Cyan "Z> Removing apps and updating Windows"
-Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Gray "Z> Use Start-OOBEDeploy to remove apps and update Windows "
-Write-Host -ForegroundColor Gray "   CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
-$Params = @{
-    Autopilot = $false
-    RemoveAppx = "CommunicationsApps","OfficeHub","People","Skype","Solitaire","Xbox","ZuneMusic","ZuneVideo"
-    UpdateDrivers = $true
-    UpdateWindows = $true
-}
-Start-OOBEDeploy @Params
-
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "Z> Installing apps and onboarding client to ezRmm"
 Write-Host -ForegroundColor Cyan "========================================================================================="
@@ -206,6 +192,19 @@ try {
 catch {
     Write-Error "Z> ezRS is already installed or had an error $($_.Exception.Message)"
 }
+
+Write-Host -ForegroundColor Cyan "========================================================================================="
+write-host -ForegroundColor Cyan "Z> Removing apps and updating Windows"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Gray "Z> Use Start-OOBEDeploy to remove apps and update Windows "
+Write-Host -ForegroundColor Gray "   CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
+$Params = @{
+    Autopilot = $false
+    RemoveAppx = "CommunicationsApps","OfficeHub","People","Skype","Solitaire","Xbox","ZuneMusic","ZuneVideo"
+    UpdateDrivers = $true
+    UpdateWindows = $true
+}
+Start-OOBEDeploy @Params
 
 
 
