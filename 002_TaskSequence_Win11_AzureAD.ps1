@@ -164,10 +164,10 @@ start "Install-Module AutopilotOOBE" /wait PowerShell -NoL -C Install-Module Aut
 start "ez Onboarding" PowerShell -NoL -C "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
 
 :: Start-AutopilotOOBE
-start "Start-AutopilotOOBE" PowerShell -NoL -C Start-AutopilotOOBE -Title 'ez Cloud Deploy Autopilot Reg' -GroupTag Win-Autopilot01 -Assign -AssignedComputerName $computerName
+start "Start-AutopilotOOBE" PowerShell -NoL -C Start-AutopilotOOBE -Title 'ez Cloud Deploy Autopilot Reg' -GroupTag Win-Autopilot01 -Assign -AssignedComputerName "{0}"
 
 exit
-'@
+'@ -f $computername
 $SetCommand
 $SetCommand | Out-File -FilePath "C:\Windows\system32\ezOOBE.cmd" -Encoding ascii -Force
 Write-Host -ForegroundColor Gray "========================================================================================="
