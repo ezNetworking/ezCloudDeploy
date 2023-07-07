@@ -42,19 +42,19 @@ Start-Sleep -Milliseconds 200
 Start-Sleep -Milliseconds 500     
 [System.Windows.Forms.SendKeys]::SendWait("(%{F4})")  
 
+$Time = Get-date -Format t
+$Splat = @{
+    Text = 'Zed: ThinClient Setup' , "Configuring... Started $Time"
+    Applogo = 'https://iili.io/H8B8JtI.png'
+    Sound = 'IM'
+}
+New-BurntToastNotification @splat 
 
 # Load the JSON file
 $ezClientConfig = Get-Content -Path $jsonFilePath | ConvertFrom-Json
 
 # Install ezRmm and ezRS
 write-host -ForegroundColor White "Z> ezRMM - Downloading and installing it for customer $($ezClientConfig.ezRmmId)"
-$Time = Get-date -Format t
-$Splat = @{
-    Text = 'Zed: Installing ez RMM' , "Downloading and installing... Started $Time"
-    Applogo = 'https://iili.io/H8B8JtI.png'
-    Sound = 'IM'
-}
-New-BurntToastNotification @splat 
 
 
 try {
@@ -270,6 +270,15 @@ Set-ItemProperty -Path $policyPath -Name "NoDispBackgroundPage" -Value "1"
 Set-ItemProperty -Path $policyPath -Name "NoDispSettingsPage" -Value "1"
 "@
 Invoke-Expression $screenSettingsCmd
+
+$Btn = New-BTButton -Content 'Got it!' -arguments 'ok'
+$Splat = @{
+    Text = 'Zed: Configuring ThinClient Finished' , "Please press OK."
+    Applogo = 'https://iili.io/H8B8JtI.png'
+    Sound = 'Alarm10'
+    Button = $Btn
+    HeroImage = 'https://iili.io/HU7A5bV.jpg'
+}
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "Z> Configuring ThinClient Finished." 
