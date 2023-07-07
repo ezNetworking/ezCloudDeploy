@@ -78,6 +78,7 @@ foreach ($folder in $folders) {
 Write-Host -ForegroundColor Gray "========================================================================================="
 Write-Host -ForegroundColor White "Z> Creating a json config file with the ezRmmId"
 $ezClientConfig = @{
+    TaskSeqType = "AzureAD"
     ezRmmId = $ezRmmId
 }
 $ezClientConfig | ConvertTo-Json | Out-File -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" -Encoding UTF8
@@ -185,7 +186,7 @@ Write-Host -ForegroundColor Cyan ""
 
 Write-Warning "  ========================================================================================="
 Write-Warning "  I'm done mate! If you don't see any errors above you can reboot the pc and wait for OOBE."
-Write-Warning "  the OOBE to boot. Then press Shift + F10 to open a command prompt and type:"
+Write-Warning "  Click OK for Country and KBD. Then press Shift + F10 to open a command prompt and type:"
 Write-Warning "                           ezOOBE.cmd "
 Write-Warning "  Default apps install, onboard ez RMM, remove MS home apps and start the Autopilot GUI."
 Write-Warning "  ========================================================================================="
