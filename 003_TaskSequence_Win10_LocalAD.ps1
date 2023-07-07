@@ -77,6 +77,7 @@ Write-Host -ForegroundColor Gray "==============================================
 # Create a json config file with the ezRmmId
 Write-Host -ForegroundColor White "Z> Creating a json config file with the ezRmmId"
 $ezClientConfig = @{
+    TaskSeqType = "LocalAD"
     ezRmmId = $ezRmmId
 }
 $ezClientConfig | ConvertTo-Json | Out-File -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" -Encoding UTF8

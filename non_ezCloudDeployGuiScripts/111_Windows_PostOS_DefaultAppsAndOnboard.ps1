@@ -9,28 +9,37 @@ Import-Module OSD -Force
 Install-Module burnttoast
 Import-Module burnttoast
 Write-Host -ForegroundColor Gray "========================================================================================="
+write-host "Z> reading the ezClientConfig.json file"
+$ezClientConfig = Get-Content -Path "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" | ConvertFrom-Json
 
 # Set Do Not Disturb to Off (Dirty Way, not found a better one :) :)
-Add-Type -AssemblyName System.Windows.Forms
-[System.Windows.Forms.SendKeys]::SendWait("(^{ESC})")   
-Start-Sleep -Milliseconds 500   
-[System.Windows.Forms.SendKeys]::SendWait("(Focus Assist)")   
-Start-Sleep -Milliseconds 200   
-[System.Windows.Forms.SendKeys]::SendWait("{ENTER}")   
-Start-Sleep -Milliseconds 700  
-[System.Windows.Forms.SendKeys]::SendWait("{TAB} ")   
-Start-Sleep -Milliseconds 700  
-[System.Windows.Forms.SendKeys]::SendWait("{TAB} ")   
-Start-Sleep -Milliseconds 700  
-[System.Windows.Forms.SendKeys]::SendWait("{TAB}{TAB}")   
-Start-Sleep -Milliseconds 200   
-[System.Windows.Forms.SendKeys]::SendWait("{ENTER}")   
-Start-Sleep -Milliseconds 700   
-[System.Windows.Forms.SendKeys]::SendWait("{TAB}{TAB} ")  
-Start-Sleep -Milliseconds 200   
-[System.Windows.Forms.SendKeys]::SendWait("{ENTER}") 
-Start-Sleep -Milliseconds 500     
-[System.Windows.Forms.SendKeys]::SendWait("(%{F4})")    
+
+if ($ezClientConfig.TaskSeqType -eq "AzureAD") {
+    write-host "Z> AzureAD Task Sequence, skipping Focus Assist"
+}  
+else {
+    write-host "Z> Setting Focus Assist to Off"
+    Add-Type -AssemblyName System.Windows.Forms
+    [System.Windows.Forms.SendKeys]::SendWait("(^{ESC})")   
+    Start-Sleep -Milliseconds 500   
+    [System.Windows.Forms.SendKeys]::SendWait("(Focus Assist)")   
+    Start-Sleep -Milliseconds 200   
+    [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")   
+    Start-Sleep -Milliseconds 700  
+    [System.Windows.Forms.SendKeys]::SendWait("{TAB} ")   
+    Start-Sleep -Milliseconds 700  
+    [System.Windows.Forms.SendKeys]::SendWait("{TAB} ")   
+    Start-Sleep -Milliseconds 700  
+    [System.Windows.Forms.SendKeys]::SendWait("{TAB}{TAB}")   
+    Start-Sleep -Milliseconds 200   
+    [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")   
+    Start-Sleep -Milliseconds 700   
+    [System.Windows.Forms.SendKeys]::SendWait("{TAB}{TAB} ")  
+    Start-Sleep -Milliseconds 200   
+    [System.Windows.Forms.SendKeys]::SendWait("{ENTER}") 
+    Start-Sleep -Milliseconds 500     
+    [System.Windows.Forms.SendKeys]::SendWait("(%{F4})")  
+}
 
 # Send the toast notification
 $Time = Get-date -Format t
@@ -56,7 +65,7 @@ Write-Host -ForegroundColor Cyan "==============================================
 
 # Install Choco and minimal default packages
 Write-Host -ForegroundColor Gray "========================================================================================="
-write-host "Z> Installing Chocolatey"
+write-host -ForegroundColor White "Z> Installing Chocolatey"
 
 try {
     Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
@@ -74,10 +83,9 @@ choco install tailblazer -y
 Write-Host -ForegroundColor Gray "========================================================================================="
 
 # Install ezRmm and ezRS
-write-host "Z> reading the ezClientConfig.json file"
-$ezClientConfig = Get-Content -Path "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" | ConvertFrom-Json
 
-write-host "Z> Downloading ezRmmInstaller.msi and installing it for customer $($ezClientConfig.ezRmmId)"
+write-host -ForegroundColor White "Z> ezRMM - Downloading and installing it for customer $($ezClientConfig.ezRmmId)"
+
 $Splat = @{
     Text = 'Zed: Installing ez RMM' , "Downloading and installing... Started $Time"
     Applogo = 'https://iili.io/H8B8JtI.png'
@@ -85,97 +93,19 @@ $Splat = @{
 }
 New-BurntToastNotification @splat 
 
-write-host -ForegroundColor Gray "Z> Downloading and installing ezRS"
 try {
     $ezRmmUrl = "http://support.ez.be/GetAgent/Msi/?customerId=$($ezClientConfig.ezRmmId)" + '&integratorLogin=jurgen.verhelst%40ez.be'
-    write-host "Z> Downloading ezRmmInstaller.msi from $ezRmmUrl"
+    write-host -ForegroundColor Gray "Z> Downloading ezRmmInstaller.msi from $ezRmmUrl"
     Invoke-WebRequest -Uri $ezRmmUrl -OutFile "C:\ezNetworking\Automation\ezCloudDeploy\ezRmmInstaller.msi"
     Start-Process -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezRmmInstaller.msi" -ArgumentList "/quiet" -Wait
     
 }
 catch {
-    Write-Error "Z> ezRmm is already installed or had an error $($_.Exception.Message)"
-}
-
-
-Write-Host -ForegroundColor Gray "========================================================================================="
-# Office 365 un- and install toast
-$Splat = @{
-    Text = 'Zed: Installing Office 365' , "Downloading and installing... Started $Time"
-    Applogo = 'https://iili.io/H8B8JtI.png'
-    Sound = 'IM'
-}
-New-BurntToastNotification @splat 
-
-# Download the Office uninstall script from github
-Write-Host -ForegroundColor Gray "Z>Downloading the Office uninstall script from ezCloudDeploy."
-try {
-    $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/114_Windows_PostOS_UninstallOffice.ps1" -UseBasicParsing 
-    $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
-    Write-Host -ForegroundColor Gray "Z>Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\"
-    $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\UninstallOffice365.ps1"
-    $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
-}
-catch {
-    Write-Error " Z> I was unable to download the Office Uninstall script."
-}
-
-$scriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\UninstallOffice365.ps1"
-# Running the Office uninstall script
-Write-Host -ForegroundColor Gray "Z>Running the Office uninstall script."
-
-$process = Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`"" -PassThru
-
-# Wait for the process to complete
-$process.WaitForExit()
-
-# Check the exit code of the process
-$exitCode = $process.ExitCode
-
-if ($exitCode -eq 0) {
-    # Process completed successfully
-    Write-Host " Z> Uninstall Script execution finished."
-} else {
-    # Process encountered an error
-    Write-Host " Z> Uninstall Script execution failed with exit code: $exitCode"
-}
-
-# Download the Office Install script from github
-Write-Host -ForegroundColor Gray "Z> Downloading the Office Install script from ezCloudDeploy."
-try {
-    $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/115_Windows_PostOS_InstallOffice.ps1" -UseBasicParsing 
-    $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
-    Write-Host -ForegroundColor Gray "Z>Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\"
-    $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\InstallOffice365.ps1"
-    $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
-}
-catch {
-    Write-Error " Z> I was unable to download the Office Install script."
-}
-
-# Running the Office Install script
-$scriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\InstallOffice365.ps1"
-
-Write-Host -ForegroundColor Gray "Z>Running the Office uninstall script."
-
-$process = Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`"" -PassThru
-
-# Wait for the process to complete
-$process.WaitForExit()
-
-# Check the exit code of the process
-$exitCode = $process.ExitCode
-
-if ($exitCode -eq 0) {
-    # Process completed successfully
-    Write-Host " Z> Uninstall Script execution finished."
-} else {
-    # Process encountered an error
-    Write-Host " Z> Uninstall Script execution failed with exit code: $exitCode"
+    Write-Error -ForegroundColor Gray "Z> ezRmm is already installed or had an error $($_.Exception.Message)"
 }
 
 Write-Host -ForegroundColor Gray "========================================================================================="
-write-host -ForegroundColor Gray "Z> Downloading ezRmmInstaller.msi and installing it"
+write-host -ForegroundColor Gray "Z> ezRS - Downloading and installing it"
 $Splat = @{
     Text = 'Zed: Installing ez Remote Support' , "Downloading and installing... Started $Time"
     Applogo = 'https://iili.io/H8B8JtI.png'
@@ -192,6 +122,84 @@ try {
 catch {
     Write-Error "Z> ezRS is already installed or had an error $($_.Exception.Message)"
 }
+
+Write-Host -ForegroundColor Gray "========================================================================================="
+# Office 365 un- and install toast
+$Splat = @{
+    Text = 'Zed: Installing Office 365' , "Downloading and installing... Started $Time"
+    Applogo = 'https://iili.io/H8B8JtI.png'
+    Sound = 'IM'
+}
+New-BurntToastNotification @splat 
+
+# Download the Office uninstall script from github
+Write-Host -ForegroundColor White "Z> Office uninstall."
+try {
+    $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/114_Windows_PostOS_UninstallOffice.ps1" -UseBasicParsing 
+    $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
+    Write-Host -ForegroundColor Gray "Z> Saving the script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\"
+    $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\UninstallOffice365.ps1"
+    $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
+}
+catch {
+    Write-Error " Z> I was unable to download the Office Uninstall script."
+}
+
+$scriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\UninstallOffice365.ps1"
+# Running the Office uninstall script
+Write-Host -ForegroundColor Gray "Z> Running the Office uninstall script."
+
+$process = Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`"" -PassThru
+
+# Wait for the process to complete
+$process.WaitForExit()
+
+# Check the exit code of the process
+$exitCode = $process.ExitCode
+
+if ($exitCode -eq 0) {
+    # Process completed successfully
+    Write-Host "Z> Office Uninstall Script execution finished."
+} else {
+    # Process encountered an error
+    Write-Host "Z> Office Uninstall Script execution failed with exit code: $exitCode"
+}
+
+# Download the Office Install script from github
+Write-Host -ForegroundColor White " Z> Office 365 Install."
+try {
+    $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/115_Windows_PostOS_InstallOffice.ps1" -UseBasicParsing 
+    $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
+    Write-Host -ForegroundColor Gray " Z> Saving the script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\"
+    $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\InstallOffice365.ps1"
+    $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
+}
+catch {
+    Write-Error " Z> I was unable to download the Office Install script."
+}
+
+# Running the Office Install script
+$scriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\InstallOffice365.ps1"
+
+Write-Host -ForegroundColor Gray "Z> Running the Office Install script."
+
+$process = Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`"" -PassThru
+
+# Wait for the process to complete
+$process.WaitForExit()
+
+# Check the exit code of the process
+$exitCode = $process.ExitCode
+
+if ($exitCode -eq 0) {
+    # Process completed successfully
+    Write-Host -ForegroundColor Gray " Z> Office 365 Install Script execution finished."
+} else {
+    # Process encountered an error
+    Write-Host -ForegroundColor Magenta " Z> Office 365 Install Script execution failed with exit code: $exitCode"
+}
+
+
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "Z> Removing apps and updating Windows"

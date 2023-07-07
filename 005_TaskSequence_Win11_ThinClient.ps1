@@ -80,6 +80,7 @@ Write-Host -ForegroundColor Gray "==============================================
 # Create a json config file with the ezRmmId
 Write-Host -ForegroundColor White "Z> Creating a json client config file (ezRmmId, RDP URI)"
 $ezClientConfig = @{
+    TaskSeqType = "Workgroup"
     ezRmmId = $ezRmmId
     custRdsUri = $ezRdsUri
 }
@@ -211,7 +212,7 @@ Write-Host -ForegroundColor White ""
 
 Write-Warning "  ========================================================================================="
 Write-Warning "  I'm done mate! If you don't see any errors above you can reboot the pc and change the"
-Write-Warning "  Admin Password. Once logged in a Domain Join Gui will be displayed and in the background"
+Write-Warning "  Admin Password."
 Write-Warning "  the default apps will be installed, so make sure the network cable is plugged in.  "
 Write-Warning "  ========================================================================================="
 Write-Host " "
@@ -229,21 +230,21 @@ Restart-Computer -Force
 Stop-Transcript
 <#
 .SYNOPSIS
-Configures OOBE with Local Active Directory (AD) and removes specified default apps 
-and sets a domain join GUI to be loaded at first login.
+Configures a desktop as a Thin Client, removes specified default apps 
+and creates shortcuts to the RDS Farm.
 
 .DESCRIPTION
 This script checks if the required folders exist, creates them if they don't, sets up the environment, 
-prompts the user to input a computer name, generates an unattend.xml file to customize the Windows 10 installation 
-for Thinclient usage, downloads a PowerShell script to join the domain at first login, saves it in the correct folder, 
-configures the unattend.xml file to run the script, starts OOBEDeploy with the customized unattend.xml file, 
+prompts the user to input a computer name, generates an unattend.xml file to customize the Windows installation 
+for Thinclient usage, creates an RDP file, saves it in the correct folder, 
+configures the unattend.xml file to configure users, OOBE, scripts and starts OOBEDeploy with the customized unattend.xml file, 
 and removes specified default apps. It also creates a transcript of the deployment process.
 
 .INPUTS
 This script prompts the user to input the computer name.
 
 .EXAMPLE
-002_TaskSequence_Thinclient.ps1 -ComputerName "CUST-SITE-TCxx" -ezRmmId 123456789
+002_TaskSequence_Thinclient.ps1 -ComputerName "CUST-SITE-TCxx" -ezRmmId 123456789 -ezRdsUri "Farm01.cust.cloud"
 
 This command configures a Windows 11 22H2 Pro image with Thinclient on a computer named "MyComputer01" and loads 
 an unattend.XML for Users config, region and KBD settings, first run commands, and domain join at first login.
@@ -252,5 +253,5 @@ Xbox, ZuneMusic, and ZuneVideo.
 
 .NOTES
 Author: Jurgen Verhelst | ez Networking | www.ez.be
-Modules Used: @Segura: OSD, AutopilotOOBE
+Modules Used: @Segura: OSD
 #>
