@@ -13,9 +13,8 @@ Write-Host -ForegroundColor White ""
 Write-Host -ForegroundColor Yellow "  Zed Needs to know some stuff:"
 $computerName = Read-Host "  Enter the computer name (CUST-SITE-TCxx)"
 $ezRmmId = Read-Host "  Enter the ez RMM Customer ID (2548701561)"
-$ezRdsUri = Read-Host "  Enter the customers RDS server or farm URI (ie rdsfarm.customer.cloud)"
+$RdsUri = Read-Host "  Enter the customers RDS server or farm URI (ie rdsfarm.customer.cloud)"
 Write-Host -ForegroundColor Yellow "Z> Thanks! Getting on it now... Sit back for 10min and enjoy a cup of coffee!"
-
 Write-Host -ForegroundColor White ""
 
 Write-Host -ForegroundColor White "========================================================================================="
@@ -79,12 +78,14 @@ foreach ($folder in $folders) {
 Write-Host -ForegroundColor Gray "========================================================================================="
 # Create a json config file with the ezRmmId
 Write-Host -ForegroundColor White "Z> Creating a json client config file (ezRmmId, RDP URI)"
-$ezClientConfig = @{
-    TaskSeqType = "Workgroup"
-    ezRmmId = $ezRmmId
-    custRdsUri = $ezRdsUri
+$ezClientConfig = @"
+{
+    "TaskSeqType": "Workgroup",
+    "ezRmmId": "$($ezRmmId)",
+    "custRdsUri": "$($RdsUri)"
 }
-$ezClientConfig | ConvertTo-Json | Out-File -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" -Encoding UTF8
+"@
+$ezClientConfig | Out-File -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" -Encoding UTF8
 Write-Host -ForegroundColor Gray "========================================================================================="
 # Put our autoUnattend xml template for Thinclient OOBE in a variable
 Write-Host -ForegroundColor White "Z> Updating our Unattend xml for Thinclient OOBE (no online useraccount page)"
@@ -161,7 +162,7 @@ $unattendXml = @"
 "@
 
 # Write the updated unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\
-Write-Host -ForegroundColor White "Z>Writing the unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\"
+Write-Host -ForegroundColor White "Z> Writing the unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\"
 write-host -ForegroundColor Gray "$unattendXml"
 $unattendPath = "C:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\ThinclientUnattend.xml"
 try {
@@ -174,11 +175,11 @@ catch {
 Write-Host -ForegroundColor Gray "========================================================================================="
 
 # Download the DefaultAppsAndOnboard.ps1 script from github
-Write-Host -ForegroundColor Gray "Z>Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
+Write-Host -ForegroundColor Gray "Z> Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
 try {
     $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/113_Windows_PostOS_ThinClientCustomisations copy.ps1" -UseBasicParsing 
     $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
-    Write-Host -ForegroundColor Gray "Z>Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
+    Write-Host -ForegroundColor Gray "Z> Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
     $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
     $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
 }
