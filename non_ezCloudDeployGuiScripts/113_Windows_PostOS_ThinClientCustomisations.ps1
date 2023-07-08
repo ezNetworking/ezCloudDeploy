@@ -138,7 +138,9 @@ New-LocalGroup -Name $userGroupName -Description 'Non-Admin Users'
 
 # Create non-admin user
 Write-Host -ForegroundColor Gray "Z> Creating NonAdminUser."
-New-LocalUser -Name $userName -FullName "ThinClient User" -Description "User for Autologin" -PasswordNeverExpires -UserMayNotChangePassword -Password ""
+Write-Host -ForegroundColor Gray "Z> Creating NonAdminUser."
+$command = "net user $userName """" /add /passwordreq:no /fullname:""ThinClient User"" /comment:""User for Autologin"""
+Invoke-Expression -Command $command
 
 # Add the user to the non-admin user group
 Write-Host -ForegroundColor Gray "Z> Adding user to NonAdminGroup."
@@ -163,10 +165,16 @@ $layoutPolicyPath = Join-Path -Path $policyKey -ChildPath "Explorer"
 $layoutPolicyValueName = "LockedStartLayout"
 $layoutPolicyValue = "1"
 
+# Create the registry keys if they don't exist
 if (-not (Test-Path -Path $policyKey)) {
     New-Item -Path $policyKey | Out-Null
 }
 
+if (-not (Test-Path -Path $layoutPolicyPath)) {
+    New-Item -Path $layoutPolicyPath | Out-Null
+}
+
+# Set the registry property value
 New-ItemProperty -Path $layoutPolicyPath -Name $layoutPolicyValueName -Value $layoutPolicyValue -PropertyType DWORD -Force
 
 # Creating the Start Menu and Taskbar layout
@@ -194,19 +202,36 @@ $layoutScriptBlock = {
 $layoutScriptBlock | Out-File -FilePath $layoutFilePath -Encoding UTF8 -Force
 
 # Import the Start Menu and Taskbar layout
+# Import the Start Menu and Taskbar layout
 Write-Host -ForegroundColor Gray "Z> Importing StartMenuTaskbarLayout.xml."
-$policyPath = "$policyKey\Explorer\StartLayoutFile"
-Set-ItemProperty -Path $policyPath -Name "0" -Value $layoutFilePath
+$policyPath = "$policyKey\Explorer"
+$layoutFileProperty = "StartLayoutFile"
+$layoutFileValue = $layoutFilePath
+
+if (-not (Test-Path -Path $policyPath)) {
+    New-Item -Path $policyPath | Out-Null
+}
+
+Set-ItemProperty -Path $policyPath -Name $layoutFileProperty -Value $layoutFileValue
+
 
 # Apply the layout to the non-admin user group
 Write-Host -ForegroundColor Gray "Z> Applying StartMenuTaskbarLayout.xml to NonAdminGroup."
 $groupSid = (New-Object System.Security.Principal.NTAccount("$userGroupName")).Translate([System.Security.Principal.SecurityIdentifier]).Value
-$policyPath = "$policyKey\Explorer\RestrictStartMenu"
-$policyValue = @(
-    "@{User=%SID%}='1'"
-    "@{User=$groupSid}='0'"
-)
-Set-ItemProperty -Path $policyPath -Name "0" -Value $policyValue
+$policyPath = "$policyKey\Explorer"
+$policyValueName = "RestrictStartMenu"
+$policyValue = @{
+    "User" = @{
+        "%SID%" = "1"
+        "$groupSid" = "0"
+    }
+}
+
+if (-not (Test-Path -Path $policyPath)) {
+    New-Item -Path $policyPath | Out-Null
+}
+
+Set-ItemProperty -Path $policyPath -Name $policyValueName -Value $policyValue
 
 
 Write-Host -ForegroundColor White "========================================================================================="
