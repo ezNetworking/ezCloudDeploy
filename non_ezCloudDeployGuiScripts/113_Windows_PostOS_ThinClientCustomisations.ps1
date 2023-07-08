@@ -16,9 +16,6 @@ $jsonFilePath = 'C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json'
 $rdpFilePath = 'C:\ezNetworking\Automation\ezCloudDeploy\CustomerRDS.rdp'
 $desktopFolderPath = [Environment]::GetFolderPath('CommonDesktopDirectory')
 $rdpShortcutFilePath = Join-Path -Path $desktopFolderPath -ChildPath 'RDS Cloud.lnk'
-$layoutFilePath = "C:\ezNetworking\Automation\ezCloudDeploy\StartMenuTaskbarLayout.xml"
-$userName = "User"
-$userGroupName = "NonAdminUsers"
 
 Read-Host -Prompt "Press Enter to continue"
 write-host "Z> Setting Focus Assist to Off"
@@ -132,19 +129,14 @@ Write-Host -ForegroundColor White "=============================================
 Write-Host -ForegroundColor White "Z> User and group creation."
 Write-Host -ForegroundColor White "========================================================================================="
 
-# Create the Non Admin Users group
-Write-Host -ForegroundColor Gray "Z> Creating NonAdminGroup."
-New-LocalGroup -Name $userGroupName -Description 'Non-Admin Users'
-
 # Create non-admin user
-Write-Host -ForegroundColor Gray "Z> Creating NonAdminUser."
-Write-Host -ForegroundColor Gray "Z> Creating NonAdminUser."
-$command = "net user $userName """" /add /passwordreq:no /fullname:""ThinClient User"" /comment:""User for Autologin"""
+Write-Host -ForegroundColor Gray "Z> Creating NonAdminUser User."
+$command = "net user 'User'  /add /passwordreq:no /fullname:'ThinClient User' /comment:'User for Autologin'"
 Invoke-Expression -Command $command
-
-# Add the user to the non-admin user group
-Write-Host -ForegroundColor Gray "Z> Adding user to NonAdminGroup."
-Add-LocalGroupMember -Group $userGroupName -Member $userName
+# Set password to never expire
+Write-Host -ForegroundColor Gray "Z> Set password to never expire."
+$command = "wmic useraccount where name='User' set passwordexpires=false"
+Invoke-Expression -Command $command
 
 # Setup Autologin
 Write-Host -ForegroundColor Gray "Z> Setting up Autologin."
@@ -157,126 +149,14 @@ Write-Host -ForegroundColor White "Z> Local Group Policy 'ThinClientUsers' creat
 Write-Host -ForegroundColor White "========================================================================================="
 
 # Create and import the local group policy
-Write-Host -ForegroundColor Gray "Z> Creating Policy."
-$policyName = "ThinClientUsers"
-$policyPath = "HKLM:\Software\Policies\Microsoft\Windows"
-$policyKey = Join-Path -Path $policyPath -ChildPath $policyName
-$layoutPolicyPath = Join-Path -Path $policyKey -ChildPath "Explorer"
-$layoutPolicyValueName = "LockedStartLayout"
-$layoutPolicyValue = "1"
+# The non-administrators Local GP is always saved in C:\Windows\System32\GroupPolicyUsers\S-1-5-32-545\User\Registry.pol 
+# when updating is needed you can import the Registry.pol file on a clean PC as below, make changes and copy it back to FTP
+# LGPO download from ftp
+# Download Registry.pol from ftp
+# Import Registry.pol to non-administrator group
+lgpo /un $LGPOFilePath\Registry.pol
 
-# Create the registry keys if they don't exist
-if (-not (Test-Path -Path $policyKey)) {
-    New-Item -Path $policyKey | Out-Null
-}
-
-if (-not (Test-Path -Path $layoutPolicyPath)) {
-    New-Item -Path $layoutPolicyPath | Out-Null
-}
-
-# Set the registry property value
-New-ItemProperty -Path $layoutPolicyPath -Name $layoutPolicyValueName -Value $layoutPolicyValue -PropertyType DWORD -Force
-
-# Creating the Start Menu and Taskbar layout
-Write-Host -ForegroundColor Gray "Z> Creating StartMenuTaskbarLayout.xml."
-$layoutScriptBlock = {
-    @"
-<LayoutModificationTemplate xmlns="http://schemas.microsoft.com/Start/2014/LayoutModification">
-  <LayoutOptions StartTileGroupCellWidth="6" />
-  <DefaultLayoutOverride>
-    <StartLayoutCollection>
-      <defaultlayout:StartLayout GroupCellWidth="6" xmlns:defaultlayout="http://schemas.microsoft.com/Start/2014/FullDefaultLayout">
-        <start:Group Name="Group1" xmlns:start="http://schemas.microsoft.com/Start/2014/StartLayout">
-          <start:DesktopApplicationTile Size="2x2" Column="0" Row="0" DesktopApplicationLinkPath="%APPDATA%\Microsoft\Windows\Start Menu\Programs\Accessories\Notepad.lnk" />
-          <start:DesktopApplicationTile Size="2x2" Column="2" Row="0" DesktopApplicationLinkPath="%APPDATA%\Microsoft\Windows\Start Menu\Programs\Accessories\Paint.lnk" />
-          <start:DesktopApplicationTile Size="2x2" Column="0" Row="2" DesktopApplicationLinkPath="%APPDATA%\Microsoft\Windows\Start Menu\Programs\System Tools\File Explorer.lnk" />
-          <start:DesktopApplicationTile Size="2x2" Column="2" Row="2" DesktopApplicationLinkPath="%APPDATA%\Microsoft\Windows\Start Menu\Programs\System Tools\Command Prompt.lnk" />
-        </start:Group>
-      </defaultlayout:StartLayout>
-    </StartLayoutCollection>
-  </DefaultLayoutOverride>
-</LayoutModificationTemplate>
-"@
-}
-
-$layoutScriptBlock | Out-File -FilePath $layoutFilePath -Encoding UTF8 -Force
-
-# Import the Start Menu and Taskbar layout
-# Import the Start Menu and Taskbar layout
-Write-Host -ForegroundColor Gray "Z> Importing StartMenuTaskbarLayout.xml."
-$policyPath = "$policyKey\Explorer"
-$layoutFileProperty = "StartLayoutFile"
-$layoutFileValue = $layoutFilePath
-
-if (-not (Test-Path -Path $policyPath)) {
-    New-Item -Path $policyPath | Out-Null
-}
-
-Set-ItemProperty -Path $policyPath -Name $layoutFileProperty -Value $layoutFileValue
-
-
-# Apply the layout to the non-admin user group
-Write-Host -ForegroundColor Gray "Z> Applying StartMenuTaskbarLayout.xml to NonAdminGroup."
-$groupSid = (New-Object System.Security.Principal.NTAccount("$userGroupName")).Translate([System.Security.Principal.SecurityIdentifier]).Value
-$policyPath = "$policyKey\Explorer"
-$policyValueName = "RestrictStartMenu"
-$policyValue = @{
-    "User" = @{
-        "%SID%" = "1"
-        "$groupSid" = "0"
-    }
-}
-
-if (-not (Test-Path -Path $policyPath)) {
-    New-Item -Path $policyPath | Out-Null
-}
-
-Set-ItemProperty -Path $policyPath -Name $policyValueName -Value $policyValue
-
-
-Write-Host -ForegroundColor White "========================================================================================="
-Write-Host -ForegroundColor White "Z> Removing Apps and creating hardening Policy."
-Write-Host -ForegroundColor White "========================================================================================="
-Write-Host -ForegroundColor Gray "Z> Removing Chat and MS Store from taskbar."
-# Remove the Chat app and Microsoft Store app from the Taskbar
-$taskbarLayoutPath = "$env:APPDATA\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar"
-$chatAppShortcutPath = Join-Path -Path $taskbarLayoutPath -ChildPath "Microsoft.ChatApp_8wekyb3d8bbwe.lnk"
-$storeAppShortcutPath = Join-Path -Path $taskbarLayoutPath -ChildPath "Microsoft.WindowsStore_8wekyb3d8bbwe.lnk"
-
-Remove-Item -Path $chatAppShortcutPath -ErrorAction SilentlyContinue
-Remove-Item -Path $storeAppShortcutPath -ErrorAction SilentlyContinue
-
-# Disable Control Panel and Settings access for non-admin users
-Write-Host -ForegroundColor Gray "Z> Disabling Control Panel and Settings access for NonAdminGroup."
-$policyPath = "$policyKey\Explorer\NoControlPanel"
-Set-ItemProperty -Path $policyPath -Name "0" -Value "1"
-$policyPath = "$policyKey\Explorer\NoSetFolders"
-Set-ItemProperty -Path $policyPath -Name "0" -Value "1"
-
-
-# Remove Run and Search functionality
-Write-Host -ForegroundColor Gray "Z> Removing Run and Search functionality."
-$policyPath = "$policyKey\Explorer\NoRun"
-Set-ItemProperty -Path $policyPath -Name "0" -Value "1"
-$policyPath = "$policyKey\Explorer\NoFind"
-Set-ItemProperty -Path $policyPath -Name "0" -Value "1"
-
-
-# Restrict shutdown privileges
-Write-Host -ForegroundColor Gray "Z> Restricting shutdown privileges."
-$policyPath = "$policyKey\Explorer\NoClose"
-Set-ItemProperty -Path $policyPath -Name "0" -Value "1"
-
-
-# Allow access to screen settings only
-Write-Host -ForegroundColor Gray "Z> Allowing access to screen settings only."
-$policyPath = "$policyKey\System"
-Set-ItemProperty -Path $policyPath -Name "NoDispCpl" -Value "0"
-Set-ItemProperty -Path $policyPath -Name "NoDispAppearancePage" -Value "1"
-Set-ItemProperty -Path $policyPath -Name "NoDispBackgroundPage" -Value "1"
-Set-ItemProperty -Path $policyPath -Name "NoDispSettingsPage" -Value "1"
-
-
+write-host -ForegroundColor Gray "Z> Send a completion toast Alarm"
 $Btn = New-BTButton -Content 'Got it!' -arguments 'ok'
 $Splat = @{
     Text = 'Zed: Configuring ThinClient Finished' , "Please press OK."

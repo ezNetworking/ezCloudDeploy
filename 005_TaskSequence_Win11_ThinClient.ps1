@@ -87,6 +87,7 @@ $ezClientConfig = @"
 "@
 $ezClientConfig | Out-File -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" -Encoding UTF8
 Write-Host -ForegroundColor Gray "========================================================================================="
+
 # Put our autoUnattend xml template for Thinclient OOBE in a variable
 Write-Host -ForegroundColor White "Z> Updating our Unattend xml for Thinclient OOBE (no online useraccount page)"
 $unattendXml = @"
