@@ -206,6 +206,35 @@ catch {
 }
 
 Write-Host -ForegroundColor Gray "========================================================================================="
+# Download the InstallEzRmonProbe.ps1
+Write-Host -ForegroundColor Gray " Z> Downloading and shortcutting the InstallEzRmonProbe script."
+try {
+    $ScriptResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/141_Windows_PostOS_InstallezRMonProbe.ps1" -UseBasicParsing 
+    $Script = $ScriptResponse.content
+    Write-Host -ForegroundColor Gray " Z> Saving the InstallEzRmonProbe script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts"
+    $ScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\InstallEzRmonProbe.ps1"
+    $Script | Out-File -FilePath $ScriptPath -Encoding UTF8
+    }
+catch {
+    Write-Error " Z> I was unable to download the InstallEzRmonProbe script from github"
+}
+
+try {
+    $shortcutPath = "$([Environment]::GetFolderPath('CommonDesktopDirectory'))\Install ezRMon Probe.lnk"
+    $iconPath = "C:\Windows\System32\shell32.dll,217"
+    $shell = New-Object -ComObject WScript.Shell
+    $shortcut = $shell.CreateShortcut($shortcutPath)
+    $shortcut.TargetPath = "powershell.exe"
+    $shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$ScriptPath`""
+    $shortcut.IconLocation = $iconPath
+    $shortcut.Save()
+    
+}
+catch {
+    Write-Error " Z> I was unable to create a shortcut for the InstallEzRmonProbe script."
+}
+
+Write-Host -ForegroundColor Gray "========================================================================================="
 # Set the unattend.xml file in the offline registry
 Write-Host -ForegroundColor Gray " Z> Setting the unattend.xml file in the offline registry"
 reg load HKLM\TempSYSTEM "C:\Windows\System32\Config\SYSTEM"
@@ -231,7 +260,7 @@ Write-Host -ForegroundColor White ""
 
 Write-Warning "  ========================================================================================="
 Write-Warning "  I'm done mate! If you don't see any errors above you can reboot the pc and change the"
-Write-Warning "  Admin Password. Once logged in a Domain Join Gui will be displayed and in the background"
+Write-Warning "  Admin Password. Once logged in a you can Join the domain and install the probe."
 Write-Warning "  the default apps will be installed, so make sure the network cable is plugged in.  "
 Write-Warning "  ========================================================================================="
 Write-Host " "
@@ -240,35 +269,26 @@ write-warning "  $transcriptPath."
 Write-Host " "
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host "Restarting this computer in 10s, press CTRL+C to abort"
+Write-Host "Shutting down this computer in 10s, press CTRL+C to abort"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Start-Sleep -Seconds 10
-Write-Host -ForegroundColor Yellow "Restarting the computer..."
-Restart-Computer -Force
+Write-Host -ForegroundColor Yellow "Shutting down the computer..."
+Stop-Computer -Force
 #And stop the transcript.
 Stop-Transcript
 <#
 .SYNOPSIS
-Configures OOBE with Local Active Directory (AD) and removes specified default apps 
-and sets a domain join GUI to be loaded at first login.
+Configures a PC for use as a ezRmon probe and general RMM PC when no local servers or local AD are available. Can also be used to install printer supplies monitors like EKM and Xerox MPS
 
 .DESCRIPTION
 This script checks if the required folders exist, creates them if they don't, sets up the environment, 
 prompts the user to input a computer name, generates an unattend.xml file to customize the Windows 10 installation 
-with Local AD, downloads a PowerShell script to join the domain at first login, saves it in the correct folder, 
+for Workgroup, downloads a few PowerShell script , saves it in the correct folder, 
 configures the unattend.xml file to run the script, starts OOBEDeploy with the customized unattend.xml file, 
 and removes specified default apps. It also creates a transcript of the deployment process.
 
 .INPUTS
 This script prompts the user to input the computer name.
-
-.EXAMPLE
-002_TaskSequence_LocalAD.ps1 -ComputerName "CUST-SITE-DTxx" -ezRmmId 123456789
-
-This command configures a Windows 11 22H2 Pro image with Local AD on a computer named "MyComputer01" and loads 
-an unattend.XML for Users config, region and KBD settings, first run commands, and domain join at first login.
-It installs the ez RMM tool and removes the default apps CommunicationsApps, OfficeHub, People, Skype, Solitaire,
-Xbox, ZuneMusic, and ZuneVideo.
 
 .NOTES
 Author: Jurgen Verhelst | ez Networking | www.ez.be
