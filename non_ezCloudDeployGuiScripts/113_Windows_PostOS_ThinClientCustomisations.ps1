@@ -105,16 +105,16 @@ catch {
 Write-Host -ForegroundColor White "========================================================================================="
 Write-Host -ForegroundColor White "Z> RDS shortcut creation."
 Write-Host -ForegroundColor White "========================================================================================="
-Write-Host -ForegroundColor Gray "Z> Loading ClientConfig JSON."
-
-
 # Get the RDS URI from the JSON file
+Write-Host -ForegroundColor Gray "Z> Loading ClientConfig JSON."
 $rdsUri = $ezClientConfig.custRdsUri
 
 # Delete all links in the default public user's desktop
+Write-Host -ForegroundColor Gray "Z> Delete all links in the default public user's desktop."
 Get-ChildItem -Path $desktopFolderPath -Filter '*.*' -File | Remove-Item -Force
 
 # Create the RDP file with the RDS URI
+Write-Host -ForegroundColor Gray "Z> Create the RDP file with the RDS URI."
 $rdpContent = @"
 full address:s:$rdsUri
 prompt for credentials:i:1
@@ -122,6 +122,7 @@ prompt for credentials:i:1
 $rdpContent | Out-File -FilePath $rdpFilePath -Encoding ASCII
 
 # Create a shortcut to the RDP file on the public desktop
+Write-Host -ForegroundColor Gray "Z> Create a shortcut to the RDP file on the public desktop."
 $shell = New-Object -ComObject WScript.Shell
 $shortcut = $shell.CreateShortcut($rdpShortcutFilePath)
 $shortcut.TargetPath = $rdpFilePath
@@ -130,13 +131,14 @@ $shortcut.Save()
 Write-Host -ForegroundColor White "========================================================================================="
 Write-Host -ForegroundColor White "Z> User and group creation."
 Write-Host -ForegroundColor White "========================================================================================="
-Write-Host -ForegroundColor Gray "Z> Creating NonAdminGroup."
+
 # Create the Non Admin Users group
+Write-Host -ForegroundColor Gray "Z> Creating NonAdminGroup."
 New-LocalGroup -Name $userGroupName -Description 'Non-Admin Users'
 
 # Create non-admin user
 Write-Host -ForegroundColor Gray "Z> Creating NonAdminUser."
-New-LocalUser -Name $userName -FullName "ThinClient User" -Description "User for Autologin" -PasswordNeverExpires -UserMayNotChangePassword
+New-LocalUser -Name $userName -FullName "ThinClient User" -Description "User for Autologin" -PasswordNeverExpires -UserMayNotChangePassword -Password ""
 
 # Add the user to the non-admin user group
 Write-Host -ForegroundColor Gray "Z> Adding user to NonAdminGroup."
@@ -155,14 +157,14 @@ Write-Host -ForegroundColor White "=============================================
 # Create and import the local group policy
 Write-Host -ForegroundColor Gray "Z> Creating Policy."
 $policyName = "ThinClientUsers"
-$policyPath = "HKLM\Software\Policies\Microsoft\Windows"
-$policyKey = "$policyPath\$policyName"
-$layoutPolicyPath = "$policyKey\Explorer"
+$policyPath = "HKLM:\Software\Policies\Microsoft\Windows"
+$policyKey = Join-Path -Path $policyPath -ChildPath $policyName
+$layoutPolicyPath = Join-Path -Path $policyKey -ChildPath "Explorer"
 $layoutPolicyValueName = "LockedStartLayout"
 $layoutPolicyValue = "1"
 
 if (-not (Test-Path -Path $policyKey)) {
-    New-Item -Path $policyKey -ItemType RegistryKey | Out-Null
+    New-Item -Path $policyKey | Out-Null
 }
 
 New-ItemProperty -Path $layoutPolicyPath -Name $layoutPolicyValueName -Value $layoutPolicyValue -PropertyType DWORD -Force
