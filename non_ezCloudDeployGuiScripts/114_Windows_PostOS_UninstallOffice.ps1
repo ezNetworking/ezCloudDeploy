@@ -42,7 +42,10 @@ Version: 0.2 | MS Version: 17.12.09.2022
 Last Updated: 18/2/23
 
 #> 
-
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Cyan "             Uninstall Office - Post OS Deployment"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Cyan ""
 $SaraCmdSourcePath = "https://aka.ms/SaRA_EnterpriseVersionFiles"
 $SaraScenarioArgument = "-S OfficeScrubScenario -Script -AcceptEula"
 $currentTimeStamp = Get-Date -Format "yyyy-MM-dd_HH.mm.ss"

@@ -43,7 +43,10 @@ Param(
   [Parameter(ParameterSetName = "NoXML")][string]$adDomainNetbiosName =  (gwmi WIN32_ComputerSystem).Domain,
   [Parameter(ParameterSetName = "NoXML")][String]$OfficeInstallDownloadPath = "c:\ezNetworking\Automation\Apps\Office365Install"
 )
-
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Cyan "             Install Office 365 - Post OS Deployment"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Cyan ""
 Function Generate-XMLFile{
   Write-Host = " Zed says: Generating an XML file"
   If($ExcludeApps){
