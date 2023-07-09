@@ -75,8 +75,8 @@ foreach ($folder in $folders) {
     }
 }
 
-Write-Host -ForegroundColor Gray "========================================================================================="
 # Create a json config file with the ezRmmId
+Write-Host -ForegroundColor Gray "========================================================================================="
 Write-Host -ForegroundColor White "Z> Creating a json client config file (ezRmmId, RDP URI)"
 $ezClientConfig = @"
 {
@@ -87,6 +87,21 @@ $ezClientConfig = @"
 "@
 $ezClientConfig | Out-File -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" -Encoding UTF8
 Write-Host -ForegroundColor Gray "========================================================================================="
+
+# Download the DefaultAppsAndOnboard.ps1 script from github
+Write-Host -ForegroundColor Gray "========================================================================================="
+Write-Host -ForegroundColor Gray "Z> Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
+try {
+    $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/113_Windows_PostOS_ThinClientCustomisations.ps1" -UseBasicParsing 
+    $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
+    Write-Host -ForegroundColor Gray "Z> Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
+    $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
+    $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
+}
+catch {
+    Write-Error " Z> I was unable to download the DefaultAppsAndOnboardScript script."
+}
+
 
 # Put our autoUnattend xml template for Thinclient OOBE in a variable
 Write-Host -ForegroundColor White "Z> Updating our Unattend xml for Thinclient OOBE (no online useraccount page)"
@@ -173,23 +188,9 @@ try {
 catch {
     Write-Error "Z>$unattendPath already exists or you don't have the rights to create it"
 }
-Write-Host -ForegroundColor Gray "========================================================================================="
 
-# Download the DefaultAppsAndOnboard.ps1 script from github
-Write-Host -ForegroundColor Gray "Z> Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
-try {
-    $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/113_Windows_PostOS_ThinClientCustomisations.ps1" -UseBasicParsing 
-    $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
-    Write-Host -ForegroundColor Gray "Z> Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
-    $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
-    $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
-}
-catch {
-    Write-Error " Z> I was unable to download the DefaultAppsAndOnboardScript script."
-}
-
-Write-Host -ForegroundColor Gray "========================================================================================="
 # Set the unattend.xml file in the offline registry
+Write-Host -ForegroundColor Gray "========================================================================================="
 Write-Host -ForegroundColor Gray " Z> Setting the unattend.xml file in the offline registry"
 reg load HKLM\TempSYSTEM "C:\Windows\System32\Config\SYSTEM"
 reg add HKLM\TempSYSTEM\Setup /v UnattendFile /d $unattendPath /f

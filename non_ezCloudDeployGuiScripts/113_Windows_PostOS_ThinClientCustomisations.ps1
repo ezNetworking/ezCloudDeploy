@@ -51,6 +51,16 @@ New-BurntToastNotification @splat
 # Load the JSON file
 $ezClientConfig = Get-Content -Path $jsonFilePath | ConvertFrom-Json
 
+# Disable sleep and disk sleep
+powercfg.exe -change -standby-timeout-ac 0
+powercfg.exe -change -disk-timeout-ac 0
+
+# Set active power plan to never sleep and never put the disk in sleep mode
+$activePlan = (Get-WmiObject -Namespace root\cimv2\power -Class Win32_PowerPlan | Where-Object {$_.IsActive}).ElementName
+powercfg.exe -setacvalueindex $activePlan 238C9FA8-0AAD-41ED-83F4-97BE242C8F20 0012ee47-9041-4b5d-9b77-535fba8b1442 000
+powercfg.exe -setacvalueindex $activePlan 238C9FA8-0AAD-41ED-83F4-97BE242C8F20 12bbebe6-58d6-4636-95bb-3217ef867c1a 000
+
+
 # Install ezRmm and ezRS
 write-host -ForegroundColor White "Z> ezRMM - Downloading and installing it for customer $($ezClientConfig.ezRmmId)"
 
@@ -97,6 +107,33 @@ catch {
     Write-Error "Z> ezRS is already installed or had an error $($_.Exception.Message)"
 }
 
+# Download the DownloadSupportFolder script, run and schedule it
+Write-Host -ForegroundColor Gray "========================================================================================="
+Write-Host -ForegroundColor Gray "Z> Downloading the DownloadSupportFolder Script, runing and scheduling it"
+try {
+    $DownloadSupportFolderResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/113_Windows_PostOS_ThinClientCustomisations.ps1" -UseBasicParsing 
+    $DownloadSupportFolderScript = $DownloadSupportFolderResponse.content
+    Write-Host -ForegroundColor Gray "Z> Saving the Onboard script to c:\ezNetworking\DownloadSupportFolder.ps1"
+    $DownloadSupportFolderScriptPath = "c:\ezNetworking\DownloadSupportFolder.ps1"
+    $DownloadSupportFolderScript | Out-File -FilePath $DownloadSupportFolderScriptPath -Encoding UTF8
+
+    Write-Host -ForegroundColor Gray "Z> Running the DownloadSupportFolder script"
+    . $DownloadSupportFolderScriptPath
+
+    Write-Host -ForegroundColor Gray "Z> Scheduling the DownloadSupportFolder script to run every Sunday at 14:00"
+
+    # Create a new scheduled task
+    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File $DownloadSupportFolderScriptPath"
+    $trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 14:00
+    $settings = New-ScheduledTaskSettingsSet
+    $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM"
+    Register-ScheduledTask -TaskName "ezDownloadSupportFolder" -Action $action -Trigger $trigger -Settings $settings -Principal $principal
+
+}
+catch {
+    Write-Error " Z> I was unable to download the DownloadSupportFolder script."
+}
+
 
 
 Write-Host -ForegroundColor White "========================================================================================="
@@ -126,6 +163,103 @@ $shortcut.TargetPath = $rdpFilePath
 $shortcut.Save()
 
 Write-Host -ForegroundColor White "========================================================================================="
+Write-Host -ForegroundColor White "Z> Importing Local Group Policies for non admins like the thinclient user."
+Write-Host -ForegroundColor White "========================================================================================="
+
+# Download LGPO files from ftp
+Write-Host -ForegroundColor White "Z> Downloading LGPO files from ftp."
+# Import the module
+Import-Module Transferetto
+
+# Enable Tracing
+Set-FTPTracing -disable
+
+# Define FTP Server connection details
+$server = "192.168.13.15"
+$username = "ezPublic"
+$password = "MakesYourNetWork"
+
+# Define local and remote directories
+$remoteDirectory = "LGPO"
+$localDirectory = "C:\ezNetworking\Apps\LGPO"
+
+# Function to handle files and directories
+function Process-FTPItems {
+    param(
+        [FluentFTP.FtpClient]$Client,
+        [string]$LocalPath,
+        [string]$RemotePath
+    )
+
+    # Get the list of remote items (files and directories)
+    $remoteItems = Get-FTPList -Client $Client -Path $RemotePath
+    
+    Write-Host "Z> Found $(($remoteItems).Count) items in the remote path: $RemotePath"
+
+    foreach ($remoteItem in $remoteItems) {
+        $localFilePath = Join-Path -Path $LocalPath -ChildPath $remoteItem.Name
+
+        if ($remoteItem.Type -eq "File") {
+            # Download the remote file and overwrite the local file if it exists
+            Receive-FTPFile -Client $Client -LocalPath $localFilePath -RemotePath $remoteItem.FullName -LocalExists Overwrite
+        } elseif ($remoteItem.Type -eq "Directory") {
+            # If the item is a directory, recursively call this function
+            
+            Write-Host "Z> Found directory: $remoteItem.FullName"
+
+            if (!(Test-Path $localFilePath)) {
+                
+                Write-Host "Z> Local directory doesn't exist. Creating: $localFilePath"
+                New-Item -ItemType Directory -Path $localFilePath | Out-Null
+            }
+            
+            Write-Host "Z> Navigating into directory: $localFilePath"
+            Process-FTPItems -Client $Client -LocalPath $localFilePath -RemotePath $remoteItem.FullName
+        }
+    }
+}
+
+try {
+    # Establish a connection to the FTP server
+    
+    Write-Host "Z> Connecting to FTP Server at $server..."
+    $ftpConnection = Connect-FTP -Server $server -Username $username -Password $password
+    Request-FTPConfiguration 
+
+} catch {
+    
+    Write-Host "Z> Failed to connect to FTP server at $server. Exiting script..."
+    Write-Host "Z> Error details: $_"
+    exit
+}
+
+# Process files and directories
+
+Write-Host "Z> Starting to process files and directories..."
+Process-FTPItems -Client $ftpConnection -LocalPath $localDirectory -RemotePath $remoteDirectory
+
+# Close the FTP connection
+
+Write-Host "Z> Disconnecting from FTP server..."
+Disconnect-FTP -Client $ftpConnection
+
+Write-Host "Z> Process completed."
+
+# The non-administrators Local GP is always saved in C:\Windows\System32\GroupPolicyUsers\S-1-5-32-545\User\Registry.pol 
+# when updating is needed you can import the Registry.pol file on a clean PC as below, make changes via MMC/GroupPolEditor and copy it back to FTP
+$LGPOFolder = "C:\ezNetworking\Apps\LGPO"
+
+# Import Registry.pol to non-administrator group
+write-host -ForegroundColor Gray "Z> Importing Registry.pol to non-administrator group."
+$lgpoExe = Join-Path -Path $LGPOFolder -ChildPath "lgpo.exe"
+$unCommand = "/un"
+$nonAdminPolicyFile = Join-Path -Path $LGPOFolder -ChildPath "NonAdministratorPolicy\LgpoNonAdmins.pol"
+
+# Run the command
+Start-Process -FilePath $lgpoExe -ArgumentList $unCommand, $nonAdminPolicyFile -Wait
+
+
+Write-Host -ForegroundColor White "========================================================================================="
 Write-Host -ForegroundColor White "Z> User and group creation."
 Write-Host -ForegroundColor White "========================================================================================="
 
@@ -142,19 +276,7 @@ Invoke-Expression -Command $command
 Write-Host -ForegroundColor Gray "Z> Setting up Autologin."
 $RegPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
 Set-ItemProperty $RegPath "AutoAdminLogon" -Value "1" -type String 
-Set-ItemProperty $RegPath "DefaultUserName" -Value $userName -type String
-
-Write-Host -ForegroundColor White "========================================================================================="
-Write-Host -ForegroundColor White "Z> Local Group Policy 'ThinClientUsers' creation and config."
-Write-Host -ForegroundColor White "========================================================================================="
-
-# Create and import the local group policy
-# The non-administrators Local GP is always saved in C:\Windows\System32\GroupPolicyUsers\S-1-5-32-545\User\Registry.pol 
-# when updating is needed you can import the Registry.pol file on a clean PC as below, make changes and copy it back to FTP
-# LGPO download from ftp
-# Download Registry.pol from ftp
-# Import Registry.pol to non-administrator group
-lgpo /un $LGPOFilePath\Registry.pol
+Set-ItemProperty $RegPath "DefaultUserName" -Value "User" -type String
 
 write-host -ForegroundColor Gray "Z> Send a completion toast Alarm"
 $Btn = New-BTButton -Content 'Got it!' -arguments 'ok'
