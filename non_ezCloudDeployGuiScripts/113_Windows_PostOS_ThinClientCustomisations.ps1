@@ -323,9 +323,9 @@ $Splat = @{
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "Z> Configuring ThinClient Finished." 
-write-host -ForegroundColor Cyan "Z> Check if you can login as User and if hardening is applied."
-write-host -ForegroundColor Cyan "Z> You can deliver the computer to the client now."
-Read-Host -Prompt "Z> Press any key to exit"
+write-host -ForegroundColor Cyan "Z> The Thinclient User has password 'user' and is set to autologin."
+write-host -ForegroundColor Cyan "Z> You can deliver the computer to the client now after testing auto user login."
+Read-Host -Prompt "Z> Press any key to Reboot the ThinClient."
 Write-Host -ForegroundColor Cyan "========================================================================================="
 
 Stop-Transcript
