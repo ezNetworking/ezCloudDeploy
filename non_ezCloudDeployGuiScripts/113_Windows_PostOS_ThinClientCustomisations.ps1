@@ -145,7 +145,7 @@ $shortcut.Save()
 $WshShell = New-Object -comObject WScript.Shell
 $Shortcut = $WshShell.CreateShortcut("$env:PUBLIC\Desktop\Shutdown.lnk")
 $Shortcut.TargetPath = "C:\Windows\System32\shutdown.exe"
-$Shortcut.Arguments = "/s"
+$Shortcut.Arguments = "/s /t 0"
 $Shortcut.IconLocation = "C:\Windows\System32\shell32.dll,27"
 $Shortcut.Save()
 
