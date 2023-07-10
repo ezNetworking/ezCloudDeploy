@@ -20,29 +20,7 @@ $desktopFolderPath = [Environment]::GetFolderPath('CommonDesktopDirectory')
 $rdpShortcutFilePath = Join-Path -Path $desktopFolderPath -ChildPath 'RDS Cloud.lnk'
 $Time = Get-date -Format t
 
-Read-Host -Prompt "Press Enter to continue"
-write-host "Z> Setting Focus Assist to Off"
-Add-Type -AssemblyName System.Windows.Forms
-[System.Windows.Forms.SendKeys]::SendWait("(^{ESC})")   
-Start-Sleep -Milliseconds 500   
-[System.Windows.Forms.SendKeys]::SendWait("(Do Not disturb)")   
-Start-Sleep -Milliseconds 200   
-[System.Windows.Forms.SendKeys]::SendWait("{ENTER}")   
-Start-Sleep -Milliseconds 700  
-[System.Windows.Forms.SendKeys]::SendWait("{TAB} ")   
-Start-Sleep -Milliseconds 700  
-[System.Windows.Forms.SendKeys]::SendWait("{TAB} ")   
-Start-Sleep -Milliseconds 700  
-[System.Windows.Forms.SendKeys]::SendWait("{TAB}{TAB}")   
-Start-Sleep -Milliseconds 200   
-[System.Windows.Forms.SendKeys]::SendWait("{ENTER}")   
-Start-Sleep -Milliseconds 700   
-[System.Windows.Forms.SendKeys]::SendWait("{TAB}{TAB} ")  
-Start-Sleep -Milliseconds 200   
-[System.Windows.Forms.SendKeys]::SendWait("{ENTER}") 
-Start-Sleep -Milliseconds 500     
-[System.Windows.Forms.SendKeys]::SendWait("(%{F4})")  
-
+Read-Host -Prompt "Please disable Do Not Disturb mode and press Enter to continue"
 
 
 # Load the JSON file
