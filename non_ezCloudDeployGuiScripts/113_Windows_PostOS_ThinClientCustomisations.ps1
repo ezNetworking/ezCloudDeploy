@@ -3,7 +3,6 @@ Write-Host -ForegroundColor Cyan "             Thinclient Deployment Client Cust
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
 Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_PostOS_ThinClientCustomisations.log"
-Write-Host -ForegroundColor Gray "========================================================================================="
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 Install-Module burnttoast
@@ -11,15 +10,13 @@ Import-Module burnttoast
 Install-Module Transferetto
 Import-Module Transferetto
 
+Read-Host -Prompt "Please disable Do Not Disturb mode, turn up the sound and press Enter to continue"
+
 # Define the Variables
 $jsonFilePath = 'C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json'
 $rdpFilePath = 'C:\ezNetworking\Automation\ezCloudDeploy\CustomerRDS.rdp'
 $desktopFolderPath = [Environment]::GetFolderPath('CommonDesktopDirectory')
 $rdpShortcutFilePath = Join-Path -Path $desktopFolderPath -ChildPath 'RDS Cloud.lnk'
-$Time = Get-date -Format t
-
-Read-Host -Prompt "Please disable Do Not Disturb mode, turn up the sound and press Enter to continue"
-
 
 # Load the JSON file
 Write-Host -ForegroundColor Gray "========================================================================================="
@@ -87,9 +84,9 @@ try {
     Write-Host -ForegroundColor Gray "Z> Running the DownloadSupportFolder script"
     . $DownloadSupportFolderScriptPath -remoteDirectory 'SupportFolderClients'
 
-    Write-Host -ForegroundColor Gray "Z> Scheduling the DownloadSupportFolder script to run every Sunday at 14:00"
-
     # Create a new scheduled task
+    Write-Host -ForegroundColor Gray ""
+    Write-Host -ForegroundColor Gray "Z> Scheduling the DownloadSupportFolder script to run every Sunday at 14:00"
     $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File $DownloadSupportFolderScriptPath -remoteDirectory 'SupportFolderClients'"
     $trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 14:00
     $settings = New-ScheduledTaskSettingsSet
@@ -117,7 +114,7 @@ $propertyName = "BGinfo"
 $propertyValue = "powershell.exe -ExecutionPolicy Bypass -File C:\\ezNetworking\\BGinfo\\PresetAndBgInfo.ps1"
 New-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue -PropertyType String -Force
 
-
+Write-Host -ForegroundColor White ""
 Write-Host -ForegroundColor White "========================================================================================="
 Write-Host -ForegroundColor White "Z> Desktop Icons cleanup and creation. Start RDP at login for user 'User'"
 Write-Host -ForegroundColor White "========================================================================================="
@@ -160,6 +157,7 @@ if (!(Test-Path $RegPath)) {
 }
 New-ItemProperty -Path $RegPath -Name "CreateDesktopShortcutDefault" -Value 0 -PropertyType "DWORD" -Force | Out-Null
 
+Write-Host -ForegroundColor White ""
 Write-Host -ForegroundColor White "========================================================================================="
 Write-Host -ForegroundColor White "Z> Importing Local Group Policies for non admins like the thinclient user."
 Write-Host -ForegroundColor White "========================================================================================="
@@ -253,7 +251,7 @@ $nonAdminPolicyFile = Join-Path -Path $LGPOFolder -ChildPath "NonAdministratorPo
 # Run the command
 Start-Process -FilePath $lgpoExe -ArgumentList $unCommand, $nonAdminPolicyFile -Wait
 
-
+Write-Host -ForegroundColor White ""
 Write-Host -ForegroundColor White "========================================================================================="
 Write-Host -ForegroundColor White "Z> User and group creation."
 Write-Host -ForegroundColor White "========================================================================================="
@@ -301,6 +299,7 @@ write-host -ForegroundColor Cyan "Z> Configuring ThinClient Finished."
 write-host -ForegroundColor Cyan "Z> The Thinclient User has password 'user' and is set to autologin."
 write-host -ForegroundColor Cyan "Z> You can deliver the computer to the client now after testing auto user login."
 Read-Host -Prompt "Z> Press any key to Reboot the ThinClient."
+restart-computer -force
 Write-Host -ForegroundColor Cyan "========================================================================================="
 
 Stop-Transcript
