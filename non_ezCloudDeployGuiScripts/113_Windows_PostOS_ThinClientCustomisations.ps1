@@ -18,6 +18,7 @@ $jsonFilePath = 'C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json'
 $rdpFilePath = 'C:\ezNetworking\Automation\ezCloudDeploy\CustomerRDS.rdp'
 $desktopFolderPath = [Environment]::GetFolderPath('CommonDesktopDirectory')
 $rdpShortcutFilePath = Join-Path -Path $desktopFolderPath -ChildPath 'RDS Cloud.lnk'
+$Time = Get-date -Format t
 
 Read-Host -Prompt "Press Enter to continue"
 write-host "Z> Setting Focus Assist to Off"
@@ -42,13 +43,7 @@ Start-Sleep -Milliseconds 200
 Start-Sleep -Milliseconds 500     
 [System.Windows.Forms.SendKeys]::SendWait("(%{F4})")  
 
-$Time = Get-date -Format t
-$Splat = @{
-    Text = 'Zed: ThinClient Setup' , "Configuring... Started $Time"
-    Applogo = 'https://iili.io/H8B8JtI.png'
-    Sound = 'IM'
-}
-New-BurntToastNotification @splat 
+
 
 # Load the JSON file
 Write-Host -ForegroundColor Gray "========================================================================================="
@@ -80,8 +75,8 @@ try {
         Sound = 'Alarm10'
         Button = $Btn
         HeroImage = 'https://iili.io/HU7A5bV.jpg'
-}
-New-BurntToastNotification @splat
+        }
+        New-BurntToastNotification @splat
 
     Start-Process -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezRmmInstaller.msi" -ArgumentList "/quiet" -Wait
     
@@ -93,13 +88,6 @@ catch {
 
 Write-Host -ForegroundColor Gray "========================================================================================="
 write-host -ForegroundColor Gray "Z> ezRS - Downloading and installing it"
-$Splat = @{
-    Text = 'Zed: Installing ez Remote Support' , "Downloading and installing... Started $Time"
-    Applogo = 'https://iili.io/H8B8JtI.png'
-    Sound = 'IM'
-}
-New-BurntToastNotification @splat 
-
 # Need Fix ezRsInstaller is only 10kb big...
 try {
     $ezRsUrl = 'https://get.teamviewer.com/ezNetworkingHost'
