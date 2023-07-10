@@ -157,6 +157,14 @@ if (!(Test-Path $RegPath)) {
 }
 New-ItemProperty -Path $RegPath -Name "CreateDesktopShortcutDefault" -Value 0 -PropertyType "DWORD" -Force | Out-Null
 
+# Disable Windows Search
+Write-Host -ForegroundColor Gray "Z> Disabling Windows Search."
+$RegPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search"
+if (!(Test-Path $RegPath)) {
+    New-Item -Path $RegPath -Force | Out-Null
+}
+New-ItemProperty -Path $RegPath -Name "DisableSearch" -Value 1 -PropertyType "DWORD" -Force | Out-Null
+
 Write-Host -ForegroundColor White ""
 Write-Host -ForegroundColor White "========================================================================================="
 Write-Host -ForegroundColor White "Z> Importing Local Group Policies for non admins like the thinclient user."
