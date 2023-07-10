@@ -2,8 +2,6 @@ Write-Host -ForegroundColor Cyan "==============================================
 Write-Host -ForegroundColor Cyan "             Thinclient Deployment Client Customisations - Post OS Deployment"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
-
-Write-Host -ForegroundColor Gray "========================================================================================="
 Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_PostOS_ThinClientCustomisations.log"
 Write-Host -ForegroundColor Gray "========================================================================================="
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
