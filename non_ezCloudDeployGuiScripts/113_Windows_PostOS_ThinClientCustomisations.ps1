@@ -10,6 +10,8 @@ Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 Install-Module burnttoast
 Import-Module burnttoast
+Install-Module Transferetto
+Import-Module Transferetto
 
 # Define the Variables
 $jsonFilePath = 'C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json'
@@ -22,7 +24,7 @@ write-host "Z> Setting Focus Assist to Off"
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.SendKeys]::SendWait("(^{ESC})")   
 Start-Sleep -Milliseconds 500   
-[System.Windows.Forms.SendKeys]::SendWait("(Focus Assist)")   
+[System.Windows.Forms.SendKeys]::SendWait("(Do Not disturb)")   
 Start-Sleep -Milliseconds 200   
 [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")   
 Start-Sleep -Milliseconds 700  
@@ -49,19 +51,20 @@ $Splat = @{
 New-BurntToastNotification @splat 
 
 # Load the JSON file
+Write-Host -ForegroundColor Gray "========================================================================================="
+Write-Host -ForegroundColor Gray "Z> Loading the JSON file"
 $ezClientConfig = Get-Content -Path $jsonFilePath | ConvertFrom-Json
 
 # Disable sleep and disk sleep
+Write-Host -ForegroundColor Gray "========================================================================================="
+Write-Host -ForegroundColor Gray "Z> Disabling sleep and disk sleep"
 powercfg.exe -change -standby-timeout-ac 0
 powercfg.exe -change -disk-timeout-ac 0
-
-# Set active power plan to never sleep and never put the disk in sleep mode
-$activePlan = (Get-WmiObject -Namespace root\cimv2\power -Class Win32_PowerPlan | Where-Object {$_.IsActive}).ElementName
-powercfg.exe -setacvalueindex $activePlan 238C9FA8-0AAD-41ED-83F4-97BE242C8F20 0012ee47-9041-4b5d-9b77-535fba8b1442 000
-powercfg.exe -setacvalueindex $activePlan 238C9FA8-0AAD-41ED-83F4-97BE242C8F20 12bbebe6-58d6-4636-95bb-3217ef867c1a 000
+powercfg.exe -change -monitor-timeout-ac 480
 
 
 # Install ezRmm and ezRS
+Write-Host -ForegroundColor Gray "========================================================================================="
 write-host -ForegroundColor White "Z> ezRMM - Downloading and installing it for customer $($ezClientConfig.ezRmmId)"
 
 
@@ -111,7 +114,7 @@ catch {
 Write-Host -ForegroundColor Gray "========================================================================================="
 Write-Host -ForegroundColor Gray "Z> Downloading the DownloadSupportFolder Script, runing and scheduling it"
 try {
-    $DownloadSupportFolderResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/113_Windows_PostOS_ThinClientCustomisations.ps1" -UseBasicParsing 
+    $DownloadSupportFolderResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/140_Windows_PostOS_DownloadSupportFolders.ps1" -UseBasicParsing 
     $DownloadSupportFolderScript = $DownloadSupportFolderResponse.content
     Write-Host -ForegroundColor Gray "Z> Saving the Onboard script to c:\ezNetworking\DownloadSupportFolder.ps1"
     $DownloadSupportFolderScriptPath = "c:\ezNetworking\DownloadSupportFolder.ps1"
@@ -137,7 +140,7 @@ catch {
 
 
 Write-Host -ForegroundColor White "========================================================================================="
-Write-Host -ForegroundColor White "Z> RDS shortcut creation."
+Write-Host -ForegroundColor White "Z> Desktop Icons cleanup and creation. Start RDP on login"
 Write-Host -ForegroundColor White "========================================================================================="
 # Get the RDS URI from the JSON file
 Write-Host -ForegroundColor Gray "Z> Loading ClientConfig JSON."
@@ -155,6 +158,14 @@ prompt for credentials:i:1
 "@
 $rdpContent | Out-File -FilePath $rdpFilePath -Encoding ASCII
 
+# Create a Shutdown shortcut on the public desktop
+$WshShell = New-Object -comObject WScript.Shell
+$Shortcut = $WshShell.CreateShortcut("$env:PUBLIC\Desktop\Shutdown.lnk")
+$Shortcut.TargetPath = "C:\Windows\System32\shutdown.exe"
+$Shortcut.Arguments = "/s"
+$Shortcut.IconLocation = "C:\Windows\System32\shell32.dll,27"
+$Shortcut.Save()
+
 # Create a shortcut to the RDP file on the public desktop
 Write-Host -ForegroundColor Gray "Z> Create a shortcut to the RDP file on the public desktop."
 $shell = New-Object -ComObject WScript.Shell
@@ -162,14 +173,39 @@ $shortcut = $shell.CreateShortcut($rdpShortcutFilePath)
 $shortcut.TargetPath = $rdpFilePath
 $shortcut.Save()
 
+# Create User Logon Script
+$logonScriptContent = @"
+& 'mstsc.exe' 'C:\ezNetworking\Automation\ezCloudDeploy\CustomerRDS.rdp'
+"@
+
+$logonScriptPath = "C:\ezNetworking\Automation\ezCloudDeploy\UserLogonScript.ps1"
+$logonScriptContent | Out-File -FilePath $logonScriptPath -Encoding ASCII
+
+# Create Task Scheduler job to run the logon script
+Write-Host -ForegroundColor Gray "Z> Creating Task Scheduler job for User logon script."
+$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-File `"$logonScriptPath`""
+$Trigger = New-ScheduledTaskTrigger -AtLogOn -User "User"
+Register-ScheduledTask -Action $Action -Trigger $Trigger -TaskName "UserLogonScript" -Description "Runs a script at User logon."
+
+New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name HideSCATaskbar -Value 1 -PropertyType DWORD -Force
+
+
+
+
+
+# Prevent creation of Microsoft Edge desktop shortcut
+Write-Host -ForegroundColor Gray "Z> Preventing creation of Microsoft Edge desktop shortcut."
+$RegPath = "HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate"
+New-ItemProperty -Path $RegPath -Name "CreateDesktopShortcutDefault" -Value 0 -PropertyType "DWORD" -Force | Out-Null
+
+
 Write-Host -ForegroundColor White "========================================================================================="
 Write-Host -ForegroundColor White "Z> Importing Local Group Policies for non admins like the thinclient user."
 Write-Host -ForegroundColor White "========================================================================================="
 
 # Download LGPO files from ftp
 Write-Host -ForegroundColor White "Z> Downloading LGPO files from ftp."
-# Import the module
-Import-Module Transferetto
+
 
 # Enable Tracing
 Set-FTPTracing -disable
@@ -230,7 +266,7 @@ try {
     
     Write-Host "Z> Failed to connect to FTP server at $server. Exiting script..."
     Write-Host "Z> Error details: $_"
-    exit
+    
 }
 
 # Process files and directories
@@ -240,17 +276,17 @@ Process-FTPItems -Client $ftpConnection -LocalPath $localDirectory -RemotePath $
 
 # Close the FTP connection
 
-Write-Host "Z> Disconnecting from FTP server..."
+Write-Host -ForegroundColor Gray "Z> Disconnecting from FTP server..."
 Disconnect-FTP -Client $ftpConnection
 
-Write-Host "Z> Process completed."
+Write-Host -ForegroundColor Gray "Z> Process completed."
 
 # The non-administrators Local GP is always saved in C:\Windows\System32\GroupPolicyUsers\S-1-5-32-545\User\Registry.pol 
 # when updating is needed you can import the Registry.pol file on a clean PC as below, make changes via MMC/GroupPolEditor and copy it back to FTP
 $LGPOFolder = "C:\ezNetworking\Apps\LGPO"
 
 # Import Registry.pol to non-administrator group
-write-host -ForegroundColor Gray "Z> Importing Registry.pol to non-administrator group."
+write-host -ForegroundColor White "Z> Importing Registry.pol to non-administrator group."
 $lgpoExe = Join-Path -Path $LGPOFolder -ChildPath "lgpo.exe"
 $unCommand = "/un"
 $nonAdminPolicyFile = Join-Path -Path $LGPOFolder -ChildPath "NonAdministratorPolicy\LgpoNonAdmins.pol"
@@ -259,24 +295,26 @@ $nonAdminPolicyFile = Join-Path -Path $LGPOFolder -ChildPath "NonAdministratorPo
 Start-Process -FilePath $lgpoExe -ArgumentList $unCommand, $nonAdminPolicyFile -Wait
 
 
+
 Write-Host -ForegroundColor White "========================================================================================="
 Write-Host -ForegroundColor White "Z> User and group creation."
 Write-Host -ForegroundColor White "========================================================================================="
 
 # Create non-admin user
-Write-Host -ForegroundColor Gray "Z> Creating NonAdminUser User."
-$command = "net user 'User'  /add /passwordreq:no /fullname:'ThinClient User' /comment:'User for Autologin'"
+Write-Host -ForegroundColor White "Z> Creating NonAdminUser User."
+$command = "net user 'User' 'user' /add /fullname:'ThinClient User' /comment:'User for Autologin'"
 Invoke-Expression -Command $command
 # Set password to never expire
 Write-Host -ForegroundColor Gray "Z> Set password to never expire."
-$command = "wmic useraccount where name='User' set passwordexpires=false"
+$command = "net user 'User' /expires:never"
 Invoke-Expression -Command $command
 
 # Setup Autologin
 Write-Host -ForegroundColor Gray "Z> Setting up Autologin."
 $RegPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
 Set-ItemProperty $RegPath "AutoAdminLogon" -Value "1" -type String 
-Set-ItemProperty $RegPath "DefaultUserName" -Value "User" -type String
+Set-ItemProperty $RegPath "DefaultUserName" -Value "User" -type String 
+Set-ItemProperty $RegPath "DefaultPassword" -Value "user" -type String 
 
 write-host -ForegroundColor Gray "Z> Send a completion toast Alarm"
 $Btn = New-BTButton -Content 'Got it!' -arguments 'ok'

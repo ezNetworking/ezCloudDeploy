@@ -9,7 +9,7 @@ This script performs the following actions:
 .AUTHOR
     Jurgen Verhelst | ez Networking (jurgen.verhelst@ez.be)
 .NOTES
-Version: 1.0
+Version: 1.5
 Last Updated: 11/7/23
 
 #>
@@ -19,9 +19,10 @@ Write-Host -ForegroundColor Cyan "==============================================
 Write-Host -ForegroundColor Cyan ""
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_PostOS_DownloadSupportFolders.log"
-Write-Host -ForegroundColor Cyan"========================================================================================="
-Write-Host -ForegroundColor Gray "Z> Downloading ezRMON Probe."
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Gray "Z> Importing FTP Module"
 # Import the module
+Install-module Transferetto
 Import-Module Transferetto
 
 # Enable Tracing
