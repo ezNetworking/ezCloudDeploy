@@ -88,7 +88,6 @@ try {
     
     Write-Host "Z> Failed to connect to FTP server at $server. Exiting script..."
     Write-Host "Z> Error details: $_"
-    exit
 }
 
 # Process files and directories
@@ -108,6 +107,5 @@ Write-Host -ForegroundColor Cyan "==============================================
 Write-Host -ForegroundColor Cyan "Z> Downloading Support Folders from our FTP server completed successfully."
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Stop-Transcript
-Read-Host -Prompt "Press Enter to exit"
 
 

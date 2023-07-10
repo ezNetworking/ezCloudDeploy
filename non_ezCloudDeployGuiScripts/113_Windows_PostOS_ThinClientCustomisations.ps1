@@ -20,7 +20,7 @@ $desktopFolderPath = [Environment]::GetFolderPath('CommonDesktopDirectory')
 $rdpShortcutFilePath = Join-Path -Path $desktopFolderPath -ChildPath 'RDS Cloud.lnk'
 $Time = Get-date -Format t
 
-Read-Host -Prompt "Please disable Do Not Disturb mode and press Enter to continue"
+Read-Host -Prompt "Please disable Do Not Disturb mode, turn up the sound and press Enter to continue"
 
 
 # Load the JSON file
@@ -87,7 +87,7 @@ try {
     $DownloadSupportFolderScript | Out-File -FilePath $DownloadSupportFolderScriptPath -Encoding UTF8
 
     Write-Host -ForegroundColor Gray "Z> Running the DownloadSupportFolder script"
-    . $DownloadSupportFolderScriptPath
+    . $DownloadSupportFolderScriptPath -remoteDirectory 'SupportFolderClients'
 
     Write-Host -ForegroundColor Gray "Z> Scheduling the DownloadSupportFolder script to run every Sunday at 14:00"
 
@@ -124,7 +124,7 @@ Write-Host -ForegroundColor White "=============================================
 Write-Host -ForegroundColor White "Z> Desktop Icons cleanup and creation. Start RDP at login for user 'User'"
 Write-Host -ForegroundColor White "========================================================================================="
 # Get the RDS URI from the JSON file
-Write-Host -ForegroundColor Gray "Z> Loading ClientConfig JSON."
+Write-Host -ForegroundColor Gray "Z> Loading RDS URI from ClientConfig JSON."
 $rdsUri = $ezClientConfig.custRdsUri
 
 # Delete all links in the default public user's desktop
@@ -154,23 +154,13 @@ $Shortcut.Arguments = "/s"
 $Shortcut.IconLocation = "C:\Windows\System32\shell32.dll,27"
 $Shortcut.Save()
 
-# Create User Logon Script to start RDP on login of User
-Write-Host -ForegroundColor Gray "Z> Creating Task Scheduler job for User logon script."
-$logonScriptContent = @"
-& 'mstsc.exe' 'C:\ezNetworking\Automation\ezCloudDeploy\CustomerRDS.rdp'
-"@
-$logonScriptPath = "C:\ezNetworking\Automation\ezCloudDeploy\UserLogonScript.ps1"
-$logonScriptContent | Out-File -FilePath $logonScriptPath -Encoding ASCII
-$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-File `"$logonScriptPath`""
-$Trigger = New-ScheduledTaskTrigger -AtLogOn -User "User"
-Register-ScheduledTask -Action $Action -Trigger $Trigger -TaskName "UserLogonScript" -Description "Runs a script at User logon."
-
-
 # Prevent creation of Microsoft Edge desktop shortcut
 Write-Host -ForegroundColor Gray "Z> Preventing creation of Microsoft Edge desktop shortcut."
 $RegPath = "HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate"
+if (!(Test-Path $RegPath)) {
+    New-Item -Path $RegPath -Force | Out-Null
+}
 New-ItemProperty -Path $RegPath -Name "CreateDesktopShortcutDefault" -Value 0 -PropertyType "DWORD" -Force | Out-Null
-
 
 Write-Host -ForegroundColor White "========================================================================================="
 Write-Host -ForegroundColor White "Z> Importing Local Group Policies for non admins like the thinclient user."
@@ -252,8 +242,6 @@ Process-FTPItems -Client $ftpConnection -LocalPath $localDirectory -RemotePath $
 Write-Host -ForegroundColor Gray "Z> Disconnecting from FTP server..."
 Disconnect-FTP -Client $ftpConnection
 
-Write-Host -ForegroundColor Gray "Z> Process completed."
-
 # The non-administrators Local GP is always saved in C:\Windows\System32\GroupPolicyUsers\S-1-5-32-545\User\Registry.pol 
 # when updating is needed you can import the Registry.pol file on a clean PC as below, make changes via MMC/GroupPolEditor and copy it back to FTP
 $LGPOFolder = "C:\ezNetworking\Apps\LGPO"
@@ -268,13 +256,12 @@ $nonAdminPolicyFile = Join-Path -Path $LGPOFolder -ChildPath "NonAdministratorPo
 Start-Process -FilePath $lgpoExe -ArgumentList $unCommand, $nonAdminPolicyFile -Wait
 
 
-
 Write-Host -ForegroundColor White "========================================================================================="
 Write-Host -ForegroundColor White "Z> User and group creation."
 Write-Host -ForegroundColor White "========================================================================================="
 
 # Create non-admin user
-Write-Host -ForegroundColor White "Z> Creating NonAdminUser User."
+Write-Host -ForegroundColor White "Z> Creating NonAdminUser 'User' with password 'user'."
 $command = "net user 'User' 'user' /add /fullname:'ThinClient User' /comment:'User for Autologin'"
 Invoke-Expression -Command $command
 # Set password to never expire
@@ -289,6 +276,17 @@ Set-ItemProperty $RegPath "AutoAdminLogon" -Value "1" -type String
 Set-ItemProperty $RegPath "DefaultUserName" -Value "User" -type String 
 Set-ItemProperty $RegPath "DefaultPassword" -Value "user" -type String 
 
+# Create User Logon Script to start RDP on login of User
+Write-Host -ForegroundColor Gray "Z> Creating job for User to open the RDP via logon script."
+$logonScriptContent = @"
+& 'mstsc.exe' 'C:\ezNetworking\Automation\ezCloudDeploy\CustomerRDS.rdp'
+"@
+$logonScriptPath = "C:\ezNetworking\Automation\ezCloudDeploy\UserLogonScript.ps1"
+$logonScriptContent | Out-File -FilePath $logonScriptPath -Encoding ASCII
+$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-File `"$logonScriptPath`""
+$Trigger = New-ScheduledTaskTrigger -AtLogOn -User "User"
+Register-ScheduledTask -Action $Action -Trigger $Trigger -TaskName "UserLogonScript" -Description "Runs a script at User logon."
+
 write-host -ForegroundColor Gray "Z> Send a completion toast Alarm"
 $Btn = New-BTButton -Content 'Got it!' -arguments 'ok'
 $Splat = @{
@@ -298,6 +296,7 @@ $Splat = @{
     Button = $Btn
     HeroImage = 'https://iili.io/HU7A5bV.jpg'
 }
+
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "Z> Configuring ThinClient Finished." 

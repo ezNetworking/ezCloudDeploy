@@ -140,7 +140,7 @@ try {
     $DownloadSupportFolderScript | Out-File -FilePath $DownloadSupportFolderScriptPath -Encoding UTF8
 
     Write-Host -ForegroundColor Gray "Z> Running the DownloadSupportFolder script"
-    . $DownloadSupportFolderScriptPath
+    . $DownloadSupportFolderScriptPath -remoteDirectory 'SupportFolderServers'
 
     Write-Host -ForegroundColor Gray "Z> Scheduling the DownloadSupportFolder script to run every Sunday at 14:00"
 
