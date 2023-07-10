@@ -13,6 +13,11 @@ Version: 1.5
 Last Updated: 11/7/23
 
 #>
+
+param(
+    [Parameter(Mandatory=$true)]
+    [string]$remoteDirectory
+)
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan "             Downloading Support Folders from our FTP server - Post OS Deployment"
 Write-Host -ForegroundColor Cyan "========================================================================================="
@@ -33,8 +38,7 @@ $server = "192.168.13.15"
 $username = "ezPublic"
 $password = "MakesYourNetWork"
 
-# Define local and remote directories
-$remoteDirectory = "SupportFolderClients"
+# Define local directory
 $localDirectory = "C:\ezNetworking"
 
 # Function to handle files and directories

@@ -129,6 +129,91 @@ catch {
     Write-Error "Z> ezRS is already installed or had an error $($_.Exception.Message)"
 }
 
+# Download the DownloadSupportFolder script, run and schedule it
+Write-Host -ForegroundColor Gray "========================================================================================="
+Write-Host -ForegroundColor Gray "Z> Downloading the DownloadSupportFolder Script, runing and scheduling it"
+try {
+    $DownloadSupportFolderResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/140_Windows_PostOS_DownloadSupportFolders.ps1" -UseBasicParsing 
+    $DownloadSupportFolderScript = $DownloadSupportFolderResponse.content
+    Write-Host -ForegroundColor Gray "Z> Saving the Onboard script to c:\ezNetworking\DownloadSupportFolder.ps1"
+    $DownloadSupportFolderScriptPath = "c:\ezNetworking\DownloadSupportFolder.ps1"
+    $DownloadSupportFolderScript | Out-File -FilePath $DownloadSupportFolderScriptPath -Encoding UTF8
+
+    Write-Host -ForegroundColor Gray "Z> Running the DownloadSupportFolder script"
+    . $DownloadSupportFolderScriptPath
+
+    Write-Host -ForegroundColor Gray "Z> Scheduling the DownloadSupportFolder script to run every Sunday at 14:00"
+
+    # Create a new scheduled task
+    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File $DownloadSupportFolderScriptPath -remoteDirectory 'SupportFolderServers'"
+    $trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 14:00
+    $settings = New-ScheduledTaskSettingsSet
+    $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM"
+    Register-ScheduledTask -TaskName "ezDownloadSupportFolder" -Action $action -Trigger $trigger -Settings $settings -Principal $principal
+
+}
+catch {
+    Write-Error " Z> I was unable to download the DownloadSupportFolder script."
+}
+
+Write-Host -ForegroundColor Gray "========================================================================================="
+# Download the JoinDomainAtFirstLogin.ps1 script from github
+Write-Host -ForegroundColor Gray " Z> Downloading and shortcutting the JoinDomainAtFirstLogin GUI."
+try {
+    $JoinDomainAtFirstLoginResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/101_Windows_PostOOBE_JoinDomainAtFirstLogin.ps1" -UseBasicParsing 
+    $JoinDomainAtFirstLoginScript = $JoinDomainAtFirstLoginResponse.content
+    Write-Host -ForegroundColor Gray " Z> Saving the AD Join script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts"
+    $JoinDomainAtFirstLoginScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1"
+    $JoinDomainAtFirstLoginScript | Out-File -FilePath $JoinDomainAtFirstLoginScriptPath -Encoding UTF8
+    }
+catch {
+    Write-Error " Z> I was unable to download the JoinDomainAtFirstLogin script from github"
+}
+
+try {
+    $shortcutPath = "$([Environment]::GetFolderPath('CommonDesktopDirectory'))\Join Domain.lnk"
+    $iconPath = "C:\Windows\System32\shell32.dll,217"
+    $shell = New-Object -ComObject WScript.Shell
+    $shortcut = $shell.CreateShortcut($shortcutPath)
+    $shortcut.TargetPath = "powershell.exe"
+    $shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$JoinDomainAtFirstLoginScriptPath`""
+    $shortcut.IconLocation = $iconPath
+    $shortcut.Save()
+    
+}
+catch {
+    Write-Error " Z> I was unable to create a shortcut for the JoinDomainAtFirstLogin script."
+}
+
+Write-Host -ForegroundColor Gray "========================================================================================="
+# Download the InstallEzRmonProbe.ps1
+Write-Host -ForegroundColor Gray " Z> Downloading and shortcutting the InstallEzRmonProbe script."
+try {
+    $ScriptResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/141_Windows_PostOS_InstallezRMonProbe.ps1" -UseBasicParsing 
+    $Script = $ScriptResponse.content
+    Write-Host -ForegroundColor Gray " Z> Saving the InstallEzRmonProbe script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts"
+    $ScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\InstallEzRmonProbe.ps1"
+    $Script | Out-File -FilePath $ScriptPath -Encoding UTF8
+    }
+catch {
+    Write-Error " Z> I was unable to download the InstallEzRmonProbe script from github"
+}
+
+try {
+    $shortcutPath = "$([Environment]::GetFolderPath('CommonDesktopDirectory'))\Install ezRMon Probe.lnk"
+    $iconPath = "C:\Windows\System32\shell32.dll,217"
+    $shell = New-Object -ComObject WScript.Shell
+    $shortcut = $shell.CreateShortcut($shortcutPath)
+    $shortcut.TargetPath = "powershell.exe"
+    $shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$ScriptPath`""
+    $shortcut.IconLocation = $iconPath
+    $shortcut.Save()
+    
+}
+catch {
+    Write-Error " Z> I was unable to create a shortcut for the InstallEzRmonProbe script."
+}
+
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "Z> Removing apps and updating Windows"
 Write-Host -ForegroundColor Cyan "========================================================================================="

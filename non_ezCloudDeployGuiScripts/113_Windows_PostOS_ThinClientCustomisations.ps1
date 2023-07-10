@@ -112,7 +112,7 @@ catch {
 
 # Download the DownloadSupportFolder script, run and schedule it
 Write-Host -ForegroundColor Gray "========================================================================================="
-Write-Host -ForegroundColor Gray "Z> Downloading the DownloadSupportFolder Script, runing and scheduling it"
+Write-Host -ForegroundColor Gray "Z> Downloading the DownloadSupportFolder Script, running and scheduling it"
 try {
     $DownloadSupportFolderResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/140_Windows_PostOS_DownloadSupportFolders.ps1" -UseBasicParsing 
     $DownloadSupportFolderScript = $DownloadSupportFolderResponse.content
@@ -126,7 +126,7 @@ try {
     Write-Host -ForegroundColor Gray "Z> Scheduling the DownloadSupportFolder script to run every Sunday at 14:00"
 
     # Create a new scheduled task
-    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File $DownloadSupportFolderScriptPath"
+    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File $DownloadSupportFolderScriptPath -remoteDirectory 'SupportFolderClients'"
     $trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 14:00
     $settings = New-ScheduledTaskSettingsSet
     $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM"
@@ -137,10 +137,25 @@ catch {
     Write-Error " Z> I was unable to download the DownloadSupportFolder script."
 }
 
+# Set BGinfo to run on startup
+Write-Host -ForegroundColor Gray "Z> Configuring BGinfo to run on startup"
+
+<#
+ # {$registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
+$propertyName = "BGinfo"
+$propertyValue = "C:\\ezNetworking\\BGinfo\\PresetAndBgInfo.cmd"
+New-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue -PropertyType String -Force:Enter a comment or description}
+#>
+
+#Method 2
+$registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
+$propertyName = "BGinfo"
+$propertyValue = "powershell.exe -ExecutionPolicy Bypass -File C:\\ezNetworking\\BGinfo\\PresetAndBgInfo.ps1"
+New-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue -PropertyType String -Force
 
 
 Write-Host -ForegroundColor White "========================================================================================="
-Write-Host -ForegroundColor White "Z> Desktop Icons cleanup and creation. Start RDP on login"
+Write-Host -ForegroundColor White "Z> Desktop Icons cleanup and creation. Start RDP at login for user 'User'"
 Write-Host -ForegroundColor White "========================================================================================="
 # Get the RDS URI from the JSON file
 Write-Host -ForegroundColor Gray "Z> Loading ClientConfig JSON."
@@ -158,6 +173,13 @@ prompt for credentials:i:1
 "@
 $rdpContent | Out-File -FilePath $rdpFilePath -Encoding ASCII
 
+# Create a shortcut to the RDP file on the public desktop
+Write-Host -ForegroundColor Gray "Z> Create a shortcut to the RDP file on the public desktop."
+$shell = New-Object -ComObject WScript.Shell
+$shortcut = $shell.CreateShortcut($rdpShortcutFilePath)
+$shortcut.TargetPath = $rdpFilePath
+$shortcut.Save()
+
 # Create a Shutdown shortcut on the public desktop
 $WshShell = New-Object -comObject WScript.Shell
 $Shortcut = $WshShell.CreateShortcut("$env:PUBLIC\Desktop\Shutdown.lnk")
@@ -166,31 +188,16 @@ $Shortcut.Arguments = "/s"
 $Shortcut.IconLocation = "C:\Windows\System32\shell32.dll,27"
 $Shortcut.Save()
 
-# Create a shortcut to the RDP file on the public desktop
-Write-Host -ForegroundColor Gray "Z> Create a shortcut to the RDP file on the public desktop."
-$shell = New-Object -ComObject WScript.Shell
-$shortcut = $shell.CreateShortcut($rdpShortcutFilePath)
-$shortcut.TargetPath = $rdpFilePath
-$shortcut.Save()
-
-# Create User Logon Script
+# Create User Logon Script to start RDP on login of User
+Write-Host -ForegroundColor Gray "Z> Creating Task Scheduler job for User logon script."
 $logonScriptContent = @"
 & 'mstsc.exe' 'C:\ezNetworking\Automation\ezCloudDeploy\CustomerRDS.rdp'
 "@
-
 $logonScriptPath = "C:\ezNetworking\Automation\ezCloudDeploy\UserLogonScript.ps1"
 $logonScriptContent | Out-File -FilePath $logonScriptPath -Encoding ASCII
-
-# Create Task Scheduler job to run the logon script
-Write-Host -ForegroundColor Gray "Z> Creating Task Scheduler job for User logon script."
 $Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-File `"$logonScriptPath`""
 $Trigger = New-ScheduledTaskTrigger -AtLogOn -User "User"
 Register-ScheduledTask -Action $Action -Trigger $Trigger -TaskName "UserLogonScript" -Description "Runs a script at User logon."
-
-New-ItemProperty -Path HKCU:\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer -Name HideSCATaskbar -Value 1 -PropertyType DWORD -Force
-
-
-
 
 
 # Prevent creation of Microsoft Edge desktop shortcut

@@ -176,63 +176,7 @@ catch {
     Write-Error " Z> I was unable to download the DefaultAppsAndOnboardScript script."
 }
 
-Write-Host -ForegroundColor Gray "========================================================================================="
-# Download the JoinDomainAtFirstLogin.ps1 script from github
-Write-Host -ForegroundColor Gray " Z> Downloading and shortcutting the JoinDomainAtFirstLogin GUI."
-try {
-    $JoinDomainAtFirstLoginResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/101_Windows_PostOOBE_JoinDomainAtFirstLogin.ps1" -UseBasicParsing 
-    $JoinDomainAtFirstLoginScript = $JoinDomainAtFirstLoginResponse.content
-    Write-Host -ForegroundColor Gray " Z> Saving the AD Join script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts"
-    $JoinDomainAtFirstLoginScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1"
-    $JoinDomainAtFirstLoginScript | Out-File -FilePath $JoinDomainAtFirstLoginScriptPath -Encoding UTF8
-    }
-catch {
-    Write-Error " Z> I was unable to download the JoinDomainAtFirstLogin script from github"
-}
 
-try {
-    $shortcutPath = "$([Environment]::GetFolderPath('CommonDesktopDirectory'))\Join Domain.lnk"
-    $iconPath = "C:\Windows\System32\shell32.dll,217"
-    $shell = New-Object -ComObject WScript.Shell
-    $shortcut = $shell.CreateShortcut($shortcutPath)
-    $shortcut.TargetPath = "powershell.exe"
-    $shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$JoinDomainAtFirstLoginScriptPath`""
-    $shortcut.IconLocation = $iconPath
-    $shortcut.Save()
-    
-}
-catch {
-    Write-Error " Z> I was unable to create a shortcut for the JoinDomainAtFirstLogin script."
-}
-
-Write-Host -ForegroundColor Gray "========================================================================================="
-# Download the InstallEzRmonProbe.ps1
-Write-Host -ForegroundColor Gray " Z> Downloading and shortcutting the InstallEzRmonProbe script."
-try {
-    $ScriptResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/141_Windows_PostOS_InstallezRMonProbe.ps1" -UseBasicParsing 
-    $Script = $ScriptResponse.content
-    Write-Host -ForegroundColor Gray " Z> Saving the InstallEzRmonProbe script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts"
-    $ScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\InstallEzRmonProbe.ps1"
-    $Script | Out-File -FilePath $ScriptPath -Encoding UTF8
-    }
-catch {
-    Write-Error " Z> I was unable to download the InstallEzRmonProbe script from github"
-}
-
-try {
-    $shortcutPath = "$([Environment]::GetFolderPath('CommonDesktopDirectory'))\Install ezRMon Probe.lnk"
-    $iconPath = "C:\Windows\System32\shell32.dll,217"
-    $shell = New-Object -ComObject WScript.Shell
-    $shortcut = $shell.CreateShortcut($shortcutPath)
-    $shortcut.TargetPath = "powershell.exe"
-    $shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$ScriptPath`""
-    $shortcut.IconLocation = $iconPath
-    $shortcut.Save()
-    
-}
-catch {
-    Write-Error " Z> I was unable to create a shortcut for the InstallEzRmonProbe script."
-}
 
 Write-Host -ForegroundColor Gray "========================================================================================="
 # Set the unattend.xml file in the offline registry
