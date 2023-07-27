@@ -34,7 +34,7 @@ Import-Module Transferetto
 Set-FTPTracing -disable
 
 # Define FTP Server connection details
-$server = "192.168.13.15"
+$server = "dl.ez.be"
 $username = "ezPublic"
 $password = "MakesYourNetWork"
 
