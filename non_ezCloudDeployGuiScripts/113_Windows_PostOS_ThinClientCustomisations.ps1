@@ -32,6 +32,7 @@ powercfg.exe -change -monitor-timeout-ac 480
 
 
 # Install ezRmm and ezRS
+#region Install ezRmm and ezRS
 Write-Host -ForegroundColor Gray "========================================================================================="
 write-host -ForegroundColor White "Z> ezRMM - Downloading and installing it for customer $($ezClientConfig.ezRmmId)"
 
@@ -70,8 +71,10 @@ try {
 catch {
     Write-Error "Z> ezRS is already installed or had an error $($_.Exception.Message)"
 }
+#endregion
 
 # Download the DownloadSupportFolder script, run and schedule it
+#region Download the DownloadSupportFolder script, run and schedule it
 Write-Host -ForegroundColor Gray "========================================================================================="
 Write-Host -ForegroundColor Gray "Z> Downloading the DownloadSupportFolder Script, running and scheduling it"
 try {
@@ -113,11 +116,13 @@ $registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
 $propertyName = "BGinfo"
 $propertyValue = "powershell.exe -ExecutionPolicy Bypass -File C:\\ezNetworking\\BGinfo\\PresetAndBgInfo.ps1"
 New-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue -PropertyType String -Force
+#endregion
 
 Write-Host -ForegroundColor White ""
 Write-Host -ForegroundColor White "========================================================================================="
 Write-Host -ForegroundColor White "Z> Desktop Icons cleanup and creation. Start RDP at login for user 'User'"
 Write-Host -ForegroundColor White "========================================================================================="
+#Region Desktop Icons cleanup and creation. Start RDP at login for user 'User'
 # Get the RDS URI from the JSON file
 Write-Host -ForegroundColor Gray "Z> Loading RDS URI from ClientConfig JSON."
 $rdsUri = $ezClientConfig.custRdsUri
@@ -164,11 +169,13 @@ if (!(Test-Path $RegPath)) {
     New-Item -Path $RegPath -Force | Out-Null
 }
 New-ItemProperty -Path $RegPath -Name "DisableSearch" -Value 1 -PropertyType "DWORD" -Force | Out-Null
+#endregion
 
 Write-Host -ForegroundColor White ""
 Write-Host -ForegroundColor White "========================================================================================="
 Write-Host -ForegroundColor White "Z> Importing Local Group Policies for non admins like the thinclient user."
 Write-Host -ForegroundColor White "========================================================================================="
+#region Import Local Group Policies for non admins like the thinclient user
 
 # Download LGPO files from ftp
 Write-Host -ForegroundColor White "Z> Downloading LGPO files from ftp."
@@ -185,6 +192,7 @@ $password = "MakesYourNetWork"
 # Define local and remote directories
 $remoteDirectory = "LGPO"
 $localDirectory = "C:\ezNetworking\Apps\LGPO"
+#endregion
 
 # Function to handle files and directories
 function Process-FTPItems {
