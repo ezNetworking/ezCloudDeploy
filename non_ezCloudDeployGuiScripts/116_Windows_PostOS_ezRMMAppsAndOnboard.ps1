@@ -57,6 +57,12 @@ $Splat = @{
 }
 New-BurntToastNotification @splat 
 
+# Disable sleep and disk sleep
+Write-Host -ForegroundColor Gray "========================================================================================="
+Write-Host -ForegroundColor Gray "Z> Disabling sleep and disk sleep"
+powercfg.exe -change -standby-timeout-ac 0
+powercfg.exe -change -disk-timeout-ac 0
+powercfg.exe -change -monitor-timeout-ac 480
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "Z> User configuration"
