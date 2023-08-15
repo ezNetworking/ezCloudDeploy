@@ -12,11 +12,57 @@ Import-Module Transferetto
 
 Read-Host -Prompt "Please disable Do Not Disturb mode, turn up the sound and press Enter to continue"
 
-# Define the Variables
+# Define the Folder, Files and URL Variables
 $jsonFilePath = 'C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json'
 $rdpFilePath = 'C:\ezNetworking\Automation\ezCloudDeploy\CustomerRDS.rdp'
 $desktopFolderPath = [Environment]::GetFolderPath('CommonDesktopDirectory')
 $rdpShortcutFilePath = Join-Path -Path $desktopFolderPath -ChildPath 'RDS Cloud.lnk'
+$ezRsUrl = 'https://get.teamviewer.com/ezNetworkingHost'
+$SupportFolderScriptPath = "c:\ezNetworking\Automation\Scripts\DownloadSupportFolder.ps1"
+$SupportFolderFtpFolder = '/drivehqshare/ezadminftp/public/SupportFolderClients'
+$LgpoFtpFolder = "/drivehqshare/ezadminftp/public/LGPO"
+$lgpoLocalFolder = "C:\ezNetworking\Apps\LGPO"
+
+# Define FTP Server connection details
+$server = "ftp.driveHQ.com"
+$username = "ezPublic"
+$password = "MakesYourNetWork"
+
+# Function to handle files and directories
+function Process-FTPItems {
+    param(
+        [FluentFTP.FtpClient]$Client,
+        [string]$LocalPath,
+        [string]$RemotePath
+    )
+
+    # Get the list of remote items (files and directories)
+    $remoteItems = Get-FTPList -Client $Client -Path $RemotePath
+    
+    Write-Host "Z> Found $(($remoteItems).Count) items in the remote path: $RemotePath"
+
+    foreach ($remoteItem in $remoteItems) {
+        $localFilePath = Join-Path -Path $LocalPath -ChildPath $remoteItem.Name
+
+        if ($remoteItem.Type -eq "File") {
+            # Download the remote file and overwrite the local file if it exists
+            Receive-FTPFile -Client $Client -LocalPath $localFilePath -RemotePath $remoteItem.FullName -LocalExists Overwrite
+        } elseif ($remoteItem.Type -eq "Directory") {
+            # If the item is a directory, recursively call this function
+            
+            Write-Host "Z> Found directory: $remoteItem.FullName"
+
+            if (!(Test-Path $localFilePath)) {
+                
+                Write-Host "Z> Local directory doesn't exist. Creating: $localFilePath"
+                New-Item -ItemType Directory -Path $localFilePath | Out-Null
+            }
+            
+            Write-Host "Z> Navigating into directory: $localFilePath"
+            Process-FTPItems -Client $Client -LocalPath $localFilePath -RemotePath $remoteItem.FullName
+        }
+    }
+}
 
 # Load the JSON file
 Write-Host -ForegroundColor Gray "========================================================================================="
@@ -64,7 +110,6 @@ Write-Host -ForegroundColor Gray "==============================================
 write-host -ForegroundColor Gray "Z> ezRS - Downloading and installing it"
 # Need Fix ezRsInstaller is only 10kb big...
 try {
-    $ezRsUrl = 'https://get.teamviewer.com/ezNetworkingHost'
     Invoke-WebRequest -Uri $ezRsUrl -OutFile "C:\ezNetworking\Automation\ezCloudDeploy\ezRsInstaller.exe"
     Start-Process -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezRsInstaller.exe" -ArgumentList "/S" -Wait
 }
@@ -81,16 +126,15 @@ try {
     $DownloadSupportFolderResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/140_Windows_PostOS_DownloadSupportFolders.ps1" -UseBasicParsing 
     $DownloadSupportFolderScript = $DownloadSupportFolderResponse.content
     Write-Host -ForegroundColor Gray "Z> Saving the Onboard script to c:\ezNetworking\DownloadSupportFolder.ps1"
-    $DownloadSupportFolderScriptPath = "c:\ezNetworking\DownloadSupportFolder.ps1"
-    $DownloadSupportFolderScript | Out-File -FilePath $DownloadSupportFolderScriptPath -Encoding UTF8
+    $DownloadSupportFolderScript | Out-File -FilePath $SupportFolderScriptPath -Encoding UTF8
 
     Write-Host -ForegroundColor Gray "Z> Running the DownloadSupportFolder script"
-    . $DownloadSupportFolderScriptPath -remoteDirectory 'SupportFolderClients'
+    . $SupportFolderScriptPath -remoteDirectory $SupportFolderFtpFolder
 
-    # Create a new scheduled task
+    # Create a new scheduled task for the same script
     Write-Host -ForegroundColor Gray ""
     Write-Host -ForegroundColor Gray "Z> Scheduling the DownloadSupportFolder script to run every Sunday at 14:00"
-    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File $DownloadSupportFolderScriptPath -remoteDirectory 'SupportFolderClients'"
+    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File $SupportFolderScriptPath -remoteDirectory '$SupportFolderFtpFolder'"
     $trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 14:00
     $settings = New-ScheduledTaskSettingsSet
     $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM"
@@ -179,56 +223,8 @@ Write-Host -ForegroundColor White "=============================================
 
 # Download LGPO files from ftp
 Write-Host -ForegroundColor White "Z> Downloading LGPO files from ftp."
-
-
-# Enable Tracing
 Set-FTPTracing -disable
 
-# Define FTP Server connection details
-$server = "192.168.13.15"
-$username = "ezPublic"
-$password = "MakesYourNetWork"
-
-# Define local and remote directories
-$remoteDirectory = "LGPO"
-$localDirectory = "C:\ezNetworking\Apps\LGPO"
-#endregion
-
-# Function to handle files and directories
-function Process-FTPItems {
-    param(
-        [FluentFTP.FtpClient]$Client,
-        [string]$LocalPath,
-        [string]$RemotePath
-    )
-
-    # Get the list of remote items (files and directories)
-    $remoteItems = Get-FTPList -Client $Client -Path $RemotePath
-    
-    Write-Host "Z> Found $(($remoteItems).Count) items in the remote path: $RemotePath"
-
-    foreach ($remoteItem in $remoteItems) {
-        $localFilePath = Join-Path -Path $LocalPath -ChildPath $remoteItem.Name
-
-        if ($remoteItem.Type -eq "File") {
-            # Download the remote file and overwrite the local file if it exists
-            Receive-FTPFile -Client $Client -LocalPath $localFilePath -RemotePath $remoteItem.FullName -LocalExists Overwrite
-        } elseif ($remoteItem.Type -eq "Directory") {
-            # If the item is a directory, recursively call this function
-            
-            Write-Host "Z> Found directory: $remoteItem.FullName"
-
-            if (!(Test-Path $localFilePath)) {
-                
-                Write-Host "Z> Local directory doesn't exist. Creating: $localFilePath"
-                New-Item -ItemType Directory -Path $localFilePath | Out-Null
-            }
-            
-            Write-Host "Z> Navigating into directory: $localFilePath"
-            Process-FTPItems -Client $Client -LocalPath $localFilePath -RemotePath $remoteItem.FullName
-        }
-    }
-}
 
 try {
     # Establish a connection to the FTP server
@@ -247,7 +243,7 @@ try {
 # Process files and directories
 
 Write-Host "Z> Starting to process files and directories..."
-Process-FTPItems -Client $ftpConnection -LocalPath $localDirectory -RemotePath $remoteDirectory
+Process-FTPItems -Client $ftpConnection -LocalPath "C:\ezNetworking" -RemotePath $LgpoFtpFolder
 
 # Close the FTP connection
 
@@ -256,13 +252,13 @@ Disconnect-FTP -Client $ftpConnection
 
 # The non-administrators Local GP is always saved in C:\Windows\System32\GroupPolicyUsers\S-1-5-32-545\User\Registry.pol 
 # when updating is needed you can import the Registry.pol file on a clean PC as below, make changes via MMC/GroupPolEditor and copy it back to FTP
-$LGPOFolder = "C:\ezNetworking\Apps\LGPO"
+
 
 # Import Registry.pol to non-administrator group
 write-host -ForegroundColor White "Z> Importing Registry.pol to non-administrator group."
-$lgpoExe = Join-Path -Path $LGPOFolder -ChildPath "lgpo.exe"
+$lgpoExe = Join-Path -Path $lgpoLocalFolder -ChildPath "lgpo.exe"
 $unCommand = "/un"
-$nonAdminPolicyFile = Join-Path -Path $LGPOFolder -ChildPath "NonAdministratorPolicy\LgpoNonAdmins.pol"
+$nonAdminPolicyFile = Join-Path -Path $lgpoLocalFolder -ChildPath "NonAdministratorPolicy\LgpoNonAdmins.pol"
 
 # Run the command
 Start-Process -FilePath $lgpoExe -ArgumentList $unCommand, $nonAdminPolicyFile -Wait
