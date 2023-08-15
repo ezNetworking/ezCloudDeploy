@@ -18,13 +18,13 @@ param(
     [Parameter(Mandatory=$true)]
     [string]$remoteDirectory
 )
+
+Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_PostOS_DownloadSupportFolders.log"
+
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan "             Downloading Support Folders from our FTP server - Post OS Deployment"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
-Write-Host -ForegroundColor Cyan "========================================================================================="
-Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_PostOS_DownloadSupportFolders.log"
-Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Gray "Z> Importing FTP Module"
 # Import the module
 Install-module Transferetto
@@ -34,8 +34,8 @@ Import-Module Transferetto
 Set-FTPTracing -disable
 
 # Define FTP Server connection details
-$server = "192.168.13.15"
-$username = "ezPublic"
+$server = "ftp.driveHQ.com"
+$username = "ezpublic"
 $password = "MakesYourNetWork"
 
 # Define local directory
