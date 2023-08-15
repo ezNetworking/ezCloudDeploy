@@ -24,9 +24,9 @@ $LgpoFtpFolder = "/drivehqshare/ezadminftp/public/LGPO"
 $lgpoLocalFolder = "C:\ezNetworking\Apps\LGPO"
 
 # Define FTP Server connection details
-$server = "ftp.driveHQ.com"
-$username = "ezPublic"
-$password = "MakesYourNetWork"
+$ftpServer = "ftp.driveHQ.com"
+$ftpUsername = "ezPublic"
+$ftpPublicPassword = "MakesYourNetWork"
 
 # Function to handle files and directories
 function Process-FTPItems {
@@ -229,13 +229,13 @@ Set-FTPTracing -disable
 try {
     # Establish a connection to the FTP server
     
-    Write-Host "Z> Connecting to FTP Server at $server..."
-    $ftpConnection = Connect-FTP -Server $server -Username $username -Password $password
+    Write-Host "Z> Connecting to FTP Server at $ftpServer..."
+    $ftpConnection = Connect-FTP -Server $ftpServer -Username $ftpUsername -Password $ftpPublicPassword
     Request-FTPConfiguration 
 
 } catch {
     
-    Write-Host "Z> Failed to connect to FTP server at $server. Exiting script..."
+    Write-Host "Z> Failed to connect to FTP server at $ftpServer. Exiting script..."
     Write-Host "Z> Error details: $_"
     
 }
