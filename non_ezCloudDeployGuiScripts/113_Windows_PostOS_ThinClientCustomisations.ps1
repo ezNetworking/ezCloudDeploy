@@ -12,6 +12,24 @@ Import-Module Transferetto
 
 Read-Host -Prompt "Please disable Do Not Disturb mode, turn up the sound and press Enter to continue"
 
+# Checking if the folders exist, if not create them
+$foldersToCheck = @(
+    "C:\ezNetworking\Automation\Logs",
+    "C:\ezNetworking\Automation\Scripts",
+    "C:\ezNetworking\Apps",
+    "C:\ezNetworking\Automation\ezCloudDeploy"
+)
+
+foreach ($folder in $foldersToCheck) {
+    $pathExists = Test-Path -Path $folder
+    if ($pathExists) {
+        Write-Output "Computer $env:COMPUTERNAME has the folder $folder"
+    } else {
+        Write-Output "Creating folder $folder on $env:COMPUTERNAME"
+        New-Item -Path $folder -ItemType Directory
+    }
+}
+
 # Define the Folder, Files and URL Variables
 $jsonFilePath = 'C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json'
 $rdpFilePath = 'C:\ezNetworking\Automation\ezCloudDeploy\CustomerRDS.rdp'
@@ -21,7 +39,7 @@ $ezRsUrl = 'https://get.teamviewer.com/ezNetworkingHost'
 $SupportFolderScriptPath = "c:\ezNetworking\Automation\Scripts\DownloadSupportFolder.ps1"
 $SupportFolderFtpFolder = '/drivehqshare/ezadminftp/public/SupportFolderClients'
 $LgpoFtpFolder = "/drivehqshare/ezadminftp/public/LGPO"
-$lgpoLocalFolder = "C:\ezNetworking\Apps\LGPO"
+$lgpoLocalFolder = "C:\ezNetworking\Automation\ezCloudDeploy\LGPO"
 
 # Define FTP Server connection details
 $ftpServer = "ftp.driveHQ.com"
@@ -86,7 +104,7 @@ write-host -ForegroundColor White "Z> ezRMM - Downloading and installing it for 
 try {
     $ezRmmUrl = "http://support.ez.be/GetAgent/Msi/?customerId=$($ezClientConfig.ezRmmId)" + '&integratorLogin=jurgen.verhelst%40ez.be'
     write-host -ForegroundColor Gray "Z> Downloading ezRmmInstaller.msi from $ezRmmUrl"
-    Invoke-WebRequest -Uri $ezRmmUrl -OutFile "C:\ezNetworking\Automation\ezCloudDeploy\ezRmmInstaller.msi"
+    Invoke-WebRequest -Uri $ezRmmUrl -OutFile "C:\ezNetworking\ezRMM\ezRmmInstaller.msi"
     # Send the toast Alarm
     $Btn = New-BTButton -Content 'Got it!' -arguments 'ok'
     $Splat = @{
@@ -98,7 +116,7 @@ try {
         }
         New-BurntToastNotification @splat
 
-    Start-Process -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezRmmInstaller.msi" -ArgumentList "/quiet" -Wait
+    Start-Process -FilePath "C:\ezNetworking\ezRMM\ezRmmInstaller.msi" -ArgumentList "/quiet" -Wait
     
 }
 catch {
@@ -110,8 +128,8 @@ Write-Host -ForegroundColor Gray "==============================================
 write-host -ForegroundColor Gray "Z> ezRS - Downloading and installing it"
 # Need Fix ezRsInstaller is only 10kb big...
 try {
-    Invoke-WebRequest -Uri $ezRsUrl -OutFile "C:\ezNetworking\Automation\ezCloudDeploy\ezRsInstaller.exe"
-    Start-Process -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezRsInstaller.exe" -ArgumentList "/S" -Wait
+    Invoke-WebRequest -Uri $ezRsUrl -OutFile "C:\ezNetworking\ezRS\ezRsInstaller.exe"
+    Start-Process -FilePath "C:\ezNetworking\ezRS\ezRsInstaller.exe" -ArgumentList "/S" -Wait
 }
 catch {
     Write-Error "Z> ezRS is already installed or had an error $($_.Exception.Message)"
@@ -125,7 +143,7 @@ Write-Host -ForegroundColor Gray "Z> Downloading the DownloadSupportFolder Scrip
 try {
     $DownloadSupportFolderResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/140_Windows_PostOS_DownloadSupportFolders.ps1" -UseBasicParsing 
     $DownloadSupportFolderScript = $DownloadSupportFolderResponse.content
-    Write-Host -ForegroundColor Gray "Z> Saving the Onboard script to c:\ezNetworking\DownloadSupportFolder.ps1"
+    Write-Host -ForegroundColor Gray "Z> Saving the Onboard script to $SupportFolderScriptPath"
     $DownloadSupportFolderScript | Out-File -FilePath $SupportFolderScriptPath -Encoding UTF8
 
     Write-Host -ForegroundColor Gray "Z> Running the DownloadSupportFolder script"
