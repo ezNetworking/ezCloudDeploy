@@ -100,8 +100,8 @@ New-BurntToastNotification @splat
 try {
     $ezRmmUrl = "http://support.ez.be/GetAgent/Msi/?customerId=$($ezClientConfig.ezRmmId)" + '&integratorLogin=jurgen.verhelst%40ez.be'
     write-host -ForegroundColor Gray "Z> Downloading ezRmmInstaller.msi from $ezRmmUrl"
-    Invoke-WebRequest -Uri $ezRmmUrl -OutFile "C:\ezNetworking\Automation\ezCloudDeploy\ezRmmInstaller.msi"
-    Start-Process -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezRmmInstaller.msi" -ArgumentList "/quiet" -Wait
+    Invoke-WebRequest -Uri $ezRmmUrl -OutFile "C:\ezNetworking\ezRMM\ezRmmInstaller.msi"
+    Start-Process -FilePath "C:\ezNetworking\ezRMM\ezRmmInstaller.msi" -ArgumentList "/quiet" -Wait
     
 }
 catch {
@@ -109,33 +109,16 @@ catch {
 }
 
 Write-Host -ForegroundColor Gray "========================================================================================="
-write-host -ForegroundColor Gray "Z> ezRS - Downloading and installing it"
-$Splat = @{
-    Text = 'Zed: Installing ez Remote Support' , "Downloading and installing... Started $Time"
-    Applogo = 'https://iili.io/H8B8JtI.png'
-    Sound = 'IM'
-}
-New-BurntToastNotification @splat 
-
-# Need Fix ezRsInstaller is only 10kb big...
 try {
-    $ezRsUrl = 'https://get.teamviewer.com/ezNetworkingHost'
-    Invoke-WebRequest -Uri $ezRsUrl -OutFile "C:\ezNetworking\Automation\ezCloudDeploy\ezRsInstaller.exe"
-    Start-Process -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezRsInstaller.exe" -ArgumentList "/S" -Wait
+    $ezRsUrl = 'https://customdesignservice.teamviewer.com/download/windows/v15/q6epc32/TeamViewer_Host_Setup.exe'
+    Invoke-WebRequest -Uri $ezRsUrl -OutFile "C:\ezNetworking\ezRS\ezRsInstaller.exe"
+    Start-Process -FilePath "C:\ezNetworking\ezRS\ezRsInstaller.exe" -ArgumentList "/S" -Wait
 }
 catch {
     Write-Error "Z> ezRS is already installed or had an error $($_.Exception.Message)"
 }
 
 Write-Host -ForegroundColor Gray "========================================================================================="
-# Office 365 un- and install toast
-$Splat = @{
-    Text = 'Zed: Installing Office 365' , "Downloading and installing... Started $Time"
-    Applogo = 'https://iili.io/H8B8JtI.png'
-    Sound = 'IM'
-}
-New-BurntToastNotification @splat 
-
 # Download the Office uninstall script from github
 Write-Host -ForegroundColor White "Z> Office uninstall."
 try {
@@ -163,23 +146,23 @@ $exitCode = $process.ExitCode
 
 if ($exitCode -eq 0) {
     # Process completed successfully
-    Write-Host "Z> Office Uninstall Script execution finished."
+    Write-Host -ForegroundColor gray "Z> Office Uninstall Script execution finished."
 } else {
     # Process encountered an error
-    Write-Host "Z> Office Uninstall Script execution failed with exit code: $exitCode"
+    Write-Error "Z> Office Uninstall Script execution failed with exit code: $exitCode"
 }
 
 # Download the Office Install script from github
-Write-Host -ForegroundColor White " Z> Office 365 Install."
+Write-Host -ForegroundColor White "Z> Office 365 Install."
 try {
     $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/115_Windows_PostOS_InstallOffice.ps1" -UseBasicParsing 
     $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
-    Write-Host -ForegroundColor Gray " Z> Saving the script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\"
+    Write-Host -ForegroundColor Gray "Z> Saving the script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\"
     $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\InstallOffice365.ps1"
     $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
 }
 catch {
-    Write-Error " Z> I was unable to download the Office Install script."
+    Write-Error "Z> I was unable to download the Office Install script."
 }
 
 # Running the Office Install script
@@ -197,10 +180,10 @@ $exitCode = $process.ExitCode
 
 if ($exitCode -eq 0) {
     # Process completed successfully
-    Write-Host -ForegroundColor Gray " Z> Office 365 Install Script execution finished."
+    Write-Host -ForegroundColor Gray "Z> Office 365 Install Script execution finished."
 } else {
     # Process encountered an error
-    Write-Host -ForegroundColor Magenta " Z> Office 365 Install Script execution failed with exit code: $exitCode"
+    Write-Error -ForegroundColor Magenta "Z> Office 365 Install Script execution failed with exit code: $exitCode"
 }
 
 

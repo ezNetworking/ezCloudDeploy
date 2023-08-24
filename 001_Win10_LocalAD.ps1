@@ -210,7 +210,18 @@ Write-Host -ForegroundColor White "                                Section 4. OO
 Write-Host -ForegroundColor White "========================================================================================="
 Write-Host ""
 
-
+Write-Host -ForegroundColor Cyan "========================================================================================="
+write-host -ForegroundColor Cyan "Z> Removing apps and updating Windows"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Gray "Z> Use Start-OOBEDeploy to remove apps and update Windows "
+Write-Host -ForegroundColor Gray "   CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
+$Params = @{
+    Autopilot = $false
+    RemoveAppx = "CommunicationsApps","OfficeHub","People","Skype","Solitaire","Xbox","ZuneMusic","ZuneVideo"
+    UpdateDrivers = $true
+    UpdateWindows = $true
+}
+Start-OOBEDeploy @Params
 
 
 
