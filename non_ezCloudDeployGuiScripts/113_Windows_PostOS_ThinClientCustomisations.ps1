@@ -271,12 +271,11 @@ Process-FTPItems -Client $ftpConnection -LocalPath "C:\ezNetworking" -RemotePath
 Write-Host -ForegroundColor Gray "Z> Disconnecting from FTP server..."
 Disconnect-FTP -Client $ftpConnection
 
+# Import Registry.pol to non-administrator group
 # The non-administrators Local GP is always saved in C:\Windows\System32\GroupPolicyUsers\S-1-5-32-545\User\Registry.pol 
 # when updating is needed you can import the Registry.pol file on a clean PC as below, make changes via MMC/GroupPolEditor, non-Admins and copy it using lgpo /b c:\export and send it back to FTP
 # More info: https://woshub.com/backupimport-local-group-policy-settings/ and https://woshub.com/apply-local-group-policy-non-admins-mlgpo/
 
-
-# Import Registry.pol to non-administrator group
 write-host -ForegroundColor White "Z> Importing Registry.pol to non-administrator group."
 $lgpoExe = Join-Path -Path $lgpoLocalFolder -ChildPath "lgpo.exe"
 $unCommand = "/un"
