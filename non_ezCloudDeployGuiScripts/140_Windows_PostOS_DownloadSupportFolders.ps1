@@ -19,7 +19,7 @@ param(
     [string]$remoteDirectory
 )
 
-Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_PostOS_DownloadSupportFolders.log"
+Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezDownloadSupportFolders.log"
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan "             Downloading Support Folders from our FTP server - Post OS Deployment"
@@ -81,7 +81,7 @@ try {
     # Establish a connection to the FTP server
     
     Write-Host "Z> Connecting to FTP Server at $server..."
-    $ftpConnection = Connect-FTP -Server $server -Username $username -Password $password
+    $ftpConnection = Connect-FTP -Server $server -Username $username -Password $password -ErrorAction Stop
     Request-FTPConfiguration 
 
 } catch {
