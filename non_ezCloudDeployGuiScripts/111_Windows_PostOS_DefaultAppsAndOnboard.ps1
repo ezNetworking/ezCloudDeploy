@@ -232,7 +232,6 @@ New-BurntToastNotification @splat
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "Z> Installing client Finished." 
-write-host -ForegroundColor Cyan "Z> Please install TV manually C:\ezNetworking\Automation\ezCloudDeploy\ezRsInstaller.exe"
 write-host -ForegroundColor Cyan "Z> You can deliver the computer to the client now."
 Read-Host -Prompt "Z> Press any key to exit"
 Write-Host -ForegroundColor Cyan "========================================================================================="
