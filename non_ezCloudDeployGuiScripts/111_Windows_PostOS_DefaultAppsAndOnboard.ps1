@@ -5,16 +5,37 @@ Write-Host -ForegroundColor Cyan ""
 Write-Host -ForegroundColor Gray "========================================================================================="
 Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_111_Windows_PostOS_DefaultAppsAndOnboard.log"
 Write-Host -ForegroundColor Gray "========================================================================================="
-Write-Host -ForegroundColor Gray "Z> Installing Modules."
+Write-Host -ForegroundColor Gray "Z> Setting up Powershell and Repo trusted."
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+Write-Host -ForegroundColor Gray "Z> Installing OSD Module."
 Install-Module OSD -Force -Verbose
 Import-Module OSD -Force
+Write-Host -ForegroundColor Gray "Z> Installing Burned Toast Module."
 Install-Module burnttoast
 Import-Module burnttoast
 Write-Host -ForegroundColor Gray "========================================================================================="
 write-host "Z> reading the ezClientConfig.json file"
 $ezClientConfig = Get-Content -Path "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" | ConvertFrom-Json
+
+# Checking if the folders exist, if not create them
+$foldersToCheck = @(
+    "C:\ezNetworking\Automation\Logs",
+    "C:\ezNetworking\Automation\Scripts",
+    "C:\ezNetworking\Apps",
+    "C:\ezNetworking\ezRMM",
+    "C:\ezNetworking\ezRS"
+)
+
+foreach ($folder in $foldersToCheck) {
+    $pathExists = Test-Path -Path $folder
+    if ($pathExists) {
+        Write-Output "Computer $env:COMPUTERNAME has the folder $folder"
+    } else {
+        Write-Output "Creating folder $folder on $env:COMPUTERNAME"
+        New-Item -Path $folder -ItemType Directory
+    }
+}
 
 # Set Do Not Disturb to Off (Dirty Way, not found a better one :) :)
 
@@ -68,7 +89,6 @@ write-host -ForegroundColor Cyan "Z> Installing apps and onboarding client to ez
 Write-Host -ForegroundColor Cyan "========================================================================================="
 
 # Install Choco and minimal default packages
-Write-Host -ForegroundColor Gray "========================================================================================="
 write-host -ForegroundColor White "Z> Installing Chocolatey"
 
 try {
@@ -83,7 +103,6 @@ catch {
 write-host "Z> Installing Chocolatey packages"
 choco install googlechrome -y
 choco install treesizefree -y
-choco install tailblazer -y
 Write-Host -ForegroundColor Gray "========================================================================================="
 
 # Install ezRmm and ezRS
@@ -99,13 +118,13 @@ New-BurntToastNotification @splat
 
 try {
     $ezRmmUrl = "http://support.ez.be/GetAgent/Msi/?customerId=$($ezClientConfig.ezRmmId)" + '&integratorLogin=jurgen.verhelst%40ez.be'
-    write-host -ForegroundColor Gray "Z> Downloading ezRmmInstaller.msi from $ezRmmUrl"
+    Write-Host -ForegroundColor Gray "Z> Downloading ezRmmInstaller.msi from $ezRmmUrl"
     Invoke-WebRequest -Uri $ezRmmUrl -OutFile "C:\ezNetworking\ezRMM\ezRmmInstaller.msi"
     Start-Process -FilePath "C:\ezNetworking\ezRMM\ezRmmInstaller.msi" -ArgumentList "/quiet" -Wait
     
 }
 catch {
-    Write-Error -ForegroundColor Gray "Z> ezRmm is already installed or had an error $($_.Exception.Message)"
+    Write-Error "Z> ezRmm is already installed or had an error $($_.Exception.Message)"
 }
 
 Write-Host -ForegroundColor Gray "========================================================================================="
