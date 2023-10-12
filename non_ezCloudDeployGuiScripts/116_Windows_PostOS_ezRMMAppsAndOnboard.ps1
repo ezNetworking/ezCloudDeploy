@@ -1,5 +1,5 @@
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "             ezRMM Apps and Onboard - Post OS Deployment - ezRMM Probe"
+Write-Host -ForegroundColor Cyan "             ezRMM Apps and Onboard - Post OS Deployment - ezRMM PRTG Probe"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
 Write-Host -ForegroundColor Gray "========================================================================================="
@@ -33,7 +33,7 @@ foreach ($folder in $foldersToCheck) {
         Write-Output "Creating folder $folder on $env:COMPUTERNAME"
         New-Item -Path $folder -ItemType Directory
     }
-
+}
 
 # Set Do Not Disturb to Off (Dirty Way, not found a better one :) :)
 
