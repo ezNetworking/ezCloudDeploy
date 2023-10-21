@@ -128,14 +128,19 @@ catch {
 }
 
 Write-Host -ForegroundColor Gray "========================================================================================="
+write-host -ForegroundColor White "Z> ezRS - Downloading and installing it. "
 try {
-    $ezRsUrl = 'https://customdesignservice.teamviewer.com/download/windows/v15/q6epc32/TeamViewer_Host_Setup.exe'
-    Invoke-WebRequest -Uri $ezRsUrl -OutFile "C:\ezNetworking\ezRS\ezRsInstaller.exe"
-    Start-Process -FilePath "C:\ezNetworking\ezRS\ezRsInstaller.exe" -ArgumentList "/S" -Wait
+$ConfigId = 'q6epc32'
+$Version = 'v15'
+[System.Net.ServicePointManager]::SecurityProtocol = 'Tls12'
+$UrlDownload = "https://customdesignservice.teamviewer.com/download/windows/$Version/$ConfigId/TeamViewer_Host_Setup.exe"
+$FileDownload = "C:\ezNetworking\ezRS\ezRsInstaller.exe"
+( New-Object System.Net.WebClient ).DownloadFile( $UrlDownload , $FileDownload )
 }
 catch {
     Write-Error "Z> ezRS is already installed or had an error $($_.Exception.Message)"
 }
+
 
 Write-Host -ForegroundColor Gray "========================================================================================="
 # Download the Office uninstall script from github
