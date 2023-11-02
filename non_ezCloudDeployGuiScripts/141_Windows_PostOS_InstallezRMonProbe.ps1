@@ -34,6 +34,7 @@ $requiredDirs = @($LogDir,$ezRMonProbeDownloadPath)
 foreach ($dir in $requiredDirs) {
     if (-not (Test-Path -Path $dir -PathType Container)) {
         New-Item -Path $dir -ItemType Directory -Force | Out-Null
+        Write-Host -fore
     }
 }
 
@@ -69,7 +70,7 @@ New-ItemProperty -Path 'HKLM:\Software\Wow6432Node\Paessler\PRTG Network Monitor
 Write-Host -ForegroundColor Gray "Z> Run the probe installer"
 $probeInstallerPath = "$ezRMonProbeDownloadPath\ezRMon_Remote_Probe_Installer.exe"
 try {
-    Start-Process -FilePath $probeInstallerPath -ArgumentList '/verysilent', '/norestart', '/nocloseapplications', "/log=($LogDir)\ezRMM_ezRMon_2ProbeInstallerJob.log" -Wait
+    Start-Process -FilePath $probeInstallerPath -ArgumentList '/verysilent', '/norestart', '/nocloseapplications', "/log=$LogDir\ezRMM_ezRMon_2ProbeInstallerJob.log" -Wait
 }
 catch {
     Write-Warning "Error occurred while running the probe installer: $_"
