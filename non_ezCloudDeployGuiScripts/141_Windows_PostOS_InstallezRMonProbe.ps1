@@ -21,7 +21,7 @@ Write-Host -ForegroundColor Cyan "==============================================
 Write-Host -ForegroundColor Cyan ""
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_116_Windows_PostOS_ezRMMAppsAndOnboard.log"
-Write-Host -ForegroundColor Cyan"========================================================================================="
+Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Gray "Z> Downloading ezRMON Probe."
 
 

@@ -213,9 +213,8 @@ write-warning "  $transcriptPath."
 Write-Host " "
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host "Shutting down this computer in 10s, press CTRL+C to abort"
+Read-Host -Prompt "            Press any key to restart this Computer or CTRL+C to cancel."
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Start-Sleep -Seconds 10
 Write-Host -ForegroundColor Yellow "Shutting down the computer..."
 Stop-Computer -Force
 #And stop the transcript.
