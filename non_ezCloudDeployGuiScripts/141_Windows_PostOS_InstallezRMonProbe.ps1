@@ -27,7 +27,7 @@ Write-Host -ForegroundColor Gray "Z> Downloading ezRMON Probe."
 
 $LogDir = "c:\ezNetworking\Automation\logs"
 $LogPath = "$LogDir\ezRMM_ezRMon_1PrepareAndInstall.log"
-$ezRMonProbeDownloadPath = "C:\ezNetworking\Automation\Apps\ezRMon"
+$ezRMonProbeDownloadPath = "C:\ezNetworking\ezRMon"
 
 Write-Host -ForegroundColor Gray "Z> Check if the required directories exist"
 $requiredDirs = @($LogDir,$ezRMonProbeDownloadPath)
