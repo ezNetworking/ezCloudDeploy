@@ -22,7 +22,8 @@ $foldersToCheck = @(
     "C:\ezNetworking\Automation\Scripts",
     "C:\ezNetworking\Apps",
     "C:\ezNetworking\ezRMM",
-    "C:\ezNetworking\ezRS"
+    "C:\ezNetworking\ezRS",
+    "C:\ezNetworking\ezRmon"
 )
 
 foreach ($folder in $foldersToCheck) {
