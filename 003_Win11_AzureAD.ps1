@@ -32,7 +32,7 @@ Import-Module OSD -Force
 
 $Params = @{
     OSVersion = "Windows 11"
-    OSBuild = "22H2"
+    OSBuild = "23H2"
     OSEdition = "Pro"
     OSLanguage = "en-us"
     OSLicense = "Retail"
@@ -205,7 +205,25 @@ installs base apps and does a Azure Registration GUI.
 
 .PREREQ
 Autopilot onboarding must be configured in the Azure Portal 
-(Profile and autopilot deployment group (Win-Autopilot01)).
+https://learn.microsoft.com/en-us/autopilot/enrollment-autopilot
+Endpoint manager/Groups/New group
+Create a device group, dynamic devices, call it CUSTCODE-AZ-CL_AutoPilotDeploy
+in dynamic click edit in the bottom and then paste (device.devicePhysicalIds -any (_ -eq "[OrderID]:Win-AutoPilot01"))
+
+Endpoint portal/Devices/Enroll Devices/Windows enrollment/Deployment Profiles-Windows Autopilot deployment profiles and create profile
+CUSTCODE Windows Autopilot Deployment
+Convert all targeted devices to Autopilot = No
+User driven
+MS instra joined
+OS Default
+Automaticly configure KBD = Yes
+Microsoft Software Licene terms = Hide
+Privacy Settings = Hide
+Hide change account options = Hide
+User Account Type = Standard
+Allow pre-provisioning deployment = Yes (NEED TO CHANGE this)
+Apply device name template = No
+Included groups CUSTCODE-AZ-CL_AutoPilotDeploy
 
 .INPUTS
 This script prompts the user to input the computer name and ez RMM ID.
