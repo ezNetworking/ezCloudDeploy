@@ -144,7 +144,7 @@ catch {
 }
 
 Write-Host -ForegroundColor Gray "========================================================================================="
-Write-Host -ForegroundColor White "Z> Creating shortcusts to the ezCloudDeploy OOBE and AutoPilot scripts"
+Write-Host -ForegroundColor White "Z> Creating shortcuts to the ezCloudDeploy OOBE and AutoPilot scripts"
 $SetCommand = @'
 @echo off
 
@@ -188,7 +188,7 @@ Write-Warning "  ===============================================================
 Write-Warning "  I'm done mate! If you don't see any errors above you can reboot the pc and wait for OOBE."
 Write-Warning "  Click OK for Country and KBD. Then press Shift + F10 to open a command prompt and type:"
 Write-Warning "                           ezOOBE.cmd "
-Write-Warning "  Default apps install, onboard ez RMM, remove MS home apps and start the Autopilot GUI."
+Write-Warning "  Default apps install, onboard ez RMM, remove MS apps, updates and start the Autopilot GUI."
 Write-Warning "  ========================================================================================="
 Write-Host " "
 Write-Warning "  If you do see errors, please check the log file at $transcriptPath."
@@ -206,24 +206,25 @@ installs base apps and does a Azure Registration GUI.
 .PREREQ
 Autopilot onboarding must be configured in the Azure Portal 
 https://learn.microsoft.com/en-us/autopilot/enrollment-autopilot
-Endpoint manager/Groups/New group
-Create a device group, dynamic devices, call it CUSTCODE-AZ-CL_AutoPilotDeploy
-in dynamic click edit in the bottom and then paste (device.devicePhysicalIds -any (_ -eq "[OrderID]:Win-AutoPilot01"))
-
-Endpoint portal/Devices/Enroll Devices/Windows enrollment/Deployment Profiles-Windows Autopilot deployment profiles and create profile
-CUSTCODE Windows Autopilot Deployment
-Convert all targeted devices to Autopilot = No
-User driven
-MS instra joined
-OS Default
-Automaticly configure KBD = Yes
-Microsoft Software Licene terms = Hide
-Privacy Settings = Hide
-Hide change account options = Hide
-User Account Type = Standard
-Allow pre-provisioning deployment = Yes (NEED TO CHANGE this)
-Apply device name template = No
-Included groups CUSTCODE-AZ-CL_AutoPilotDeploy
+1. Greate Group
+    Endpoint Manager/Groups/New group
+    Create a device group, dynamic devices, call it CUSTCODE-SITECODE-CL_AutoPilotDeploy
+    in dynamic click edit in the bottom and then paste (device.devicePhysicalIds -any (_ -eq "[OrderID]:Win-AutoPilot01"))
+2. Create an Autopilot profile
+    Endpoint Manager/Devices/Enroll Devices/Windows enrollment/Deployment Profiles-Windows Autopilot deployment profiles and create profile
+    CUSTCODE Windows Autopilot Deployment
+    Convert all targeted devices to Autopilot: No (Default)
+    User driven (Default)
+    MS instra: joined (Default)
+    OS: Default (Default)
+    Automaticly configure KBD = Yes (Default)
+    Microsoft Software Licene terms = Hide (Default)
+    Privacy Settings = Hide (Default)
+    Hide change account options = Hide (Default)
+    User Account Type = Standard (Default)
+    Allow pre-provisioning deployment = Yes (NEED TO CHANGE THIS)
+    Apply device name template = No (Default)
+    Included groups CUSTCODE-AZ-CL_AutoPilotDeploy
 
 .INPUTS
 This script prompts the user to input the computer name and ez RMM ID.
