@@ -27,7 +27,7 @@ Write-Host -ForegroundColor Cyan "==============================================
 Write-Host -ForegroundColor Cyan ""
 Write-Host -ForegroundColor Gray "Z> Importing FTP Module"
 # Import the module
-Install-module Transferetto
+Install-module Transferetto -AllowClobber
 Import-Module Transferetto
 
 # Enable Tracing
