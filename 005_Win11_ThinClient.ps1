@@ -14,6 +14,7 @@ Write-Host -ForegroundColor Yellow "  Zed Needs to know some stuff:"
 $computerName = Read-Host "  Enter the computer name (CUST-SITE-TCxx)"
 $ezRmmId = Read-Host "  Enter the ez RMM Customer ID (2548701561)"
 $RdsUri = Read-Host "  Enter the customers RDS server or farm URI (ie rdsfarm.customer.cloud)"
+$NetBiosName = Read-Host "  Enter the customers NetBios domain name (ie CUSTOMER)"
 Write-Host -ForegroundColor Yellow "Z> Thanks! Getting on it now... Sit back for 10min and enjoy a cup of coffee!"
 Write-Host -ForegroundColor White ""
 
@@ -82,7 +83,8 @@ $ezClientConfig = @"
 {
     "TaskSeqType": "Workgroup",
     "ezRmmId": "$($ezRmmId)",
-    "custRdsUri": "$($RdsUri)"
+    "custRdsUri": "$($RdsUri)",
+    "custNetBiosName": "$($NetBiosName)"
 }
 "@
 $ezClientConfig | Out-File -FilePath "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" -Encoding UTF8
@@ -167,7 +169,7 @@ $unattendXml = @"
                 <SynchronousCommand wcm:action="add">
                     <Order>2</Order>
                     <RequiresUserInput>false</RequiresUserInput>
-                    <CommandLine>cmd /C wmic useraccount where name="ezAdminLocal" set PasswordExpires=false</CommandLine>
+                    <CommandLine>cmd /C wmic useraccount where name='ezAdminLocal' set PasswordExpires=false</CommandLine>
                     <Description>Password Never Expires</Description>
                 </SynchronousCommand>
             </FirstLogonCommands>

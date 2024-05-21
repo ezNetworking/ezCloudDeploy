@@ -191,6 +191,7 @@ Write-Host -ForegroundColor White "=============================================
 # Get the RDS URI from the JSON file
 Write-Host -ForegroundColor Gray "Z> Loading RDS URI from ClientConfig JSON."
 $rdsUri = $ezClientConfig.custRdsUri
+$netBiosName = $ezClientConfig.custNetBiosName
 
 # Delete all links in the default public user's desktop
 Write-Host -ForegroundColor Gray "Z> Delete all links in the default public user's desktop."
@@ -201,6 +202,7 @@ Write-Host -ForegroundColor Gray "Z> Create the RDP file with the RDS URI."
 $rdpContent = @"
 full address:s:$rdsUri
 prompt for credentials:i:1
+username:s:$netBiosName\ 
 "@
 $rdpContent | Out-File -FilePath $rdpFilePath -Encoding ASCII
 
