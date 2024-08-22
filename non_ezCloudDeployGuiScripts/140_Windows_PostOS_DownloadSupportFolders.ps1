@@ -27,6 +27,7 @@ Write-Host -ForegroundColor Cyan "==============================================
 Write-Host -ForegroundColor Cyan ""
 Write-Host -ForegroundColor Gray "Z> Importing FTP Module"
 # Import the module
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 Install-module Transferetto -AllowClobber
 Import-Module Transferetto
 
