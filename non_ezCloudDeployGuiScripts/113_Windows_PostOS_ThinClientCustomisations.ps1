@@ -120,7 +120,7 @@ try {
     
 }
 catch {
-    Write-Error -ForegroundColor Gray "Z> ezRmm is already installed or had an error $($_.Exception.Message)"
+    Write-Error "Z> ezRmm is already installed or had an error $($_.Exception.Message)"
 }
 
 

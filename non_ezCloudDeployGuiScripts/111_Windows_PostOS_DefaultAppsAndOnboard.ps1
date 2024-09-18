@@ -207,7 +207,7 @@ if ($exitCode -eq 0) {
     Write-Host -ForegroundColor Gray "Z> Office 365 Install Script execution finished."
 } else {
     # Process encountered an error
-    Write-Error -ForegroundColor Magenta "Z> Office 365 Install Script execution failed with exit code: $exitCode"
+    Write-Error "Z> Office 365 Install Script execution failed with exit code: $exitCode"
 }
 
 
