@@ -293,12 +293,26 @@ Write-Host -ForegroundColor White "=============================================
 
 # Create non-admin user
 Write-Host -ForegroundColor White "Z> Creating NonAdminUser 'User' with password 'user'."
-$command = "net user 'User' 'user' /add /fullname:'ThinClient User' /comment:'User for Autologin'"
+
+<#
+ # {$command = "net user 'User' 'user' /add /fullname:'ThinClient User' /comment:'User for Autologin'"
 Invoke-Expression -Command $command
 # Set password to never expire
 Write-Host -ForegroundColor Gray "Z> Set password to never expire."
 $command = "net user 'User' /expires:never"
 Invoke-Expression -Command $command
+:Enter a comment or description}
+#>
+
+# Create a secure password
+$password = ConvertTo-SecureString 'user' -AsPlainText -Force
+# Create the user using New-LocalUser
+New-LocalUser -Name 'User' -Password $password -FullName 'ThinClient User' -Description 'User for Autologin' -PasswordNeverExpires -UserMayNotChangePassword -AccountNeverExpires
+# Add the user to the "Users" group to make sure it's a non-admin account
+Write-Host -ForegroundColor Gray "Z> Adding 'User' to the Users group."
+Add-LocalGroupMember -Group 'Users' -Member 'User'
+Write-Host -ForegroundColor Green "Z> User 'User' created successfully."
+
 
 # Setup Autologin
 Write-Host -ForegroundColor Gray "Z> Setting up Autologin."
