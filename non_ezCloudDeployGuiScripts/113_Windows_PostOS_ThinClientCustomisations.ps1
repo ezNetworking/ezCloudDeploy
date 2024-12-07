@@ -13,7 +13,9 @@ $foldersToCheck = @(
     "C:\ezNetworking\Automation\Logs",
     "C:\ezNetworking\Automation\Scripts",
     "C:\ezNetworking\Apps",
-    "C:\ezNetworking\Automation\ezCloudDeploy"
+    "C:\ezNetworking\Automation\ezCloudDeploy",
+    "C:\ezNetworking\ezRS",
+    "C:\ezNetworking\ezRMM"
 )
 
 foreach ($folder in $foldersToCheck) {
@@ -101,16 +103,7 @@ try {
     $ezRmmUrl = "http://support.ez.be/GetAgent/Msi/?customerId=$($ezClientConfig.ezRmmId)" + '&integratorLogin=jurgen.verhelst%40ez.be'
     write-host -ForegroundColor Gray "Z> Downloading ezRmmInstaller.msi from $ezRmmUrl"
     Invoke-WebRequest -Uri $ezRmmUrl -OutFile "C:\ezNetworking\ezRMM\ezRmmInstaller.msi"
-    # Send the toast Alarm
-    $Btn = New-BTButton -Content 'Got it!' -arguments 'ok'
-    $Splat = @{
-        Text = 'Zed: ezRMM needs your Attention' , "Please press OK."
-        Applogo = 'https://iili.io/H8B8JtI.png'
-        Sound = 'Alarm10'
-        Button = $Btn
-        HeroImage = 'https://iili.io/HU7A5bV.jpg'
-        }
-        New-BurntToastNotification @splat
+    write-host -ForegroundColor Gray "Z> Installing ezRmm."
 
     Start-Process -FilePath "C:\ezNetworking\ezRMM\ezRmmInstaller.msi" -ArgumentList "/quiet" -Wait
     
@@ -327,17 +320,6 @@ $logonScriptContent | Out-File -FilePath $logonScriptPath -Encoding ASCII
 $Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-File `"$logonScriptPath`""
 $Trigger = New-ScheduledTaskTrigger -AtLogOn -User "User"
 Register-ScheduledTask -Action $Action -Trigger $Trigger -TaskName "UserLogonScript" -Description "Runs a script at User logon."
-
-write-host -ForegroundColor Gray "Z> Send a completion toast Alarm"
-$Btn = New-BTButton -Content 'Got it!' -arguments 'ok'
-$Splat = @{
-    Text = 'Zed: Configuring ThinClient Finished' , "Please press OK."
-    Applogo = 'https://iili.io/H8B8JtI.png'
-    Sound = 'Alarm10'
-    Button = $Btn
-    HeroImage = 'https://iili.io/HU7A5bV.jpg'
-}
-
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "Z> Configuring ThinClient Finished." 
