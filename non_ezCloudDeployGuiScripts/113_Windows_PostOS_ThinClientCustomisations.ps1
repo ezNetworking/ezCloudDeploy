@@ -5,12 +5,8 @@ Write-Host -ForegroundColor Cyan ""
 Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_PostOS_ThinClientCustomisations.log"
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-Install-Module burnttoast
-Import-Module burnttoast
 Install-Module Transferetto
 Import-Module Transferetto
-
-Read-Host -Prompt "Please disable Do Not Disturb mode, turn up the sound and press Enter to continue"
 
 # Checking if the folders exist, if not create them
 $foldersToCheck = @(
