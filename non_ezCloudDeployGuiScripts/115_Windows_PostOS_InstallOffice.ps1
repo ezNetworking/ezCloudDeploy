@@ -132,7 +132,8 @@ Function Generate-XMLFile{
   $OfficeXML.Save("$OfficeInstallDownloadPath\OfficeInstall.xml")
   Return "$OfficeInstallDownloadPath\OfficeInstall.xml"
 }
-Function Test-URL{
+<#
+ # {Function Test-URL{
   Param(
 	$CurrentURL
   )
@@ -166,7 +167,8 @@ Function Get-ODTURL {
       }
   }
   Return $ODTDLLink
-}
+}:Enter a comment or description}
+#>
 
 ## Check ezNetworkingdirs OK zijn
 If(-Not(Test-Path -path "c:\ezNetworking\Automation\Logs")){New-Item -path "c:\ezNetworking\Automation\Logs"  -ItemType Directory -ErrorAction Stop | Out-Null}
@@ -194,6 +196,8 @@ If(!($ConfiguratonXMLFile)){ #If the user didn't specify with -ConfigurationXMLF
   }
 }
 
+<#
+ # {
 #Get the ODT Download link
 $ODTInstallLink = Get-ODTURL
 
@@ -217,11 +221,19 @@ Try{
   Write-Warning $_
   return
 }
-
+:Enter a comment or description}
+#>
 #Run the O365 install
 Try{
   Write-Host " Zed says: Downloading and installing Office 365"
-  $OfficeInstall = Start-Process "$OfficeInstallDownloadPath\Setup.exe" -ArgumentList "/configure $ConfiguratonXMLFile" -Wait -PassThru
+  #$OfficeInstall = Start-Process "$OfficeInstallDownloadPath\Setup.exe" -ArgumentList "/configure $ConfiguratonXMLFile" -Wait -PassThru
+  choco install office365business --params "'/configpath:$ConfiguratonXMLFile'"
+  If ($LASTEXITCODE -eq 0) {
+    Write-Host " Zed says: Office 365 installed successfully via Chocolatey."
+  } Else {
+    Write-Warning " Zed says: Office 365 installation via Chocolatey failed with exit code $LASTEXITCODE."
+    return
+  }
 }Catch{
   Write-Warning " Zed says: Error running the Office install. The error is below:"
   Write-Warning $_
