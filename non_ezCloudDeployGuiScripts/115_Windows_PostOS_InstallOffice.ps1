@@ -227,7 +227,7 @@ Try{
 Try{
   Write-Host " Zed says: Downloading and installing Office 365"
   #$OfficeInstall = Start-Process "$OfficeInstallDownloadPath\Setup.exe" -ArgumentList "/configure $ConfiguratonXMLFile" -Wait -PassThru
-  choco install office365business --params "'/configpath:$ConfiguratonXMLFile'"
+  choco install office365business --params "'/configpath:$ConfiguratonXMLFile'" -y
   If ($LASTEXITCODE -eq 0) {
     Write-Host " Zed says: Office 365 installed successfully via Chocolatey."
   } Else {
