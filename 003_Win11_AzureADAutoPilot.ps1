@@ -158,12 +158,10 @@ set path=%path%;C:\Program Files\WindowsPowerShell\Scripts
 start PowerShell -NoL -W Mi
 
 :: Set regional settings
-start "Set Regional Settings" /wait PowerShell -NoL -C "
-    Set-WinSystemLocale nl-BE;
-    Set-WinUserLanguageList nl-BE -Force;
-    Set-WinDefaultInputMethodOverride -InputTip '0813:00000813';
-    Set-TimeZone -Id 'Romance Standard Time';
-"
+start "Set Regional Settings" /wait PowerShell -NoL -C Set-WinSystemLocale nl-BE
+start "Set User Language List" /wait PowerShell -NoL -C Set-WinUserLanguageList nl-BE -Force
+start "Set Default Input Method" /wait PowerShell -NoL -C Set-WinDefaultInputMethodOverride -InputTip '0813:00000813'
+start "Set Time Zone" /wait PowerShell -NoL -C Set-TimeZone -Id 'Romance Standard Time'
 
 :: Install the latest OSD and AutopilotOOBE Modules
 start "Install-Module OSD" /wait PowerShell -NoL -C Install-Module OSD -Force -Verbose
