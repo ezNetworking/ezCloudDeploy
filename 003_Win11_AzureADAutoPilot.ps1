@@ -157,6 +157,14 @@ set path=%path%;C:\Program Files\WindowsPowerShell\Scripts
 :: Open and Minimize a PowerShell instance just in case
 start PowerShell -NoL -W Mi
 
+:: Set regional settings
+start "Set Regional Settings" /wait PowerShell -NoL -C "
+    Set-WinSystemLocale nl-BE;
+    Set-WinUserLanguageList nl-BE -Force;
+    Set-WinDefaultInputMethodOverride -InputTip '0813:00000813';
+    Set-TimeZone -Id 'Romance Standard Time';
+"
+
 :: Install the latest OSD and AutopilotOOBE Modules
 start "Install-Module OSD" /wait PowerShell -NoL -C Install-Module OSD -Force -Verbose
 start "Install-Module AutopilotOOBE" /wait PowerShell -NoL -C Install-Module AutopilotOOBE -Force -Verbose
