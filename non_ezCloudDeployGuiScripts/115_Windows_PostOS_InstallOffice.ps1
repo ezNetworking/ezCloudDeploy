@@ -158,7 +158,7 @@ Function Get-ODTURL {
   $ODTDLLink = "https://download.microsoft.com/download/2/7/A/27AF1BE6-DD20-4CB4-B154-EBAB8A7D4A7E/officedeploymenttool_16026-20170.exe"
 
   If((Test-URL -CurrentURL $ODTDLLink) -eq $False){
-	$MSWebPage = (Invoke-WebRequest "https://www.microsoft.com/en-us/download/confirmation.aspx?id=49117" -UseBasicParsing).Content
+	$MSWebPage = (Invoke-WebRequest "https://www.microsoft.com/en-in/download/details.aspx?id=49117" -UseBasicParsing).Content
   
     #Thank you reddit user, u/sizzlr for this addition.
     $MSWebPage | ForEach-Object {
