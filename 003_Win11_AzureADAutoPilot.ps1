@@ -1,5 +1,5 @@
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "             Azure AD Deployment Task Sequence (Win11 24H2 Pro en-US Retail)"
+Write-Host -ForegroundColor Cyan "             Azure AD Deployment Task Sequence (Win11 Pro en-US Retail)"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
 
@@ -238,7 +238,7 @@ This script prompts the user to input the computer name and ez RMM ID.
 .EXAMPLE
 002_TaskSequence_AzureAD.ps1 -ComputerName "CUST-SITE-DTxx" -ezRmmId 123456789
 
-This command configures a Windows 11 22H2 Pro image with Azure AD on a computer named "MyComputer01" and installs the ez RMM tool, 
+This command configures a Windows 11 version x Pro image with Azure AD on a computer named "MyComputer01" and installs the ez RMM tool, 
 It loads an OOBE.XML for region and KBD settings and removes the default apps CommunicationsApps, OfficeHub, People, Skype, Solitaire, Xbox, ZuneMusic, and ZuneVideo.
 Then sets up OOBE ezOnboard.cmd which you can launch doing Shift + F10 at the OOBE screen.
 
