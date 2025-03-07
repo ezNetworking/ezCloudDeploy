@@ -33,7 +33,6 @@ $jsonFilePath = 'C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json'
 $rdpFilePath = 'C:\ezNetworking\Automation\ezCloudDeploy\CustomerRDS.rdp'
 $desktopFolderPath = [Environment]::GetFolderPath('CommonDesktopDirectory')
 $rdpShortcutFilePath = Join-Path -Path $desktopFolderPath -ChildPath 'RDS Cloud.lnk'
-$ezRsUrl = 'https://get.teamviewer.com/ezNetworkingHost'
 $SupportFolderScriptPath = "c:\ezNetworking\DownloadSupportFolder.ps1"
 $SupportFolderFtpFolder = '/drivehqshare/ezadminftp/public/SupportFolderClients'
 $LgpoFtpFolder = "/drivehqshare/ezadminftp/public/LGPO"
@@ -186,22 +185,6 @@ $netBiosName = $ezClientConfig.custNetBiosName
 Write-Host -ForegroundColor Gray "Z> Delete all links in the default public user's desktop."
 Get-ChildItem -Path $desktopFolderPath -Filter '*.*' -File | Remove-Item -Force
 
-# Create the RDP file with the RDS URI
-Write-Host -ForegroundColor Gray "Z> Create the RDP file with the RDS URI."
-$rdpContent = @"
-full address:s:$rdsUri
-prompt for credentials:i:1
-username:s:$netBiosName\ 
-"@
-$rdpContent | Out-File -FilePath $rdpFilePath -Encoding ASCII
-
-# Create a shortcut to the RDP file on the public desktop
-Write-Host -ForegroundColor Gray "Z> Create a shortcut to the RDP file on the public desktop."
-$shell = New-Object -ComObject WScript.Shell
-$shortcut = $shell.CreateShortcut($rdpShortcutFilePath)
-$shortcut.TargetPath = $rdpFilePath
-$shortcut.Save()
-
 # Create a Shutdown shortcut on the public desktop
 $WshShell = New-Object -comObject WScript.Shell
 $Shortcut = $WshShell.CreateShortcut("$env:PUBLIC\Desktop\Shutdown.lnk")
@@ -229,9 +212,9 @@ New-ItemProperty -Path $RegPath -Name "DisableSearch" -Value 1 -PropertyType "DW
 
 Write-Host -ForegroundColor White ""
 Write-Host -ForegroundColor White "========================================================================================="
-Write-Host -ForegroundColor White "Z> Importing Local Group Policies for non admins like the thinclient user."
+Write-Host -ForegroundColor White "Z> Importing Local Group Policies for non admins like the DigiSign user."
 Write-Host -ForegroundColor White "========================================================================================="
-#region Import Local Group Policies for non admins like the thinclient user
+#region Import Local Group Policies for non admins like the DigiSign user
 
 # Download LGPO files from ftp
 Write-Host -ForegroundColor White "Z> Downloading LGPO files from ftp."
@@ -284,7 +267,7 @@ Write-Host -ForegroundColor White "=============================================
 Write-Host -ForegroundColor White "Z> Creating NonAdminUser 'User' with password 'user'."
 
 <#
- # {$command = "net user 'User' 'user' /add /fullname:'ThinClient User' /comment:'User for Autologin'"
+ # {$command = "net user 'User' 'user' /add /fullname:'DigiSign User' /comment:'User for Autologin'"
 Invoke-Expression -Command $command
 # Set password to never expire
 Write-Host -ForegroundColor Gray "Z> Set password to never expire."
@@ -296,7 +279,7 @@ Invoke-Expression -Command $command
 # Create a secure password
 $password = ConvertTo-SecureString 'user' -AsPlainText -Force
 # Create the user using New-LocalUser
-New-LocalUser -Name 'User' -Password $password -FullName 'ThinClient User' -Description 'User for Autologin' -PasswordNeverExpires -UserMayNotChangePassword -AccountNeverExpires
+New-LocalUser -Name 'User' -Password $password -FullName 'DigiSign User' -Description 'User for Autologin' -PasswordNeverExpires -UserMayNotChangePassword -AccountNeverExpires
 # Add the user to the "Users" group to make sure it's a non-admin account
 Write-Host -ForegroundColor Gray "Z> Adding 'User' to the Users group."
 Add-LocalGroupMember -Group 'Users' -Member 'User'
@@ -322,13 +305,13 @@ $Trigger = New-ScheduledTaskTrigger -AtLogOn -User "User"
 Register-ScheduledTask -Action $Action -Trigger $Trigger -TaskName "UserLogonScript" -Description "Runs a script at User logon."
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-write-host -ForegroundColor Cyan "Z> Configuring ThinClient Finished." 
-write-host -ForegroundColor Cyan "Z> The Thinclient User has password 'user' and is set to autologin."
+write-host -ForegroundColor Cyan "Z> Configuring DigiSign Finished." 
+write-host -ForegroundColor Cyan "Z> The DigiSign User has password 'user' and is set to autologin."
 write-host -ForegroundColor Cyan "Z> You can deliver the computer to the client now after testing auto user login."
-Read-Host -Prompt "Z> Press any key to Reboot the ThinClient."
+Read-Host -Prompt "Z> Press any key to Reboot the DigiSign Device."
 restart-computer -force
 Write-Host -ForegroundColor Cyan "========================================================================================="
 
 Stop-Transcript
 Write-Warning "  If you do see errors, please check the log file at: "
-write-warning "  C:\ezNetworking\Automation\Logs\ezCloudDeploy_PostOS_ThinClientCustomisations.log"
+write-warning "  C:\ezNetworking\Automation\Logs\ezCloudDeploy_PostOS_DigiSignCustomisations.log"
