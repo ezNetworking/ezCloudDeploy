@@ -90,7 +90,7 @@ Write-Host -ForegroundColor Gray "==============================================
 Write-Host -ForegroundColor Gray "========================================================================================="
 Write-Host -ForegroundColor Gray "Z> Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
 try {
-    $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/113_Windows_PostOS_DigiSignCustomisations.ps1" -UseBasicParsing 
+    $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/142_Windows_PostOS_DigiSignCustomisations.ps1" -UseBasicParsing 
     $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
     Write-Host -ForegroundColor Gray "Z> Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
     $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
