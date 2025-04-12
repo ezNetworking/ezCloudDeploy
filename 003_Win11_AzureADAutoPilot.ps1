@@ -213,12 +213,13 @@ installs base apps and does a Azure Registration GUI.
 Autopilot onboarding must be configured in the Azure Portal 
 https://learn.microsoft.com/en-us/autopilot/enrollment-autopilot
 1. Greate Group
-    Endpoint Manager/Groups/New group
-    Create a device group, dynamic devices, call it CUSTCODE-SITECODE-CL_AutoPilotDeploy
+    https://intune.microsoft.com/
+    Groups/New group
+    Create a device group, dynamic devices, call it CUSTCODE-CL_AutoPilotDeploy
     in dynamic click edit in the bottom and then paste (device.devicePhysicalIds -any (_ -eq "[OrderID]:Win-AutoPilot01"))
 2. Create an Autopilot profile
-    Endpoint Manager/Devices/Enroll Devices/Windows enrollment/Deployment Profiles-Windows Autopilot deployment profiles and create profile
-    CUSTCODE Windows Autopilot Deployment
+    Devices/Device Onboarding/Enrollment/Windows Autopilot/Deployment Profiles (Windows Autopilot deployment profiles)
+    Create profile CUSTCODE Windows Autopilot Deployment
     Convert all targeted devices to Autopilot: No (Default)
     User driven (Default)
     MS instra: joined (Default)
