@@ -101,8 +101,8 @@ catch {
 
 # -y confirm yes for any prompt during the install process
 write-host "Z> Installing Chocolatey packages"
-choco install googlechrome -y
-choco install treesizefree -y
+choco install googlechrome -y --ignore-checksums
+choco install treesizefree -y --ignore-checksums
 Write-Host -ForegroundColor Gray "========================================================================================="
 
 # Install ezRmm and ezRS
@@ -238,11 +238,17 @@ New-BurntToastNotification @splat
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "Z> Installing client Finished." 
 write-host -ForegroundColor Cyan "Z> You can deliver the computer to the client now."
-Read-Host -Prompt "Z> Press any key to exit"
-Write-Host -ForegroundColor Cyan "========================================================================================="
 
 Stop-Transcript
+$exitConfirmation = Read-Host -Prompt "Z> Are you ready to exit the script? (yes/no)"
+if ($exitConfirmation -eq "yes") {
+    Write-Host -ForegroundColor Cyan "Z> Exiting the script. Goodbye!"
+} else {
+    Write-Host -ForegroundColor Yellow "Z> Script will remain open. Perform any additional tasks as needed."
+}
 Exit
+Write-Host -ForegroundColor Cyan "========================================================================================="
+
 
 <#
 .SYNOPSIS
