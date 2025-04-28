@@ -83,7 +83,13 @@ Write-Host -ForegroundColor Cyan "==============================================
 write-host -ForegroundColor Cyan "Z> User configuration"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Gray "Z> Setting ezadminlocal's password to never expire "
-Set-LocalUser -Name "ezAdminLocal" -PasswordNeverExpires $true
+if (Get-LocalUser -Name "ezAdminLocal" -ErrorAction SilentlyContinue) {
+    Set-LocalUser -Name "ezAdminLocal" -PasswordNeverExpires $true
+    Write-Host -ForegroundColor Gray "Z> ezAdminLocal user found and password set to never expire."
+} else {
+    Write-Host -ForegroundColor Yellow "Z> No ezAdminLocal user found, probably an AzureAD install."
+}
+
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "Z> Installing apps and onboarding client to ezRmm"
 Write-Host -ForegroundColor Cyan "========================================================================================="
@@ -105,8 +111,8 @@ choco install googlechrome -y --ignore-checksums
 choco install treesizefree -y --ignore-checksums
 Write-Host -ForegroundColor Gray "========================================================================================="
 
-# Install ezRmm and ezRS
 
+# Install ezRmm and ezRS
 write-host -ForegroundColor White "Z> ezRMM - Downloading and installing it for customer $($ezClientConfig.ezRmmId)"
 
 $Splat = @{
@@ -127,6 +133,8 @@ catch {
     Write-Error "Z> ezRmm is already installed or had an error $($_.Exception.Message)"
 }
 
+<#
+ # {
 Write-Host -ForegroundColor Gray "========================================================================================="
 write-host -ForegroundColor White "Z> ezRS - Downloading and installing it. "
 try {
@@ -138,10 +146,11 @@ $FileDownload = "C:\ezNetworking\ezRS\ezRsInstaller.exe"
 ( New-Object System.Net.WebClient ).DownloadFile( $UrlDownload , $FileDownload )
 }
 catch {
-    Write-Error "Z> ezRS is already installed or had an error $($_.Exception.Message)"
+    Write-Error "Z> ezRS failed to download: $($_.Exception.Message)"
 }
 
-
+:Enter a comment or description}
+#>
 Write-Host -ForegroundColor Gray "========================================================================================="
 # Download the Office uninstall script from github
 Write-Host -ForegroundColor White "Z> Office uninstall."
