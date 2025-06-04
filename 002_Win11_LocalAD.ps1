@@ -1,6 +1,6 @@
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "             Local AD Deployment Task Sequence (Win11 22H2 Pro en-US Retail)"
+Write-Host -ForegroundColor Cyan "             Local AD Deployment Task Sequence (Win11 24H2 Pro en-US Retail)"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
 
