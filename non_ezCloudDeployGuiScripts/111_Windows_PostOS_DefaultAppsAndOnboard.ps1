@@ -70,7 +70,7 @@ else {
 $Time = Get-date -Format t
 $Btn = New-BTButton -Content 'OK' -arguments 'ok'
 $Splat = @{
-    Text = 'Zed: Starting Installs' , "Let's give this PC some apps and settings. Started $Time"
+    Text = 'Z> Starting Installs' , "Let's give this PC some apps and settings. Started $Time"
     Applogo = 'https://iili.io/H8B8JtI.png'
     Sound = 'IM'
     Button = $Btn
@@ -116,7 +116,7 @@ Write-Host -ForegroundColor Gray "==============================================
 write-host -ForegroundColor White "Z> ezRMM - Downloading and installing it for customer $($ezClientConfig.ezRmmId)"
 
 $Splat = @{
-    Text = 'Zed: Installing ez RMM' , "Downloading and installing... Started $Time"
+    Text = 'Z> Installing ez RMM' , "Downloading and installing... Started $Time"
     Applogo = 'https://iili.io/H8B8JtI.png'
     Sound = 'IM'
 }
@@ -235,15 +235,173 @@ $Params = @{
 Start-OOBEDeploy @Params
 
 
+Write-Host ""
+Write-Host -ForegroundColor Cyan "========================================================================================="
+write-host -ForegroundColor Cyan "Z> Synching ez Client Folders"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+
+# Define function to handle SFTP file download
+function Process-SFTPItems {
+    param(
+        $SftpSession,
+        [string]$LocalPath,
+        [string]$RemotePath
+    )
+    
+    $remoteItems = Get-SFTPChildItem -SFTPSession $SftpSession -Path $RemotePath
+    Write-Host "Found $($remoteItems.Count) items in the remote path: $RemotePath"
+    
+    foreach ($remoteItem in $remoteItems) {
+        $localDir = $LocalPath
+
+        if ($remoteItem.IsDirectory) {
+            $localDir = Join-Path -Path $LocalPath -ChildPath $remoteItem.Name
+            if (!(Test-Path $localDir)) {
+                Write-Host "Creating local directory: $localDir"
+                New-Item -ItemType Directory -Path $localDir | Out-Null
+            }
+            Process-SFTPItems -SftpSession $SftpSession -LocalPath $localDir -RemotePath $remoteItem.FullName
+        } elseif ($remoteItem.IsRegularFile) {
+            Write-Host "Downloading file: $($remoteItem.FullName) to $localDir"
+            Get-SFTPItem -SFTPSession $SftpSession -Path $remoteItem.FullName -Destination $localDir -Force
+        }
+    }
+}
+
+# 1.0 Set the security protocol to TLS 1.2
+Write-Host "Z> 1.0 Setting Security Protocol to TLS 1.2..."
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+# 1.1 Install the NuGet provider if it's not installed
+Write-Host "Z> 1.1 Checking and installing the NuGet provider if necessary..."
+try {
+    Install-PackageProvider -Name NuGet -Force -Scope CurrentUser -ForceBootstrap -ErrorAction Stop
+    Write-Host "Z> 1.1.1 NuGet provider installed or already present."
+} catch {
+    Write-Host "Z> 1.1.2 Error: Failed to install the NuGet provider. Exception: $($_.Exception.Message)"
+    Stop-TranscriptSafely
+    return
+}
+
+# 1.1 Ensure the PSGallery repository is trusted
+Write-Host "Z> 1.2 Ensuring the PSGallery repository is trusted..."
+Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+
+# 1.3 Setup Execution Policy
+Write-Host "Z> 1.3 Setting Execution Policy to RemoteSigned for the current session..."
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
+
+# 1.4 Install and import the Posh-SSH module
+Write-Host "Z> 1.4 Installing and importing the Posh-SSH module"
+$moduleInstalled = Get-Module -ListAvailable -Name 'Posh-SSH'
+
+if (-not $moduleInstalled) {
+    Write-Host "Z> 1.4.1 Posh-SSH module not found. Attempting to install..."
+    try {
+        Install-Module -Name 'Posh-SSH' -AllowClobber -Force -ErrorAction Stop
+        Write-Host "Z> 1.4.2 Posh-SSH module installed successfully."
+    } catch {
+        Write-Host "Z> 1.4.2 Error: Failed to install the Posh-SSH module. Exception: $($_.Exception.Message)"
+        Stop-Transcript
+        return
+    }
+} else {
+    Write-Host "Z> 1.4.1 Posh-SSH module is already installed."
+}
+
+# 1.5 Import the Posh-SSH module
+try {
+    Import-Module -Name 'Posh-SSH' -ErrorAction Stop
+    Write-Host "Z> 1.4.3 Posh-SSH module imported successfully."
+} catch {
+    Write-Host "Z> 1.4.3 Error: Failed to import the Posh-SSH module. Exception: $($_.Exception.Message)"
+    Stop-Transcript
+    return
+}
+
+Write-Host "Z> 1.4.1 Posh-SSH module is already installed."
+
+# 2. Define file and directory locations
+$localDirectory = "C:\ezNetworking\"
+$ftpRemoteDirectory = "/SupportFolderClients"
+
+
+# 2.2 Check if local directory exists, if not create it
+if (-not (Test-Path $localDirectory)) {
+    Write-Host "Z> 2.2.1 Local directory $localDirectory does not exist. Creating directory..."
+    try {
+        New-Item -ItemType Directory -Path $localDirectory -Force
+        Write-Host "Z> 2.2.2 Directory created successfully."
+    } catch {
+        Write-Host "Z> 2.2.2 Error: Failed to create local directory. Exception: $($_.Exception.Message)"
+        Stop-Transcript
+        return
+    }
+} else {
+    Write-Host "Z> 2.2.1 Local directory $localDirectory already exists."
+}
+
+# 2.3 Connect to the SFTP server and download the file
+Write-Host "Z> 2.3 Connecting to SFTP server at ftp.driveHQ.com..."
+try {
+    $SftpSession = New-SFTPSession -ComputerName "ftp.driveHQ.com" -Credential (New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList "ezpublic", (ConvertTo-SecureString "MakesYourNetWork" -AsPlainText -Force)) -Port 22 -AcceptKey -ErrorAction Stop
+    
+    # Call the Process-SFTPItems function to download files
+    Process-SFTPItems -SftpSession $SftpSession -LocalPath $localDirectory -RemotePath $ftpRemoteDirectory
+    
+    Write-Host "Z> 2.3.1 Download completed. Disconnecting from SFTP server..."
+    Remove-SFTPSession -SFTPSession $SftpSession
+} catch {
+    Write-Host "Z> 2.3.2 Error: Failed to connect to SFTP server. Exception: $($_.Exception.Message)"
+    Stop-Transcript
+    return
+}
+
+
+Write-Host ""
+Write-Host -ForegroundColor Cyan "========================================================================================="
+write-host -ForegroundColor Cyan "Z> Installing ez Support Companion"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+$installerPath = "C:\ezNetworking\ez Support Companion\ez Support Companion Setup.msi"
+
+# 2.4 Check if the file was downloaded successfully
+if (!(Test-Path $installerPath)) {
+    Write-Host "Z> 2.4 Error: Installer file still not found after FTP download. skipping install."
+} else {
+    Write-Host "Z> 2.4 Installer file downloaded successfully. Proceeding with installation."
+}
+
+
+# 2.5 Proceed with the installation of the .msi file
+Write-Host "Z> 2.5 Starting installation of ez Support Companion using the MSI installer..."
+try {
+    $installResult = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $installerPath /qn" -Wait -PassThru
+    if ($installResult.ExitCode -eq 0) {
+        Write-Host "Z> 2.5.1 MSI Installation completed successfully."
+    } else {
+        Write-Host "Z> 2.5.1 MSI Installation failed with exit code $($installResult.ExitCode). Please check logs for details."
+        Stop-Transcript
+        return
+    }
+} catch {
+    Write-Host "Z> 2.5.2 Error during installation. Exception: $($_.Exception.Message)"
+    Stop-Transcript
+    return
+}
+
+Write-Host "Z> 2.6 ez Support Companion MSI client installed and configured successfully."
+
+
 
 $Time = Get-date -Format t
 $Splat = @{
-    Text = 'Zed: Default apps script finished' , "Installed Choco, ezRMM, Office 365, ezRS Finished $Time"
+    Text = 'Z> Default apps script finished' , "Installed Choco, ezRMM, Office 365, ez Support Companion Finished $Time"
     Applogo = 'https://iili.io/H8B8JtI.png'
     Sound = 'IM'
 }
 New-BurntToastNotification @splat 
 
+Write-host ""
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "Z> Installing client Finished." 
 write-host -ForegroundColor Cyan "Z> You can deliver the computer to the client now."
