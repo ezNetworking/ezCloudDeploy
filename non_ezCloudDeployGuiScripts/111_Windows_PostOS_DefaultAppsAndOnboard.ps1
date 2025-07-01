@@ -375,7 +375,8 @@ if (!(Test-Path $installerPath)) {
 # 2.5 Proceed with the installation of the .msi file
 Write-Host "Z> 2.5 Starting installation of ez Support Companion using the MSI installer..."
 try {
-    $installResult = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $installerPath /qn" -Wait -PassThru
+    $installResult = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$installerPath`" /qn" -Wait -PassThru
+    
     if ($installResult.ExitCode -eq 0) {
         Write-Host "Z> 2.5.1 MSI Installation completed successfully."
     } else {
