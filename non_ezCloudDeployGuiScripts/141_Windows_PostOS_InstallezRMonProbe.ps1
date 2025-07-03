@@ -40,6 +40,16 @@ foreach ($dir in $requiredDirs) {
 
 Write-Host -ForegroundColor Gray "Z> Starting transcript at $LogPath"           
 Start-Transcript $LogPath
+
+Write-Host -ForegroundColor Gray "Z> Set execution policy to RemoteSigned"
+try {
+    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
+}
+catch {
+    Write-Warning "Z> Error occurred while setting execution policy: $_"
+    return
+}
+
 Write-Host -ForegroundColor Gray "Z> Download the probe installer"
 $ezRMonProbeDownloadURI = "https://mon.ez.be/public/PRTG_Remote_Probe_Installer.exe?filetype=.exe&username=ezDownloadUser&password=ETK2mgt1jmh!ryj-egb"
 try {
@@ -68,6 +78,7 @@ New-ItemProperty -Path 'HKLM:\Software\Wow6432Node\Paessler\PRTG Network Monitor
 New-ItemProperty -Path 'HKLM:\Software\Wow6432Node\Paessler\PRTG Network Monitor\Probe' -Name 'ServerPort' -PropertyType 'String' -Value "23560" -Force
 
 Write-Host -ForegroundColor Gray "Z> Run the probe installer"
+
 $probeInstallerPath = "$ezRMonProbeDownloadPath\ezRMon_Remote_Probe_Installer.exe"
 try {
     Start-Process -FilePath $probeInstallerPath -ArgumentList '/verysilent', '/norestart', '/nocloseapplications', "/log=$LogDir\ezRMM_ezRMon_2ProbeInstallerJob.log" -Wait
