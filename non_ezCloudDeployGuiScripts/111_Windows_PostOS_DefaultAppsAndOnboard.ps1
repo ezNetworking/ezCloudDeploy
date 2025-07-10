@@ -109,6 +109,7 @@ catch {
 write-host "Z> Installing Chocolatey packages"
 choco install googlechrome -y --ignore-checksums
 choco install treesizefree -y --ignore-checksums
+choco install dotnet-8.0-desktopruntime -y
 Write-Host -ForegroundColor Gray "========================================================================================="
 
 
