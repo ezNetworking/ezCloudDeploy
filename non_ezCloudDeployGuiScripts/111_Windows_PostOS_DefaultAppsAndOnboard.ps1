@@ -407,15 +407,31 @@ Write-host ""
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "Z> Installing client Finished." 
 write-host -ForegroundColor Cyan "Z> You can deliver the computer to the client now."
+Write-Host -ForegroundColor Cyan "Z> All script tasks have been completed, please check for additional powershell boxes."
 
 Stop-Transcript
-$exitConfirmation = Read-Host -Prompt "Z> Are you ready to exit the script? (yes/no)"
-if ($exitConfirmation -eq "yes") {
-    Write-Host -ForegroundColor Cyan "Z> Exiting the script. Goodbye!"
-} else {
-    Write-Host -ForegroundColor Yellow "Z> Script will remain open. Perform any additional tasks as needed."
+$finishAction = Read-Host -Prompt "Z> What would you like to do next?`n[1] Shut down the computer`n[2] Just close the script`n[3] Restart the computer`nEnter your choice (1-3)"
+
+switch ($finishAction) {
+    "1" {
+        Write-Host -ForegroundColor Cyan "Z> Shutting down the computer in 10 seconds..."
+        Start-Sleep -Seconds 5
+        Stop-Computer -Force
+    }
+    "2" {
+        Write-Host -ForegroundColor Cyan "Z> Exiting the script. Goodbye!"
+        Exit
+    }
+    "3" {
+        Write-Host -ForegroundColor Cyan "Z> Restarting the computer in 10 seconds..."
+        Start-Sleep -Seconds 5
+        Restart-Computer -Force
+    }
+    default {
+        Write-Host -ForegroundColor Yellow "Z> Invalid choice. Script will exit without additional actions."
+        Exit
+    }
 }
-Exit
 Write-Host -ForegroundColor Cyan "========================================================================================="
 
 
