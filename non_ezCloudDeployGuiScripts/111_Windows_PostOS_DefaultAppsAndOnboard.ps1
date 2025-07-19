@@ -44,26 +44,15 @@ if ($ezClientConfig.TaskSeqType -eq "AzureAD") {
 }  
 else {
     write-host "Z> Setting Focus Assist to Off"
-    Add-Type -AssemblyName System.Windows.Forms
-    [System.Windows.Forms.SendKeys]::SendWait("(^{ESC})")   
-    Start-Sleep -Milliseconds 500   
-    [System.Windows.Forms.SendKeys]::SendWait("(Focus Assist)")   
-    Start-Sleep -Milliseconds 200   
-    [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")   
-    Start-Sleep -Milliseconds 700  
-    [System.Windows.Forms.SendKeys]::SendWait("{TAB} ")   
-    Start-Sleep -Milliseconds 700  
-    [System.Windows.Forms.SendKeys]::SendWait("{TAB} ")   
-    Start-Sleep -Milliseconds 700  
-    [System.Windows.Forms.SendKeys]::SendWait("{TAB}{TAB}")   
-    Start-Sleep -Milliseconds 200   
-    [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")   
-    Start-Sleep -Milliseconds 700   
-    [System.Windows.Forms.SendKeys]::SendWait("{TAB}{TAB} ")  
-    Start-Sleep -Milliseconds 200   
-    [System.Windows.Forms.SendKeys]::SendWait("{ENTER}") 
-    Start-Sleep -Milliseconds 500     
-    [System.Windows.Forms.SendKeys]::SendWait("(%{F4})")  
+    # Disable Focus Assist by updating the registry
+    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings" `
+    -Name "NOC_GLOBAL_SETTING_TOASTS_ENABLED" `
+    -Value 0
+
+    # Confirm the change
+    Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings" `
+    -Name "NOC_GLOBAL_SETTING_TOASTS_ENABLED"
+    Write-Host -ForegroundColor Gray "Z> Focus Assist set to Off"
 }
 
 # Send the toast notification
@@ -225,15 +214,131 @@ if ($exitCode -eq 0) {
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "Z> Removing apps and updating Windows"
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Gray "Z> Use Start-OOBEDeploy to remove apps and update Windows "
-Write-Host -ForegroundColor Gray "   CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
-$Params = @{
-    Autopilot = $false
-    RemoveAppx = "CommunicationsApps","OfficeHub","People","Skype","Solitaire","Xbox","ZuneMusic","ZuneVideo"
-    UpdateDrivers = $true
-    UpdateWindows = $true
+
+# Check if we're running in OOBE context or post-OS
+$isInOOBE = $false
+try {
+    # Method 1: Check OOBE registry state
+    $oobeStatus = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\State" -Name "ImageState" -ErrorAction SilentlyContinue
+    if ($oobeStatus -and ($oobeStatus.ImageState -eq "IMAGE_STATE_GENERALIZE_RESEAL_TO_OOBE" -or $oobeStatus.ImageState -eq "IMAGE_STATE_SPECIALIZE_RESEAL_TO_OOBE")) {
+        $isInOOBE = $true
+    }
+    
+    # Method 2: Check if OOBE process is running
+    $oobeProcess = Get-Process -Name "oobe" -ErrorAction SilentlyContinue
+    if ($oobeProcess) {
+        $isInOOBE = $true
+    }
+    
+    # Method 3: Check if we're running as SYSTEM (common in OOBE Shift+F10)
+    $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+    if ($currentUser -eq "NT AUTHORITY\SYSTEM") {
+        Write-Host -ForegroundColor Yellow "Z> Running as SYSTEM - likely OOBE context (Shift+F10)"
+        $isInOOBE = $true
+    }
+    
+    Write-Host -ForegroundColor Gray "Z> OOBE Detection Results:"
+    Write-Host -ForegroundColor Gray "   Current User: $currentUser"
+    Write-Host -ForegroundColor Gray "   ImageState: $($oobeStatus.ImageState)"
+    Write-Host -ForegroundColor Gray "   OOBE Process Running: $(if($oobeProcess){'Yes'}else{'No'})"
+    Write-Host -ForegroundColor Gray "   Detected OOBE Context: $(if($isInOOBE){'Yes'}else{'No'})"
+    
+} catch {
+    Write-Host -ForegroundColor Yellow "Z> Could not determine OOBE status: $($_.Exception.Message)"
+    Write-Host -ForegroundColor Yellow "Z> Assuming post-OOBE environment"
+    $isInOOBE = $false
 }
-Start-OOBEDeploy @Params
+
+if ($isInOOBE) {
+    Write-Host -ForegroundColor Green "Z> OOBE Mode Detected - Using Start-OOBEDeploy method"
+    Write-Host -ForegroundColor Gray "Z> Removing apps: CommunicationsApps,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
+    $Params = @{
+        Autopilot = $false
+        RemoveAppx = "CommunicationsApps","OfficeHub","People","Skype","Solitaire","Xbox","ZuneMusic","ZuneVideo"
+        UpdateDrivers = $true
+        UpdateWindows = $true
+    }
+    try {
+        Start-OOBEDeploy @Params
+        Write-Host -ForegroundColor Green "Z> Start-OOBEDeploy completed successfully"
+    } catch {
+        Write-Host -ForegroundColor Red "Z> Start-OOBEDeploy failed: $($_.Exception.Message)"
+        Write-Host -ForegroundColor Yellow "Z> Falling back to alternative app removal method"
+        # Fall back to post-OOBE method
+        Invoke-PostOOBEAppRemoval
+    }
+} else {
+    Write-Host -ForegroundColor Green "Z> Post-OOBE Mode Detected - Using alternative app removal method"
+    Invoke-PostOOBEAppRemoval
+}
+
+# Function for post-OOBE app removal and updates
+function Invoke-PostOOBEAppRemoval {
+    Write-Host -ForegroundColor Gray "Z> Removing unwanted apps using Get-AppxPackage method"
+    
+    $appsToRemove = @(
+        "*Microsoft.BingNews*",
+        "*Microsoft.GetHelp*",
+        "*Microsoft.Getstarted*",
+        "*Microsoft.Messaging*",
+        "*Microsoft.Microsoft3DViewer*",
+        "*Microsoft.MicrosoftOfficeHub*",
+        "*Microsoft.MicrosoftSolitaireCollection*",
+        "*Microsoft.Office.OneNote*",
+        "*Microsoft.People*",
+        "*Microsoft.Print3D*",
+        "*Microsoft.SkypeApp*",
+        "*Microsoft.Wallet*",
+        "*Microsoft.Xbox.TCUI*",
+        "*Microsoft.XboxApp*",
+        "*Microsoft.XboxGameOverlay*",
+        "*Microsoft.XboxGamingOverlay*",
+        "*Microsoft.XboxIdentityProvider*",
+        "*Microsoft.XboxSpeechToTextOverlay*",
+        "*Microsoft.ZuneMusic*",
+        "*Microsoft.ZuneVideo*",
+        "*Microsoft.YourPhone*",
+        "*Microsoft.WindowsCommunicationsApps*"
+    )
+    
+    foreach ($app in $appsToRemove) {
+        try {
+            $packages = Get-AppxPackage -Name $app -AllUsers -ErrorAction SilentlyContinue
+            if ($packages) {
+                $packages | Remove-AppxPackage -ErrorAction SilentlyContinue
+                Write-Host -ForegroundColor Gray "Z> Removed package: $app"
+            }
+            
+            $provisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $app -ErrorAction SilentlyContinue
+            if ($provisionedPackages) {
+                $provisionedPackages | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue
+                Write-Host -ForegroundColor Gray "Z> Removed provisioned package: $app"
+            }
+        } catch {
+            Write-Host -ForegroundColor Yellow "Z> Could not remove $app : $($_.Exception.Message)"
+        }
+    }
+    
+    # Handle Windows Updates separately for post-OOBE
+    Write-Host -ForegroundColor Gray "Z> Checking for Windows Updates..."
+    try {
+        if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) {
+            Install-Module PSWindowsUpdate -Force -Scope CurrentUser -ErrorAction SilentlyContinue
+        }
+        Import-Module PSWindowsUpdate -ErrorAction SilentlyContinue
+        
+        $updates = Get-WindowsUpdate -ErrorAction SilentlyContinue
+        if ($updates) {
+            Write-Host -ForegroundColor Gray "Z> Installing $($updates.Count) Windows Updates..."
+            Install-WindowsUpdate -AcceptAll -IgnoreReboot -ErrorAction SilentlyContinue
+        } else {
+            Write-Host -ForegroundColor Gray "Z> No Windows Updates available"
+        }
+    } catch {
+        Write-Host -ForegroundColor Yellow "Z> Windows Update check failed: $($_.Exception.Message)"
+        Write-Host -ForegroundColor Gray "Z> Updates can be installed manually later"
+    }
+}
 
 
 Write-Host ""
