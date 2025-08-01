@@ -10,6 +10,7 @@ Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 Install-Module OSD -Force -Verbose
 Import-Module OSD -Force
+Install-Module -Name 'Posh-SSH' -Scope AllUsers -Force
 Install-Module burnttoast
 Import-Module burnttoast
 Write-Host -ForegroundColor Gray "========================================================================================="

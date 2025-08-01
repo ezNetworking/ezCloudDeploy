@@ -5,6 +5,8 @@ Write-Host -ForegroundColor Cyan ""
 Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_PostOS_ThinClientCustomisations.log"
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+Install-Module -Name 'Posh-SSH' -Scope AllUsers -Force
+Import-Module Posh-SSH
 Install-Module Transferetto
 Import-Module Transferetto
 
