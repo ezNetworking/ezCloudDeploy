@@ -41,11 +41,11 @@ try {
     # Ensure TLS1.2 for SFTP
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-    # Install & import Posh-SSH
-    if (-not (Get-Module -ListAvailable -Name 'Posh-SSH')) {
-        Write-Host "Z> Installing Posh-SSH..."
-        Install-Module -Name 'Posh-SSH' -AllowClobber -Force -ErrorAction Stop
-    }
+    # Import Posh-SSH
+    # if (-not (Get-Module -ListAvailable -Name 'Posh-SSH')) {
+    #     Write-Host "Z> Installing Posh-SSH..."
+    #     Install-Module -Name 'Posh-SSH' -AllowClobber -Force -ErrorAction Stop
+    # }
     Import-Module 'Posh-SSH' -ErrorAction Stop
 
     Write-Host "Z> Posh-SSH Version: $((Get-Module Posh-SSH).Version)"
