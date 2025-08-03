@@ -139,8 +139,7 @@ catch {
     Write-Error "Z> ezRS failed to download: $($_.Exception.Message)"
 }
 
-:Enter a comment or description}
-#>
+
 Write-Host -ForegroundColor Gray "========================================================================================="
 # Download the Office uninstall script from github
 Write-Host -ForegroundColor White "Z> Office uninstall."
@@ -174,6 +173,8 @@ if ($exitCode -eq 0) {
     # Process encountered an error
     Write-Error "Z> Office Uninstall Script execution failed with exit code: $exitCode"
 }
+:Enter a comment or description}
+#>
 
 # Download the Office Install script from github
 Write-Host -ForegroundColor White "Z> Office 365 Install."
