@@ -39,44 +39,6 @@ foreach ($folder in $foldersToCheck) {
 
 # Set Do Not Disturb to Off (Dirty Way, not found a better one :) :)
 
-if ($ezClientConfig.TaskSeqType -eq "AzureAD") {
-    write-host "Z> AzureAD Task Sequence, skipping Focus Assist"
-}  
-else {
-    write-host "Z> Setting Focus Assist to Off"
-    Add-Type -AssemblyName System.Windows.Forms
-    [System.Windows.Forms.SendKeys]::SendWait("(^{ESC})")   
-    Start-Sleep -Milliseconds 500   
-    [System.Windows.Forms.SendKeys]::SendWait("(Focus Assist)")   
-    Start-Sleep -Milliseconds 200   
-    [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")   
-    Start-Sleep -Milliseconds 700  
-    [System.Windows.Forms.SendKeys]::SendWait("{TAB} ")   
-    Start-Sleep -Milliseconds 700  
-    [System.Windows.Forms.SendKeys]::SendWait("{TAB} ")   
-    Start-Sleep -Milliseconds 700  
-    [System.Windows.Forms.SendKeys]::SendWait("{TAB}{TAB}")   
-    Start-Sleep -Milliseconds 200   
-    [System.Windows.Forms.SendKeys]::SendWait("{ENTER}")   
-    Start-Sleep -Milliseconds 700   
-    [System.Windows.Forms.SendKeys]::SendWait("{TAB}{TAB} ")  
-    Start-Sleep -Milliseconds 200   
-    [System.Windows.Forms.SendKeys]::SendWait("{ENTER}") 
-    Start-Sleep -Milliseconds 500     
-    [System.Windows.Forms.SendKeys]::SendWait("(%{F4})")  
-}
-
-# Send the toast notification
-$Time = Get-date -Format t
-$Btn = New-BTButton -Content 'OK' -arguments 'ok'
-$Splat = @{
-    Text = 'Zed: Starting Installs' , "Let's give this PC some apps and settings. Started $Time"
-    Applogo = 'https://iili.io/H8B8JtI.png'
-    Sound = 'IM'
-    Button = $Btn
-    HeroImage = 'https://iili.io/HU77iLN.jpg'
-}
-New-BurntToastNotification @splat 
 
 # Disable sleep and disk sleep
 Write-Host -ForegroundColor Gray "========================================================================================="
@@ -118,12 +80,6 @@ Write-Host -ForegroundColor Gray "==============================================
 
 write-host -ForegroundColor White "Z> ezRMM - Downloading and installing it for customer $($ezClientConfig.ezRmmId)"
 
-$Splat = @{
-    Text = 'Zed: Installing ez RMM' , "Downloading and installing... Started $Time"
-    Applogo = 'https://iili.io/H8B8JtI.png'
-    Sound = 'IM'
-}
-New-BurntToastNotification @splat 
 
 try {
     $ezRmmUrl = "http://support.ez.be/GetAgent/Windows/?cid=$($ezClientConfig.ezRmmId)" + '&aid=0013z00002YbbGCAAZ'
@@ -244,15 +200,6 @@ $Params = @{
 }
 Start-OOBEDeploy @Params
 
-
-
-$Time = Get-date -Format t
-$Splat = @{
-    Text = 'Zed: Default apps script finished' , "Installed Choco, ezRMM, Office 365, ezRS Finished $Time"
-    Applogo = 'https://iili.io/H8B8JtI.png'
-    Sound = 'IM'
-}
-New-BurntToastNotification @splat 
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "Z> Installing Probe Finished." 
