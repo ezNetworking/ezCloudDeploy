@@ -7,6 +7,11 @@ Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_116_Window
 Write-Host -ForegroundColor Gray "========================================================================================="
 Write-Host -ForegroundColor Gray "Z> Installing Modules."
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
+# Ensure PSGallery is registered and trusted
+if (-not (Get-PSRepository -Name 'PSGallery' -ErrorAction SilentlyContinue)) {
+    Write-Host -ForegroundColor Yellow "Z> PSGallery not found, registering it..."
+    Register-PSRepository -Default
+}
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 Install-Module OSD -Force -Verbose
 Import-Module OSD -Force
