@@ -97,84 +97,11 @@ catch {
 # -y confirm yes for any prompt during the install process
 write-host "Z> Installing Chocolatey packages"
 choco install googlechrome -y --ignore-checksums
-choco install treesizefree -y --ignore-checksums
+# choco install treesizefree -y --ignore-checksums
 choco install dotnet-8.0-desktopruntime -y
 Write-Host -ForegroundColor Gray "========================================================================================="
 
 
-# Install ezRmm and ezRS
-write-host -ForegroundColor White "Z> ezRMM - Downloading and installing it for customer $($ezClientConfig.ezRmmId)"
-
-$Splat = @{
-    Text = 'Z> Installing ez RMM' , "Downloading and installing... Started $Time"
-    Applogo = 'https://iili.io/H8B8JtI.png'
-    Sound = 'IM'
-}
-New-BurntToastNotification @splat 
-
-try {
-    $ezRmmUrl = "http://support.ez.be/GetAgent/Windows/?cid=$($ezClientConfig.ezRmmId)" + '&aid=0013z00002YbbGCAAZ'
-    Write-Host -ForegroundColor Gray "Z> Downloading ezRmmInstaller.msi from $ezRmmUrl"
-    Invoke-WebRequest -Uri $ezRmmUrl -OutFile "C:\ezNetworking\ezRMM\ezRmmInstaller.msi"
-    Start-Process -FilePath "C:\ezNetworking\ezRMM\ezRmmInstaller.msi" -ArgumentList "/quiet" -Wait
-    
-}
-catch {
-    Write-Error "Z> ezRmm is already installed or had an error $($_.Exception.Message)"
-}
-
-<#
- # {
-Write-Host -ForegroundColor Gray "========================================================================================="
-write-host -ForegroundColor White "Z> ezRS - Downloading and installing it. "
-try {
-$ConfigId = 'q6epc32'
-$Version = 'v15'
-[System.Net.ServicePointManager]::SecurityProtocol = 'Tls12'
-$UrlDownload = "https://customdesignservice.teamviewer.com/download/windows/$Version/$ConfigId/TeamViewer_Host_Setup.exe"
-$FileDownload = "C:\ezNetworking\ezRS\ezRsInstaller.exe"
-( New-Object System.Net.WebClient ).DownloadFile( $UrlDownload , $FileDownload )
-}
-catch {
-    Write-Error "Z> ezRS failed to download: $($_.Exception.Message)"
-}
-
-
-Write-Host -ForegroundColor Gray "========================================================================================="
-# Download the Office uninstall script from github
-Write-Host -ForegroundColor White "Z> Office uninstall."
-try {
-    $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/114_Windows_PostOS_UninstallOffice.ps1" -UseBasicParsing 
-    $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
-    Write-Host -ForegroundColor Gray "Z> Saving the script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\"
-    $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\UninstallOffice365.ps1"
-    $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
-}
-catch {
-    Write-Error " Z> I was unable to download the Office Uninstall script."
-}
-
-$scriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\UninstallOffice365.ps1"
-# Running the Office uninstall script
-Write-Host -ForegroundColor Gray "Z> Running the Office uninstall script."
-
-$process = Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`"" -PassThru
-
-# Wait for the process to complete
-$process.WaitForExit()
-
-# Check the exit code of the process
-$exitCode = $process.ExitCode
-
-if ($exitCode -eq 0) {
-    # Process completed successfully
-    Write-Host -ForegroundColor gray "Z> Office Uninstall Script execution finished."
-} else {
-    # Process encountered an error
-    Write-Error "Z> Office Uninstall Script execution failed with exit code: $exitCode"
-}
-:Enter a comment or description}
-#>
 
 # Download the Office Install script from github
 Write-Host -ForegroundColor White "Z> Office 365 Install."
@@ -498,6 +425,82 @@ try {
 }
 
 Write-Host "Z> 2.6 ez Support Companion MSI client installed and configured successfully."
+
+# Install ezRmm and ezRS
+Write-Host -ForegroundColor Cyan "========================================================================================="
+write-host -ForegroundColor Cyan "Z> Installing ez RMM for customer $($ezClientConfig.ezRmmId)"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+
+$Splat = @{
+    Text = 'Z> Installing ez RMM' , "Downloading and installing... Started $Time"
+    Applogo = 'https://iili.io/H8B8JtI.png'
+    Sound = 'IM'
+}
+New-BurntToastNotification @splat 
+
+try {
+    $ezRmmUrl = "http://support.ez.be/GetAgent/Windows/?cid=$($ezClientConfig.ezRmmId)" + '&aid=0013z00002YbbGCAAZ'
+    Write-Host -ForegroundColor Gray "Z> Downloading ezRmmInstaller.msi from $ezRmmUrl"
+    Invoke-WebRequest -Uri $ezRmmUrl -OutFile "C:\ezNetworking\ezRMM\ezRmmInstaller.msi"
+    Start-Process -FilePath "C:\ezNetworking\ezRMM\ezRmmInstaller.msi" -ArgumentList "/quiet" -Wait
+    
+}
+catch {
+    Write-Error "Z> ezRmm is already installed or had an error $($_.Exception.Message)"
+}
+
+<#
+ # {
+Write-Host -ForegroundColor Gray "========================================================================================="
+write-host -ForegroundColor White "Z> ezRS - Downloading and installing it. "
+try {
+$ConfigId = 'q6epc32'
+$Version = 'v15'
+[System.Net.ServicePointManager]::SecurityProtocol = 'Tls12'
+$UrlDownload = "https://customdesignservice.teamviewer.com/download/windows/$Version/$ConfigId/TeamViewer_Host_Setup.exe"
+$FileDownload = "C:\ezNetworking\ezRS\ezRsInstaller.exe"
+( New-Object System.Net.WebClient ).DownloadFile( $UrlDownload , $FileDownload )
+}
+catch {
+    Write-Error "Z> ezRS failed to download: $($_.Exception.Message)"
+}
+
+
+Write-Host -ForegroundColor Gray "========================================================================================="
+# Download the Office uninstall script from github
+Write-Host -ForegroundColor White "Z> Office uninstall."
+try {
+    $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/114_Windows_PostOS_UninstallOffice.ps1" -UseBasicParsing 
+    $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
+    Write-Host -ForegroundColor Gray "Z> Saving the script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\"
+    $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\UninstallOffice365.ps1"
+    $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
+}
+catch {
+    Write-Error " Z> I was unable to download the Office Uninstall script."
+}
+
+$scriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\UninstallOffice365.ps1"
+# Running the Office uninstall script
+Write-Host -ForegroundColor Gray "Z> Running the Office uninstall script."
+
+$process = Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`"" -PassThru
+
+# Wait for the process to complete
+$process.WaitForExit()
+
+# Check the exit code of the process
+$exitCode = $process.ExitCode
+
+if ($exitCode -eq 0) {
+    # Process completed successfully
+    Write-Host -ForegroundColor gray "Z> Office Uninstall Script execution finished."
+} else {
+    # Process encountered an error
+    Write-Error "Z> Office Uninstall Script execution failed with exit code: $exitCode"
+}
+:Enter a comment or description}
+#>
 
 
 
