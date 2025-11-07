@@ -441,32 +441,84 @@ New-BurntToastNotification @splat
 try {
     $installer = "C:\ezNetworking\ezRMM\ezRmmInstaller.msi"
     $ezRmmUrl = "http://support.ez.be/GetAgent/Windows/?cid=$($ezClientConfig.ezRmmId)" + '&aid=0013z00002YbbGCAAZ'
-    Write-Host -ForegroundColor Gray "Z> Downloading ezRmmInstaller.msi from $ezRmmUrl"
-    Invoke-WebRequest -Uri $ezRmmUrl -OutFile $installer
-    if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne 'NT AUTHORITY\SYSTEM') {
-        $taskName = "Install_ezRmm_$([guid]::NewGuid())"
-        $action   = New-ScheduledTaskAction -Execute "msiexec.exe" -Argument "/i `"$installer`" /qn /norestart"
-        $trigger  = New-ScheduledTaskTrigger -Once -At (Get-Date).AddSeconds(5)
-        Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -User "SYSTEM" -RunLevel Highest | Out-Null
-        Start-ScheduledTask -TaskName $taskName
-        do {
-            Start-Sleep -Seconds 5
-            $task = Get-ScheduledTask -TaskName $taskName
-            $info = Get-ScheduledTaskInfo -TaskName $taskName
-        } while ($task.State -eq 'Running' -or $info.LastRunTime -eq [datetime]::MinValue)
-        Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
-        if ($info.LastTaskResult -ne 0) {
-            throw "ezRMM installer task failed with exit code $($info.LastTaskResult)"
-        }
-    } else {
-        Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$installer`" /qn /norestart" -Wait | Out-Null
+    
+    # Ensure directory exists
+    $installerDir = Split-Path -Path $installer -Parent
+    if (!(Test-Path -Path $installerDir)) {
+        New-Item -ItemType Directory -Path $installerDir -Force | Out-Null
     }
     
+    Write-Host -ForegroundColor Gray "Z> Downloading ezRmmInstaller.msi from $ezRmmUrl"
+    Invoke-WebRequest -Uri $ezRmmUrl -OutFile $installer -UseBasicParsing
+    
+    # Verify download succeeded
+    if (!(Test-Path -Path $installer)) {
+        throw "Failed to download installer"
+    }
+    
+    $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+    Write-Host -ForegroundColor Gray "Z> Running as: $currentUser"
+    
+    if ($currentUser -eq 'NT AUTHORITY\SYSTEM') {
+        # Already running as SYSTEM, install directly
+        Write-Host -ForegroundColor Gray "Z> Installing as SYSTEM directly"
+        $process = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$installer`" /qn /norestart" -Wait -PassThru
+        
+        if ($process.ExitCode -ne 0 -and $process.ExitCode -ne 3010) {
+            throw "ezRMM installer failed with exit code $($process.ExitCode)"
+        }
+        Write-Host -ForegroundColor Green "Z> ezRMM installed successfully (Exit code: $($process.ExitCode))"
+    } else {
+        # Not running as SYSTEM, create scheduled task
+        Write-Host -ForegroundColor Gray "Z> Creating scheduled task to run as SYSTEM"
+        $taskName = "Install_ezRmm_$([guid]::NewGuid())"
+        $action   = New-ScheduledTaskAction -Execute "msiexec.exe" -Argument "/i `"$installer`" /qn /norestart"
+        $trigger  = New-ScheduledTaskTrigger -Once -At (Get-Date).AddSeconds(10)
+        $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+        
+        Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -User "SYSTEM" -RunLevel Highest -Settings $settings | Out-Null
+        
+        Write-Host -ForegroundColor Gray "Z> Starting scheduled task"
+        Start-ScheduledTask -TaskName $taskName
+        
+        # Wait for task to complete
+        $timeout = 300 # 5 minutes
+        $elapsed = 0
+        do {
+            Start-Sleep -Seconds 5
+            $elapsed += 5
+            $task = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+            $info = Get-ScheduledTaskInfo -TaskName $taskName -ErrorAction SilentlyContinue
+            
+            if ($elapsed -gt $timeout) {
+                Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+                throw "Installation timed out after $timeout seconds"
+            }
+        } while ($task.State -eq 'Running' -or $info.LastRunTime -eq [datetime]::MinValue)
+        
+        # Clean up task
+        Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+        
+        # Check result (0 = success, 3010 = success but reboot required)
+        if ($info.LastTaskResult -ne 0 -and $info.LastTaskResult -ne 3010) {
+            throw "ezRMM installer task failed with exit code $($info.LastTaskResult)"
+        }
+        Write-Host -ForegroundColor Green "Z> ezRMM installed successfully via scheduled task (Exit code: $($info.LastTaskResult))"
+    }
+    
+    # Cleanup installer file
+    if (Test-Path -Path $installer) {
+        Remove-Item -Path $installer -Force -ErrorAction SilentlyContinue
+    }
 }
 catch {
-    Write-Error "Z> ezRmm is already installed or had an error $($_.Exception.Message)"
+    Write-Error "Z> ezRmm installation failed: $($_.Exception.Message)"
+    # Cleanup on error
+    if (Test-Path -Path $installer) {
+        Remove-Item -Path $installer -Force -ErrorAction SilentlyContinue
+    }
+    throw
 }
-
 <#
  # {
 Write-Host -ForegroundColor Gray "========================================================================================="
