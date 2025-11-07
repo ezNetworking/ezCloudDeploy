@@ -439,10 +439,28 @@ $Splat = @{
 New-BurntToastNotification @splat 
 
 try {
+    $installer = "C:\ezNetworking\ezRMM\ezRmmInstaller.msi"
     $ezRmmUrl = "http://support.ez.be/GetAgent/Windows/?cid=$($ezClientConfig.ezRmmId)" + '&aid=0013z00002YbbGCAAZ'
     Write-Host -ForegroundColor Gray "Z> Downloading ezRmmInstaller.msi from $ezRmmUrl"
-    Invoke-WebRequest -Uri $ezRmmUrl -OutFile "C:\ezNetworking\ezRMM\ezRmmInstaller.msi"
-    Start-Process -FilePath "C:\ezNetworking\ezRMM\ezRmmInstaller.msi" -ArgumentList "/quiet" -Wait
+    Invoke-WebRequest -Uri $ezRmmUrl -OutFile $installer
+    if ([System.Security.Principal.WindowsIdentity]::GetCurrent().Name -ne 'NT AUTHORITY\SYSTEM') {
+        $taskName = "Install_ezRmm_$([guid]::NewGuid())"
+        $action   = New-ScheduledTaskAction -Execute "msiexec.exe" -Argument "/i `"$installer`" /qn /norestart"
+        $trigger  = New-ScheduledTaskTrigger -Once -At (Get-Date).AddSeconds(5)
+        Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -User "SYSTEM" -RunLevel Highest | Out-Null
+        Start-ScheduledTask -TaskName $taskName
+        do {
+            Start-Sleep -Seconds 5
+            $task = Get-ScheduledTask -TaskName $taskName
+            $info = Get-ScheduledTaskInfo -TaskName $taskName
+        } while ($task.State -eq 'Running' -or $info.LastRunTime -eq [datetime]::MinValue)
+        Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
+        if ($info.LastTaskResult -ne 0) {
+            throw "ezRMM installer task failed with exit code $($info.LastTaskResult)"
+        }
+    } else {
+        Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$installer`" /qn /norestart" -Wait | Out-Null
+    }
     
 }
 catch {
