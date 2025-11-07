@@ -163,8 +163,8 @@ catch {
 }
 Write-Host -ForegroundColor Gray "========================================================================================="
 
-# Download the DefaultAppsAndOnboard.ps1 script from github
-Write-Host -ForegroundColor Gray "Z> Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
+# Download the ezRmmHostAppsAndOnboard.ps1 script from github
+Write-Host -ForegroundColor Gray "Z> Downloading the ezRmmHostAppsAndOnboard script from ezCloudDeploy."
 try {
     $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/116_Windows_PostOS_ezRMMAppsAndOnboard.ps1" -UseBasicParsing 
     $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
