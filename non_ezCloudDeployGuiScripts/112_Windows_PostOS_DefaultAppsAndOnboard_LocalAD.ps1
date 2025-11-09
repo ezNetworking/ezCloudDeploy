@@ -8,9 +8,9 @@ Write-Host -ForegroundColor Gray "==============================================
 Write-Host -ForegroundColor Gray "Z> Setting up Powershell and Repo trusted."
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-Write-Host -ForegroundColor Gray "Z> Installing OSD Module."
-Install-Module OSD -Force -Verbose
-Import-Module OSD -Force
+# Write-Host -ForegroundColor Gray "Z> Installing OSD Module."
+# Install-Module OSD -Force -Verbose
+# Import-Module OSD -Force
 Write-Host -ForegroundColor Gray "Z> Installing Burned Toast Module."
 Install-Module burnttoast
 Import-Module burnttoast
@@ -139,68 +139,6 @@ if ($exitCode -eq 0) {
 
 
 
-Write-Host -ForegroundColor Cyan "========================================================================================="
-write-host -ForegroundColor Cyan "Z> Removing apps and updating Windows"
-Write-Host -ForegroundColor Cyan "========================================================================================="
-
-# Check if we're running in OOBE context or post-OS
-$isInOOBE = $false
-try {
-    # Method 1: Check OOBE registry state
-    $oobeStatus = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\State" -Name "ImageState" -ErrorAction SilentlyContinue
-    if ($oobeStatus -and ($oobeStatus.ImageState -eq "IMAGE_STATE_GENERALIZE_RESEAL_TO_OOBE" -or $oobeStatus.ImageState -eq "IMAGE_STATE_SPECIALIZE_RESEAL_TO_OOBE")) {
-        $isInOOBE = $true
-    }
-    
-    # Method 2: Check if OOBE process is running
-    $oobeProcess = Get-Process -Name "oobe" -ErrorAction SilentlyContinue
-    if ($oobeProcess) {
-        $isInOOBE = $true
-    }
-    
-    # Method 3: Check if we're running as SYSTEM (common in OOBE Shift+F10)
-    $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-    if ($currentUser -eq "NT AUTHORITY\SYSTEM") {
-        Write-Host -ForegroundColor Yellow "Z> Running as SYSTEM - likely OOBE context (Shift+F10)"
-        $isInOOBE = $true
-    }
-    
-    Write-Host -ForegroundColor Gray "Z> OOBE Detection Results:"
-    Write-Host -ForegroundColor Gray "   Current User: $currentUser"
-    Write-Host -ForegroundColor Gray "   ImageState: $($oobeStatus.ImageState)"
-    Write-Host -ForegroundColor Gray "   OOBE Process Running: $(if($oobeProcess){'Yes'}else{'No'})"
-    Write-Host -ForegroundColor Gray "   Detected OOBE Context: $(if($isInOOBE){'Yes'}else{'No'})"
-    
-} catch {
-    Write-Host -ForegroundColor Yellow "Z> Could not determine OOBE status: $($_.Exception.Message)"
-    Write-Host -ForegroundColor Yellow "Z> Assuming post-OOBE environment"
-    $isInOOBE = $false
-}
-
-if ($isInOOBE) {
-    Write-Host -ForegroundColor Green "Z> OOBE Mode Detected - Using Start-OOBEDeploy method"
-    Write-Host -ForegroundColor Gray "Z> Removing apps: CommunicationsApps,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
-    $Params = @{
-        Autopilot = $false
-        RemoveAppx = "CommunicationsApps","OfficeHub","People","Skype","Solitaire","Xbox","ZuneMusic","ZuneVideo"
-        UpdateDrivers = $true
-        UpdateWindows = $true
-    }
-    try {
-        Start-OOBEDeploy @Params
-        Write-Host -ForegroundColor Green "Z> Start-OOBEDeploy completed successfully"
-    } catch {
-        Write-Host -ForegroundColor Red "Z> Start-OOBEDeploy failed: $($_.Exception.Message)"
-        Write-Host -ForegroundColor Yellow "Z> Falling back to alternative app removal method"
-        # Fall back to post-OOBE method
-        Invoke-PostOOBEAppRemoval
-    }
-} else {
-    Write-Host -ForegroundColor Green "Z> Post-OOBE Mode Detected - Using alternative app removal method"
-    Invoke-PostOOBEAppRemoval
-}
-
-# Function for post-OOBE app removal and updates
 function Invoke-PostOOBEAppRemoval {
     Write-Host -ForegroundColor Gray "Z> Removing unwanted apps using Get-AppxPackage method"
     
@@ -268,96 +206,8 @@ function Invoke-PostOOBEAppRemoval {
     }
 }
 
+Invoke-PostOOBEAppRemoval
 
-Write-Host ""
-Write-Host -ForegroundColor Cyan "========================================================================================="
-write-host -ForegroundColor Cyan "Z> Synching ez Client Folders"
-Write-Host -ForegroundColor Cyan "========================================================================================="
-
-# Define function to handle SFTP file download
-function Process-SFTPItems {
-    param(
-        $SftpSession,
-        [string]$LocalPath,
-        [string]$RemotePath
-    )
-    
-    $remoteItems = Get-SFTPChildItem -SFTPSession $SftpSession -Path $RemotePath
-    Write-Host "Found $($remoteItems.Count) items in the remote path: $RemotePath"
-    
-    foreach ($remoteItem in $remoteItems) {
-        $localDir = $LocalPath
-
-        if ($remoteItem.IsDirectory) {
-            $localDir = Join-Path -Path $LocalPath -ChildPath $remoteItem.Name
-            if (!(Test-Path $localDir)) {
-                Write-Host "Creating local directory: $localDir"
-                New-Item -ItemType Directory -Path $localDir | Out-Null
-            }
-            Process-SFTPItems -SftpSession $SftpSession -LocalPath $localDir -RemotePath $remoteItem.FullName
-        } elseif ($remoteItem.IsRegularFile) {
-            Write-Host "Downloading file: $($remoteItem.FullName) to $localDir"
-            Get-SFTPItem -SFTPSession $SftpSession -Path $remoteItem.FullName -Destination $localDir -Force
-        }
-    }
-}
-
-# 1.0 Set the security protocol to TLS 1.2
-Write-Host "Z> 1.0 Setting Security Protocol to TLS 1.2..."
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-
-# 1.1 Install the NuGet provider if it's not installed
-Write-Host "Z> 1.1 Checking and installing the NuGet provider if necessary..."
-try {
-    Install-PackageProvider -Name NuGet -Force -Scope CurrentUser -ForceBootstrap -ErrorAction Stop
-    Write-Host "Z> 1.1.1 NuGet provider installed or already present."
-} catch {
-    Write-Host "Z> 1.1.2 Error: Failed to install the NuGet provider. Exception: $($_.Exception.Message)"
-    Stop-TranscriptSafely
-    return
-}
-
-# 1.1 Ensure the PSGallery repository is trusted
-Write-Host "Z> 1.2 Ensuring the PSGallery repository is trusted..."
-Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-
-# 1.3 Setup Execution Policy
-Write-Host "Z> 1.3 Setting Execution Policy to RemoteSigned for the current session..."
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
-
-# 1.4 Install and import the Posh-SSH module
-Write-Host "Z> 1.4 Installing and importing the Posh-SSH module"
-$moduleInstalled = Get-Module -ListAvailable -Name 'Posh-SSH'
-
-if (-not $moduleInstalled) {
-    Write-Host "Z> 1.4.1 Posh-SSH module not found. Attempting to install..."
-    try {
-        Install-Module -Name 'Posh-SSH' -AllowClobber -Force -ErrorAction Stop
-        Write-Host "Z> 1.4.2 Posh-SSH module installed successfully."
-    } catch {
-        Write-Host "Z> 1.4.2 Error: Failed to install the Posh-SSH module. Exception: $($_.Exception.Message)"
-        Stop-Transcript
-        return
-    }
-} else {
-    Write-Host "Z> 1.4.1 Posh-SSH module is already installed."
-}
-
-# 1.5 Import the Posh-SSH module
-try {
-    Import-Module -Name 'Posh-SSH' -ErrorAction Stop
-    Write-Host "Z> 1.4.3 Posh-SSH module imported successfully."
-} catch {
-    Write-Host "Z> 1.4.3 Error: Failed to import the Posh-SSH module. Exception: $($_.Exception.Message)"
-    Stop-Transcript
-    return
-}
-
-Write-Host "Z> 1.4.1 Posh-SSH module is already installed."
-
-# 2. Define file and directory locations
-$localDirectory = "C:\ezNetworking\"
-$ftpRemoteDirectory = "/SupportFolderClients"
 
 # Install ezRmm and ezRS
 Write-Host -ForegroundColor Cyan "========================================================================================="
@@ -453,6 +303,124 @@ catch {
     throw
 }
 
+Write-Host -ForegroundColor Gray "========================================================================================="
+# Download the JoinDomainAtFirstLogin.ps1 script from github
+Write-Host -ForegroundColor Gray " Z> Downloading and shortcutting the JoinDomainAtFirstLogin GUI."
+try {
+    $JoinDomainAtFirstLoginResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/101_Windows_PostOOBE_JoinDomainAtFirstLogin.ps1" -UseBasicParsing 
+    $JoinDomainAtFirstLoginScript = $JoinDomainAtFirstLoginResponse.content
+    Write-Host -ForegroundColor Gray " Z> Saving the AD Join script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts"
+    $JoinDomainAtFirstLoginScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1"
+    $JoinDomainAtFirstLoginScript | Out-File -FilePath $JoinDomainAtFirstLoginScriptPath -Encoding UTF8
+    }
+catch {
+    Write-Error " Z> I was unable to download the JoinDomainAtFirstLogin script from github"
+}
+
+try {
+    $shortcutPath = "$([Environment]::GetFolderPath('CommonDesktopDirectory'))\Join Domain.lnk"
+    $iconPath = "C:\Windows\System32\shell32.dll,217"
+    $shell = New-Object -ComObject WScript.Shell
+    $shortcut = $shell.CreateShortcut($shortcutPath)
+    $shortcut.TargetPath = "powershell.exe"
+    $shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$JoinDomainAtFirstLoginScriptPath`""
+    $shortcut.IconLocation = $iconPath
+    $shortcut.Save()
+    
+}
+catch {
+    Write-Error " Z> I was unable to create a shortcut for the JoinDomainAtFirstLogin script."
+}
+
+Write-Host ""
+Write-Host -ForegroundColor Cyan "========================================================================================="
+write-host -ForegroundColor Cyan "Z> Synching ez Client Folders"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+
+# Define function to handle SFTP file download
+function Process-SFTPItems {
+    param(
+        $SftpSession,
+        [string]$LocalPath,
+        [string]$RemotePath
+    )
+    
+    $remoteItems = Get-SFTPChildItem -SFTPSession $SftpSession -Path $RemotePath
+    Write-Host "Found $($remoteItems.Count) items in the remote path: $RemotePath"
+    
+    foreach ($remoteItem in $remoteItems) {
+        $localDir = $LocalPath
+
+        if ($remoteItem.IsDirectory) {
+            $localDir = Join-Path -Path $LocalPath -ChildPath $remoteItem.Name
+            if (!(Test-Path $localDir)) {
+                Write-Host "Creating local directory: $localDir"
+                New-Item -ItemType Directory -Path $localDir | Out-Null
+            }
+            Process-SFTPItems -SftpSession $SftpSession -LocalPath $localDir -RemotePath $remoteItem.FullName
+        } elseif ($remoteItem.IsRegularFile) {
+            Write-Host "Downloading file: $($remoteItem.FullName) to $localDir"
+            Get-SFTPItem -SFTPSession $SftpSession -Path $remoteItem.FullName -Destination $localDir -Force
+        }
+    }
+}
+
+# 1.0 Set the security protocol to TLS 1.2
+Write-Host "Z> 1.0 Setting Security Protocol to TLS 1.2..."
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+# 1.1 Install the NuGet provider if it's not installed
+Write-Host "Z> 1.1 Checking and installing the NuGet provider if necessary..."
+try {
+    Install-PackageProvider -Name NuGet -Force -Scope CurrentUser -ForceBootstrap -ErrorAction Stop
+    Write-Host "Z> 1.1.1 NuGet provider installed or already present."
+} catch {
+    Write-Host "Z> 1.1.2 Error: Failed to install the NuGet provider. Exception: $($_.Exception.Message)"
+    Stop-TranscriptSafely
+    return
+}
+
+# 1.1 Ensure the PSGallery repository is trusted
+Write-Host "Z> 1.2 Ensuring the PSGallery repository is trusted..."
+Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+
+# 1.3 Setup Execution Policy
+Write-Host "Z> 1.3 Setting Execution Policy to RemoteSigned for the current session..."
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
+
+# 1.4 Install and import the Posh-SSH module
+Write-Host "Z> 1.4 Installing and importing the Posh-SSH module"
+$moduleInstalled = Get-Module -ListAvailable -Name 'Posh-SSH'
+
+if (-not $moduleInstalled) {
+    Write-Host "Z> 1.4.1 Posh-SSH module not found. Attempting to install..."
+    try {
+        Install-Module -Name 'Posh-SSH' -AllowClobber -Force -ErrorAction Stop
+        Write-Host "Z> 1.4.2 Posh-SSH module installed successfully."
+    } catch {
+        Write-Host "Z> 1.4.2 Error: Failed to install the Posh-SSH module. Exception: $($_.Exception.Message)"
+        Stop-Transcript
+        return
+    }
+} else {
+    Write-Host "Z> 1.4.1 Posh-SSH module is already installed."
+}
+
+# 1.5 Import the Posh-SSH module
+try {
+    Import-Module -Name 'Posh-SSH' -ErrorAction Stop
+    Write-Host "Z> 1.4.3 Posh-SSH module imported successfully."
+} catch {
+    Write-Host "Z> 1.4.3 Error: Failed to import the Posh-SSH module. Exception: $($_.Exception.Message)"
+    Stop-Transcript
+    return
+}
+
+Write-Host "Z> 1.4.1 Posh-SSH module is already installed."
+
+# 2. Define file and directory locations
+$localDirectory = "C:\ezNetworking\"
+$ftpRemoteDirectory = "/SupportFolderClients"
 
 # 2.2 Check if local directory exists, if not create it
 if (-not (Test-Path $localDirectory)) {
@@ -483,35 +451,6 @@ try {
     Write-Host "Z> 2.3.2 Error: Failed to connect to SFTP server. Exception: $($_.Exception.Message)"
     Stop-Transcript
     return
-}
-
-Write-Host -ForegroundColor Gray "========================================================================================="
-# Download the JoinDomainAtFirstLogin.ps1 script from github
-Write-Host -ForegroundColor Gray " Z> Downloading and shortcutting the JoinDomainAtFirstLogin GUI."
-try {
-    $JoinDomainAtFirstLoginResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/101_Windows_PostOOBE_JoinDomainAtFirstLogin.ps1" -UseBasicParsing 
-    $JoinDomainAtFirstLoginScript = $JoinDomainAtFirstLoginResponse.content
-    Write-Host -ForegroundColor Gray " Z> Saving the AD Join script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts"
-    $JoinDomainAtFirstLoginScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1"
-    $JoinDomainAtFirstLoginScript | Out-File -FilePath $JoinDomainAtFirstLoginScriptPath -Encoding UTF8
-    }
-catch {
-    Write-Error " Z> I was unable to download the JoinDomainAtFirstLogin script from github"
-}
-
-try {
-    $shortcutPath = "$([Environment]::GetFolderPath('CommonDesktopDirectory'))\Join Domain.lnk"
-    $iconPath = "C:\Windows\System32\shell32.dll,217"
-    $shell = New-Object -ComObject WScript.Shell
-    $shortcut = $shell.CreateShortcut($shortcutPath)
-    $shortcut.TargetPath = "powershell.exe"
-    $shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$JoinDomainAtFirstLoginScriptPath`""
-    $shortcut.IconLocation = $iconPath
-    $shortcut.Save()
-    
-}
-catch {
-    Write-Error " Z> I was unable to create a shortcut for the JoinDomainAtFirstLogin script."
 }
 
 Write-Host ""
