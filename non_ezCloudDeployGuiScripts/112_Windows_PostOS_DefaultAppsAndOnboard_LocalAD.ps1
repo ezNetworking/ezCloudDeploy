@@ -206,7 +206,6 @@ function Invoke-PostOOBEAppRemoval {
     }
 }
 
-Invoke-PostOOBEAppRemoval
 
 
 # Install ezRmm and ezRS
@@ -487,6 +486,11 @@ try {
 
 Write-Host "Z> 2.6 ez Support Companion MSI client installed and configured successfully."
 
+Write-Host -ForegroundColor Cyan "========================================================================================="
+write-host -ForegroundColor Cyan "Z> Removing unwanted apps and updating windows"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+
+Invoke-PostOOBEAppRemoval
 
 
 $Time = Get-date -Format t
