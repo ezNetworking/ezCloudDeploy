@@ -62,12 +62,13 @@ Located in `non_ezCloudDeployGuiScripts/` directory:
     of the deployment scripts
 
 3. **if Entra ID script was chosen:**
-   - Press F10 (or Fn + F10) after you have confirmed the region and keyboard layout
+   - Press Shift + F10 after you have confirmed the region and keyboard layout
    - Start the ezOOBE.cmd
-   ```powershell
-   # Type to start the OOBE script:
-   ezOOBE.cmd
-   ```
+        ```cmd
+        # Type to start the OOBE script:
+        ezOOBE.cmd
+        ```
+
 
 ## 🔧 Key Features
 
