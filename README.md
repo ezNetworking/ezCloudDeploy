@@ -63,9 +63,8 @@ Located in `non_ezCloudDeployGuiScripts/` directory:
 
 3. **if Entra ID script was chosen:**
    - Press Shift + F10 after you have confirmed the region and keyboard layout
-   - Start the ezOOBE.cmd
-        ```cmd
-        # Type to start the OOBE script:
+   - Start the ezOOBE script by typing:
+        ```shell
         ezOOBE.cmd
         ```
 
