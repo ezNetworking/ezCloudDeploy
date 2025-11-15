@@ -1,4 +1,4 @@
-# ezCloudDeploy 🚀
+# ez Cloud Deploy Scripts 🚀
 
 **Automated Windows Deployment & Configuration Scripts by ez Networking**
 
@@ -51,17 +51,17 @@ Located in `non_ezCloudDeployGuiScripts/` directory:
 
 ### Basic Usage
 
-1. **Clone the repository:**
+1. **Boot from ez Cloud Deploy USB:**
     - Boot from ez Cloud Deploy USB
-        HP:     F9
-        Dell:   F12
-        Lenovo: Esc
+        - HP:     F9
+        - Dell:   F12
+        - Lenovo: Esc
 
 2. **Run a deployment script:**
     Once the GUI has loaded select one 
     of the deployment scripts
 
-3. **if Entra ID script was chozen:**
+3. **if Entra ID script was chosen:**
    - Press F10 (or Fn + F10) after you have confirmed the region and keyboard layout
    - Start the ezOOBE.cmd
    ```powershell
