@@ -132,8 +132,7 @@ Scripts are provided as-is for deployment automation. Modify as needed for your 
 
 ## 👥 About ez Networking
 
-**ez Networking** - IT voor uw KMO 
-Professional IT services and managed solutions.
+**ez Networking** | Professional IT services and managed solutions.
 
 **Author:** Jurgen Verhelst  
 **Website:** [www.ez.be](https://www.ez.be)
