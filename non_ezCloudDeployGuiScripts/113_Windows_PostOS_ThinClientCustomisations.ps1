@@ -6,8 +6,7 @@ Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_PostOS_Thi
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 Install-Module -Name 'Posh-SSH' -Scope AllUsers -Force
-Install-Module Transferetto
-Import-Module Transferetto
+
 
 # Checking if the folders exist, if not create them
 $foldersToCheck = @(
@@ -34,52 +33,10 @@ $jsonFilePath = 'C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json'
 $rdpFilePath = 'C:\ezNetworking\Automation\ezCloudDeploy\CustomerRDS.rdp'
 $desktopFolderPath = [Environment]::GetFolderPath('CommonDesktopDirectory')
 $rdpShortcutFilePath = Join-Path -Path $desktopFolderPath -ChildPath 'RDS Cloud.lnk'
-$ezRsUrl = 'https://get.teamviewer.com/ezNetworkingHost'
 $SupportFolderScriptPath = "c:\ezNetworking\DownloadSupportFolder.ps1"
-$SupportFolderFtpFolder = '/drivehqshare/ezadminftp/public/SupportFolderClients'
 $LgpoFtpFolder = "/drivehqshare/ezadminftp/public/LGPO"
 $lgpoLocalFolder = "C:\ezNetworking\Automation\ezCloudDeploy\LGPO"
 
-# Define FTP Server connection details
-$ftpServer = "ftp.driveHQ.com"
-$ftpUsername = "ezPublic"
-$ftpPublicPassword = "MakesYourNetWork"
-
-# Function to handle files and directories
-function Process-FTPItems {
-    param(
-        [FluentFTP.FtpClient]$Client,
-        [string]$LocalPath,
-        [string]$RemotePath
-    )
-
-    # Get the list of remote items (files and directories)
-    $remoteItems = Get-FTPList -Client $Client -Path $RemotePath
-    
-    Write-Host "Z> Found $(($remoteItems).Count) items in the remote path: $RemotePath"
-
-    foreach ($remoteItem in $remoteItems) {
-        $localFilePath = Join-Path -Path $LocalPath -ChildPath $remoteItem.Name
-
-        if ($remoteItem.Type -eq "File") {
-            # Download the remote file and overwrite the local file if it exists
-            Receive-FTPFile -Client $Client -LocalPath $localFilePath -RemotePath $remoteItem.FullName -LocalExists Overwrite
-        } elseif ($remoteItem.Type -eq "Directory") {
-            # If the item is a directory, recursively call this function
-            
-            Write-Host "Z> Found directory: $remoteItem.FullName"
-
-            if (!(Test-Path $localFilePath)) {
-                
-                Write-Host "Z> Local directory doesn't exist. Creating: $localFilePath"
-                New-Item -ItemType Directory -Path $localFilePath | Out-Null
-            }
-            
-            Write-Host "Z> Navigating into directory: $localFilePath"
-            Process-FTPItems -Client $Client -LocalPath $localFilePath -RemotePath $remoteItem.FullName
-        }
-    }
-}
 
 # Load the JSON file
 Write-Host -ForegroundColor Gray "========================================================================================="
@@ -94,7 +51,7 @@ powercfg.exe -change -disk-timeout-ac 0
 powercfg.exe -change -monitor-timeout-ac 0
 
 
-#Region Install ezRmm and ezRS
+#Region Install ezRmm
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "Z> Installing ez RMM for customer $($ezClientConfig.ezRmmId)"
 Write-Host -ForegroundColor Cyan "========================================================================================="
@@ -187,57 +144,185 @@ catch {
     }
     throw
 }
-#EndRegion Install ezRmm and ezRS
+#EndRegion Install ezRmm
 
 
-# Download the DownloadSupportFolder script, run and schedule it
-#region Download the DownloadSupportFolder script, run and schedule it
-Write-Host -ForegroundColor Gray "========================================================================================="
-Write-Host -ForegroundColor Gray "Z> Downloading the DownloadSupportFolder Script, running and scheduling it"
+#Region Synch ez Client Folders from FTP
+Write-Host ""
+Write-Host -ForegroundColor Cyan "========================================================================================="
+write-host -ForegroundColor Cyan "Z> Synching ez Client Folders"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+
+# Define function to handle SFTP file download
+function Process-SFTPItems {
+    param(
+        $SftpSession,
+        [string]$LocalPath,
+        [string]$RemotePath
+    )
+    
+    $remoteItems = Get-SFTPChildItem -SFTPSession $SftpSession -Path $RemotePath
+    Write-Host "Found $($remoteItems.Count) items in the remote path: $RemotePath"
+    
+    foreach ($remoteItem in $remoteItems) {
+        $localDir = $LocalPath
+
+        if ($remoteItem.IsDirectory) {
+            $localDir = Join-Path -Path $LocalPath -ChildPath $remoteItem.Name
+            if (!(Test-Path $localDir)) {
+                Write-Host "Creating local directory: $localDir"
+                New-Item -ItemType Directory -Path $localDir | Out-Null
+            }
+            Process-SFTPItems -SftpSession $SftpSession -LocalPath $localDir -RemotePath $remoteItem.FullName
+        } elseif ($remoteItem.IsRegularFile) {
+            Write-Host "Downloading file: $($remoteItem.FullName) to $localDir"
+            Get-SFTPItem -SFTPSession $SftpSession -Path $remoteItem.FullName -Destination $localDir -Force
+        }
+    }
+}
+
+# 1.0 Set the security protocol to TLS 1.2
+Write-Host "Z> 1.0 Setting Security Protocol to TLS 1.2..."
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+# 1.1 Install the NuGet provider if it's not installed
+Write-Host "Z> 1.1 Checking and installing the NuGet provider if necessary..."
 try {
-    $DownloadSupportFolderResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/140_Windows_PostOS_DownloadSupportFolders.ps1" -UseBasicParsing 
-    $DownloadSupportFolderScript = $DownloadSupportFolderResponse.content
-    Write-Host -ForegroundColor Gray "Z> Saving the Onboard script to $SupportFolderScriptPath"
-    $DownloadSupportFolderScript | Out-File -FilePath $SupportFolderScriptPath -Encoding UTF8
-
-    Write-Host -ForegroundColor Gray "Z> Running the DownloadSupportFolder script"
-    . $SupportFolderScriptPath -remoteDirectory $SupportFolderFtpFolder
-
-    # Create a new scheduled task for the same script
-    Write-Host -ForegroundColor Gray ""
-    Write-Host -ForegroundColor Gray "Z> Scheduling the DownloadSupportFolder script to run every Sunday at 14:00"
-    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File $SupportFolderScriptPath -remoteDirectory '$SupportFolderFtpFolder'"
-    $trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 14:00
-    $settings = New-ScheduledTaskSettingsSet
-    $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM"
-    Register-ScheduledTask -TaskName "ezDownloadSupportFolder" -Action $action -Trigger $trigger -Settings $settings -Principal $principal
-
+    Install-PackageProvider -Name NuGet -Force -Scope CurrentUser -ForceBootstrap -ErrorAction Stop
+    Write-Host "Z> 1.1.1 NuGet provider installed or already present."
+} catch {
+    Write-Host "Z> 1.1.2 Error: Failed to install the NuGet provider. Exception: $($_.Exception.Message)"
+    Stop-TranscriptSafely
+    return
 }
-catch {
-    Write-Error " Z> I was unable to download the DownloadSupportFolder script."
+
+# 1.1 Ensure the PSGallery repository is trusted
+Write-Host "Z> 1.2 Ensuring the PSGallery repository is trusted..."
+Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+
+# 1.3 Setup Execution Policy
+Write-Host "Z> 1.3 Setting Execution Policy to RemoteSigned for the current session..."
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
+
+# 1.4 Install and import the Posh-SSH module
+Write-Host "Z> 1.4 Installing and importing the Posh-SSH module"
+$moduleInstalled = Get-Module -ListAvailable -Name 'Posh-SSH'
+
+if (-not $moduleInstalled) {
+    Write-Host "Z> 1.4.1 Posh-SSH module not found. Attempting to install..."
+    try {
+        Install-Module -Name 'Posh-SSH' -AllowClobber -Force -ErrorAction Stop
+        Write-Host "Z> 1.4.2 Posh-SSH module installed successfully."
+    } catch {
+        Write-Host "Z> 1.4.2 Error: Failed to install the Posh-SSH module. Exception: $($_.Exception.Message)"
+        Stop-Transcript
+        return
+    }
+} else {
+    Write-Host "Z> 1.4.1 Posh-SSH module is already installed."
 }
+
+# 1.5 Import the Posh-SSH module
+try {
+    Import-Module -Name 'Posh-SSH' -ErrorAction Stop
+    Write-Host "Z> 1.4.3 Posh-SSH module imported successfully."
+} catch {
+    Write-Host "Z> 1.4.3 Error: Failed to import the Posh-SSH module. Exception: $($_.Exception.Message)"
+    Stop-Transcript
+    return
+}
+
+Write-Host "Z> 1.4.1 Posh-SSH module is already installed."
+
+# 2. Define file and directory locations
+$localDirectory = "C:\ezNetworking\"
+$ftpRemoteDirectory = "/SupportFolderClients"
+
+
+# 2.2 Check if local directory exists, if not create it
+if (-not (Test-Path $localDirectory)) {
+    Write-Host "Z> 2.2.1 Local directory $localDirectory does not exist. Creating directory..."
+    try {
+        New-Item -ItemType Directory -Path $localDirectory -Force
+        Write-Host "Z> 2.2.2 Directory created successfully."
+    } catch {
+        Write-Host "Z> 2.2.2 Error: Failed to create local directory. Exception: $($_.Exception.Message)"
+        Stop-Transcript
+        return
+    }
+} else {
+    Write-Host "Z> 2.2.1 Local directory $localDirectory already exists."
+}
+
+# 2.3 Connect to the SFTP server and download the file
+Write-Host "Z> 2.3 Connecting to SFTP server at ftp.driveHQ.com..."
+try {
+    $SftpSession = New-SFTPSession -ComputerName "ftp.driveHQ.com" -Credential (New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList "ezpublic", (ConvertTo-SecureString "MakesYourNetWork" -AsPlainText -Force)) -Port 22 -AcceptKey -ErrorAction Stop
+    
+    # Call the Process-SFTPItems function to download files
+    Process-SFTPItems -SftpSession $SftpSession -LocalPath $localDirectory -RemotePath $ftpRemoteDirectory
+    
+    Write-Host "Z> 2.3.1 Download completed. Disconnecting from SFTP server..."
+    Remove-SFTPSession -SFTPSession $SftpSession
+} catch {
+    Write-Host "Z> 2.3.2 Error: Failed to connect to SFTP server. Exception: $($_.Exception.Message)"
+    Stop-Transcript
+    return
+}
+#EndRegion Synch ez Client Folders from FTP
+
+
 
 # Set BGinfo to run on startup
 Write-Host -ForegroundColor Gray "Z> Configuring BGinfo to run on startup"
 
-<#
- # {$registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
-$propertyName = "BGinfo"
-$propertyValue = "C:\\ezNetworking\\BGinfo\\PresetAndBgInfo.cmd"
-New-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue -PropertyType String -Force:Enter a comment or description}
-#>
-
-#Method 2
 $registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
 $propertyName = "BGinfo"
 $propertyValue = "powershell.exe -ExecutionPolicy Bypass -File C:\\ezNetworking\\BGinfo\\PresetAndBgInfo.ps1"
 New-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue -PropertyType String -Force
-#endregion
+
+#Region Install ez Support Companion
+Write-Host ""
+Write-Host -ForegroundColor Cyan "========================================================================================="
+write-host -ForegroundColor Cyan "Z> Installing ez Support Companion"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+$installerPath = "C:\ezNetworking\ez Support Companion\ez Support Companion Setup.msi"
+
+# 2.4 Check if the file was downloaded successfully
+if (!(Test-Path $installerPath)) {
+    Write-Host "Z> 2.4 Error: Installer file still not found after FTP download. skipping install."
+} else {
+    Write-Host "Z> 2.4 Installer file downloaded successfully. Proceeding with installation."
+}
+
+
+# 2.5 Proceed with the installation of the .msi file
+Write-Host "Z> 2.5 Starting installation of ez Support Companion using the MSI installer..."
+try {
+    $installResult = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$installerPath`" /qn" -Wait -PassThru
+    
+    if ($installResult.ExitCode -eq 0) {
+        Write-Host "Z> 2.5.1 MSI Installation completed successfully."
+    } else {
+        Write-Host "Z> 2.5.1 MSI Installation failed with exit code $($installResult.ExitCode). Please check logs for details."
+        Stop-Transcript
+        return
+    }
+} catch {
+    Write-Host "Z> 2.5.2 Error during installation. Exception: $($_.Exception.Message)"
+    Stop-Transcript
+    return
+}
+
+Write-Host "Z> 2.6 ez Support Companion MSI client installed and configured successfully."
+#EndRegion Install ez Support Companion
+
 
 Write-Host -ForegroundColor White ""
 Write-Host -ForegroundColor White "========================================================================================="
 Write-Host -ForegroundColor White "Z> Desktop Icons cleanup and creation. Start RDP at login for user 'User'"
 Write-Host -ForegroundColor White "========================================================================================="
+
 #Region Desktop Icons cleanup and creation. Start RDP at login for user 'User'
 # Get the RDS URI from the JSON file
 Write-Host -ForegroundColor Gray "Z> Loading RDS URI from ClientConfig JSON."
@@ -304,7 +389,8 @@ try {
     # Establish a connection to the FTP server
     
     Write-Host "Z> Connecting to FTP Server at $ftpServer..."
-    $ftpConnection = Connect-FTP -Server $ftpServer -Username $ftpUsername -Password $ftpPublicPassword
+    $SftpSession = New-SFTPSession -ComputerName "ftp.driveHQ.com" -Credential (New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList "ezpublic", (ConvertTo-SecureString "MakesYourNetWork" -AsPlainText -Force)) -Port 22 -AcceptKey -ErrorAction Stop
+
     Request-FTPConfiguration 
 
 } catch {
@@ -317,7 +403,7 @@ try {
 # Process files and directories
 
 Write-Host "Z> Starting to process files and directories..."
-Process-FTPItems -Client $ftpConnection -LocalPath "C:\ezNetworking" -RemotePath $LgpoFtpFolder
+Process-SFTPItems -SftpSession $SftpSession -LocalPath $localDirectory -RemotePath $LgpoFtpFolder
 
 # Close the FTP connection
 

@@ -268,7 +268,7 @@ function Invoke-PostOOBEAppRemoval {
     }
 }
 
-
+#Region Synch ez Client Folders from FTP
 Write-Host ""
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "Z> Synching ez Client Folders"
@@ -390,8 +390,9 @@ try {
     Stop-Transcript
     return
 }
+#EndRegion Synch ez Client Folders from FTP
 
-
+#Region Install ez Support Companion
 Write-Host ""
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "Z> Installing ez Support Companion"
@@ -425,8 +426,9 @@ try {
 }
 
 Write-Host "Z> 2.6 ez Support Companion MSI client installed and configured successfully."
+#EndRegion Install ez Support Companion
 
-# Install ezRmm and ezRS
+#Region Install ezRmm and ezRS
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "Z> Installing ez RMM for customer $($ezClientConfig.ezRmmId)"
 Write-Host -ForegroundColor Cyan "========================================================================================="
@@ -519,58 +521,9 @@ catch {
     }
     throw
 }
-<#
- # {
-Write-Host -ForegroundColor Gray "========================================================================================="
-write-host -ForegroundColor White "Z> ezRS - Downloading and installing it. "
-try {
-$ConfigId = 'q6epc32'
-$Version = 'v15'
-[System.Net.ServicePointManager]::SecurityProtocol = 'Tls12'
-$UrlDownload = "https://customdesignservice.teamviewer.com/download/windows/$Version/$ConfigId/TeamViewer_Host_Setup.exe"
-$FileDownload = "C:\ezNetworking\ezRS\ezRsInstaller.exe"
-( New-Object System.Net.WebClient ).DownloadFile( $UrlDownload , $FileDownload )
-}
-catch {
-    Write-Error "Z> ezRS failed to download: $($_.Exception.Message)"
-}
+#EndRegion Install ezRmm and ezRS
 
 
-Write-Host -ForegroundColor Gray "========================================================================================="
-# Download the Office uninstall script from github
-Write-Host -ForegroundColor White "Z> Office uninstall."
-try {
-    $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/114_Windows_PostOS_UninstallOffice.ps1" -UseBasicParsing 
-    $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
-    Write-Host -ForegroundColor Gray "Z> Saving the script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\"
-    $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\UninstallOffice365.ps1"
-    $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
-}
-catch {
-    Write-Error " Z> I was unable to download the Office Uninstall script."
-}
-
-$scriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\UninstallOffice365.ps1"
-# Running the Office uninstall script
-Write-Host -ForegroundColor Gray "Z> Running the Office uninstall script."
-
-$process = Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`"" -PassThru
-
-# Wait for the process to complete
-$process.WaitForExit()
-
-# Check the exit code of the process
-$exitCode = $process.ExitCode
-
-if ($exitCode -eq 0) {
-    # Process completed successfully
-    Write-Host -ForegroundColor gray "Z> Office Uninstall Script execution finished."
-} else {
-    # Process encountered an error
-    Write-Error "Z> Office Uninstall Script execution failed with exit code: $exitCode"
-}
-:Enter a comment or description}
-#>
 
 
 
