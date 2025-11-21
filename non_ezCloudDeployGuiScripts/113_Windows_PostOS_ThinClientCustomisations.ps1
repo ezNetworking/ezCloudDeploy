@@ -45,13 +45,34 @@ Write-Host -ForegroundColor Gray "==============================================
 Write-Host -ForegroundColor Gray "Z> Loading the JSON file"
 $ezClientConfig = Get-Content -Path $jsonFilePath | ConvertFrom-Json
 
+
+
+Write-Host -ForegroundColor Cyan "========================================================================================="
+write-host -ForegroundColor Cyan "Z> Installing apps and onboarding client to ezRmm"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+
+# Install Choco and minimal default packages
+write-host -ForegroundColor White "Z> Installing Chocolatey"
+
+try {
+    Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+    Start-Sleep -s 30
+}
+catch {
+    Write-Error "Z> Chocolatey is already installed or had an error $($_.Exception.Message)"
+}
+
+# -y confirm yes for any prompt during the install process
+write-host "Z> Installing Chocolatey packages"
+choco install dotnet-8.0-desktopruntime -y
+Write-Host -ForegroundColor Gray "========================================================================================="
+
 # Disable sleep and disk sleep
 Write-Host -ForegroundColor Gray "========================================================================================="
 Write-Host -ForegroundColor Gray "Z> Disabling sleep and disk sleep"
 powercfg.exe -change -standby-timeout-ac 0
 powercfg.exe -change -disk-timeout-ac 0
 powercfg.exe -change -monitor-timeout-ac 0
-
 
 #Region Install ezRmm
 Write-Host -ForegroundColor Cyan "========================================================================================="
@@ -385,30 +406,13 @@ Write-Host -ForegroundColor White "=============================================
 # Download LGPO files from ftp
 Write-Host -ForegroundColor White "Z> Downloading LGPO files from ftp."
 
-try {
-    # Establish a connection to the FTP server
-    
-    Write-Host "Z> Connecting to FTP Server at $ftpServer..."
-    $SftpSession = New-SFTPSession -ComputerName "ftp.driveHQ.com" -Credential (New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList "ezpublic", (ConvertTo-SecureString "MakesYourNetWork" -AsPlainText -Force)) -Port 22 -AcceptKey -ErrorAction Stop
-
-    Request-FTPConfiguration 
-
-} catch {
-    
-    Write-Host "Z> Failed to connect to FTP server at $ftpServer. Exiting script..."
-    Write-Host "Z> Error details: $_"
-    
-}
-
-# Process files and directories
-
 Write-Host "Z> Starting to process files and directories..."
 Process-SFTPItems -SftpSession $SftpSession -LocalPath $localDirectory -RemotePath $LgpoFtpFolder
 
 # Close the FTP connection
 
 Write-Host -ForegroundColor Gray "Z> Disconnecting from FTP server..."
-Disconnect-FTP -Client $ftpConnection
+Disconnect-SFTPSession -SFTPSession $SftpSession
 
 # Import Registry.pol to non-administrator group
 # The non-administrators Local GP is always saved in C:\Windows\System32\GroupPolicyUsers\S-1-5-32-545\User\Registry.pol 
