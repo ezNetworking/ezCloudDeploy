@@ -32,7 +32,7 @@ Located in `non_ezCloudDeployGuiScripts/` directory:
 | Script | Purpose |
 |--------|---------|
 | `101_Windows_PostOOBE_JoinDomainAtFirstLogin.ps1` | GUI for domain joining at first login |
-| `111_Windows_PostOS_DefaultAppsAndOnboard.ps1` | Install default applications and onboard to ezRMM |
+| `111_Windows_PostOS_DefaultAppsAndOnboard_EntraID.ps1` | Install default applications and onboard to ezRMM |
 | `113_Windows_PostOS_ThinClientCustomisations.ps1` | Thin client specific optimizations |
 | `114_Windows_PostOS_UninstallOffice.ps1` | Clean Office uninstall utility |
 | `115_Windows_PostOS_InstallOffice.ps1` | Office 365 installation |
