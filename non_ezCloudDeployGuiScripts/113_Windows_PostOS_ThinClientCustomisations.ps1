@@ -94,40 +94,101 @@ powercfg.exe -change -disk-timeout-ac 0
 powercfg.exe -change -monitor-timeout-ac 0
 
 
-# Install ezRmm and ezRS
-#region Install ezRmm and ezRS
-Write-Host -ForegroundColor Gray "========================================================================================="
-write-host -ForegroundColor White "Z> ezRMM - Downloading and installing it for customer $($ezClientConfig.ezRmmId)"
+#Region Install ezRmm and ezRS
+Write-Host -ForegroundColor Cyan "========================================================================================="
+write-host -ForegroundColor Cyan "Z> Installing ez RMM for customer $($ezClientConfig.ezRmmId)"
+Write-Host -ForegroundColor Cyan "========================================================================================="
 
+$Splat = @{
+    Text = 'Z> Installing ez RMM' , "Downloading and installing... Started $Time"
+    Applogo = 'https://iili.io/H8B8JtI.png'
+    Sound = 'IM'
+}
+New-BurntToastNotification @splat 
 
 try {
+    $installer = "C:\ezNetworking\ezRMM\ezRmmInstaller.msi"
     $ezRmmUrl = "http://support.ez.be/GetAgent/Windows/?cid=$($ezClientConfig.ezRmmId)" + '&aid=0013z00002YbbGCAAZ'
-    write-host -ForegroundColor Gray "Z> Downloading ezRmmInstaller.msi from $ezRmmUrl"
-    Invoke-WebRequest -Uri $ezRmmUrl -OutFile "C:\ezNetworking\ezRMM\ezRmmInstaller.msi"
-    write-host -ForegroundColor Gray "Z> Installing ezRmm."
-
-    Start-Process -FilePath "C:\ezNetworking\ezRMM\ezRmmInstaller.msi" -ArgumentList "/quiet" -Wait
     
+    # Ensure directory exists
+    $installerDir = Split-Path -Path $installer -Parent
+    if (!(Test-Path -Path $installerDir)) {
+        New-Item -ItemType Directory -Path $installerDir -Force | Out-Null
+    }
+    
+    Write-Host -ForegroundColor Gray "Z> Downloading ezRmmInstaller.msi from $ezRmmUrl"
+    Invoke-WebRequest -Uri $ezRmmUrl -OutFile $installer -UseBasicParsing
+    
+    # Verify download succeeded
+    if (!(Test-Path -Path $installer)) {
+        throw "Failed to download installer"
+    }
+    
+    $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+    Write-Host -ForegroundColor Gray "Z> Running as: $currentUser"
+    
+    if ($currentUser -eq 'NT AUTHORITY\SYSTEM') {
+        # Already running as SYSTEM, install directly
+        Write-Host -ForegroundColor Gray "Z> Installing as SYSTEM directly"
+        $process = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$installer`" /qn /norestart" -Wait -PassThru
+        
+        if ($process.ExitCode -ne 0 -and $process.ExitCode -ne 3010) {
+            throw "ezRMM installer failed with exit code $($process.ExitCode)"
+        }
+        Write-Host -ForegroundColor Green "Z> ezRMM installed successfully (Exit code: $($process.ExitCode))"
+    } else {
+        # Not running as SYSTEM, create scheduled task
+        Write-Host -ForegroundColor Gray "Z> Creating scheduled task to run as SYSTEM"
+        $taskName = "Install_ezRmm_$([guid]::NewGuid())"
+        $action   = New-ScheduledTaskAction -Execute "msiexec.exe" -Argument "/i `"$installer`" /qn /norestart"
+        $trigger  = New-ScheduledTaskTrigger -Once -At (Get-Date).AddSeconds(10)
+        $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+        
+        Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -User "SYSTEM" -RunLevel Highest -Settings $settings | Out-Null
+        
+        Write-Host -ForegroundColor Gray "Z> Starting scheduled task"
+        Start-ScheduledTask -TaskName $taskName
+        
+        # Wait for task to complete
+        $timeout = 300 # 5 minutes
+        $elapsed = 0
+        do {
+            Start-Sleep -Seconds 5
+            $elapsed += 5
+            $task = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+            $info = Get-ScheduledTaskInfo -TaskName $taskName -ErrorAction SilentlyContinue
+            
+            if ($elapsed -gt $timeout) {
+                Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+                throw "Installation timed out after $timeout seconds"
+            }
+        } while ($task.State -eq 'Running' -or $info.LastRunTime -eq [datetime]::MinValue)
+        
+        # Clean up task
+        Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+        
+        # Check result (0 = success, 3010 = success but reboot required)
+        if ($info.LastTaskResult -ne 0 -and $info.LastTaskResult -ne 3010) {
+            throw "ezRMM installer task failed with exit code $($info.LastTaskResult)"
+        }
+        Write-Host -ForegroundColor Green "Z> ezRMM installed successfully via scheduled task (Exit code: $($info.LastTaskResult))"
+    }
+    
+    # Cleanup installer file
+    if (Test-Path -Path $installer) {
+        Remove-Item -Path $installer -Force -ErrorAction SilentlyContinue
+    }
 }
 catch {
-    Write-Error "Z> ezRmm is already installed or had an error $($_.Exception.Message)"
+    Write-Error "Z> ezRmm installation failed: $($_.Exception.Message)"
+    # Cleanup on error
+    if (Test-Path -Path $installer) {
+        Remove-Item -Path $installer -Force -ErrorAction SilentlyContinue
+    }
+    throw
 }
+#EndRegion Install ezRmm and ezRS
 
-
-Write-Host -ForegroundColor Gray "========================================================================================="
-write-host -ForegroundColor Gray "Z> ezRS - Downloading and installing it"
-try {
-$ConfigId = 'q6epc32'
-$Version = 'v15'
-[System.Net.ServicePointManager]::SecurityProtocol = 'Tls12'
-$UrlDownload = "https://customdesignservice.teamviewer.com/download/windows/$Version/$ConfigId/TeamViewer_Host_Setup.exe"
-$FileDownload = "C:\ezNetworking\ezRS\ezRsInstaller.exe"
-( New-Object System.Net.WebClient ).DownloadFile( $UrlDownload , $FileDownload )
-}
-catch {
-    Write-Error "Z> ezRS is already installed or had an error $($_.Exception.Message)"
-}
-#endregion
 
 # Download the DownloadSupportFolder script, run and schedule it
 #region Download the DownloadSupportFolder script, run and schedule it

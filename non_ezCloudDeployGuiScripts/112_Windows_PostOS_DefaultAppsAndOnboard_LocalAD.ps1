@@ -208,7 +208,7 @@ function Invoke-PostOOBEAppRemoval {
 
 
 
-# Install ezRmm and ezRS
+#Region Install ezRmm and ezRS
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "Z> Installing ez RMM for customer $($ezClientConfig.ezRmmId)"
 Write-Host -ForegroundColor Cyan "========================================================================================="
@@ -301,6 +301,7 @@ catch {
     }
     throw
 }
+#EndRegion Install ezRmm and ezRS
 
 Write-Host -ForegroundColor Gray "========================================================================================="
 # Download the JoinDomainAtFirstLogin.ps1 script from github
