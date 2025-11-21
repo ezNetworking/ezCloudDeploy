@@ -215,7 +215,7 @@ try {
     Write-Host "Z> 1.1.1 NuGet provider installed or already present."
 } catch {
     Write-Host "Z> 1.1.2 Error: Failed to install the NuGet provider. Exception: $($_.Exception.Message)"
-    Stop-TranscriptSafely
+    Stop-Transcript
     return
 }
 
@@ -286,7 +286,6 @@ try {
     Process-SFTPItems -SftpSession $SftpSession -LocalPath $localDirectory -RemotePath $ftpRemoteDirectory
     
     Write-Host "Z> 2.3.1 Download completed. Disconnecting from SFTP server..."
-    Remove-SFTPSession -SFTPSession $SftpSession
 } catch {
     Write-Host "Z> 2.3.2 Error: Failed to connect to SFTP server. Exception: $($_.Exception.Message)"
     Stop-Transcript
@@ -413,6 +412,8 @@ Process-SFTPItems -SftpSession $SftpSession -LocalPath $localDirectory -RemotePa
 
 Write-Host -ForegroundColor Gray "Z> Disconnecting from FTP server..."
 Disconnect-SFTPSession -SFTPSession $SftpSession
+Remove-SFTPSession -SFTPSession $SftpSession
+
 
 # Import Registry.pol to non-administrator group
 # The non-administrators Local GP is always saved in C:\Windows\System32\GroupPolicyUsers\S-1-5-32-545\User\Registry.pol 
