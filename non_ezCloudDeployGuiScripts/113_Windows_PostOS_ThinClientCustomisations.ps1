@@ -6,7 +6,9 @@ Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_PostOS_Thi
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 Install-Module -Name 'Posh-SSH' -Scope AllUsers -Force
-
+Write-Host -ForegroundColor Gray "Z> Installing Burned Toast Module."
+Install-Module burnttoast
+Import-Module burnttoast
 
 # Checking if the folders exist, if not create them
 $foldersToCheck = @(
@@ -382,8 +384,6 @@ Write-Host -ForegroundColor White "=============================================
 
 # Download LGPO files from ftp
 Write-Host -ForegroundColor White "Z> Downloading LGPO files from ftp."
-Set-FTPTracing -disable
-
 
 try {
     # Establish a connection to the FTP server
