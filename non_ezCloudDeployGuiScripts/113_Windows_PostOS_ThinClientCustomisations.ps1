@@ -411,7 +411,6 @@ Process-SFTPItems -SftpSession $SftpSession -LocalPath $localDirectory -RemotePa
 # Close the FTP connection
 
 Write-Host -ForegroundColor Gray "Z> Disconnecting from FTP server..."
-Disconnect-SFTPSession -SFTPSession $SftpSession
 Remove-SFTPSession -SFTPSession $SftpSession
 
 
