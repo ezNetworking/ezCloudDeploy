@@ -198,7 +198,7 @@ Write-Host -ForegroundColor White "=============================================
 Write-Host ""
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-write-host -ForegroundColor Cyan "Z> Removing apps and updating Windows"
+write-host -ForegroundColor Cyan "   Removing apps and updating Windows"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Gray "Z> Use Start-OOBEDeploy to remove apps and update Windows "
 Write-Host -ForegroundColor Gray "   CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"

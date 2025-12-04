@@ -78,8 +78,8 @@ catch {
 }
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "Z> The ezRMon probe installation completed successfully."
-Write-Host -ForegroundColor Cyan "Z> You still need to approve the probe in the mon.ez.be interface."
+write-host -ForegroundColor Cyan "   The ezRMon probe installation completed successfully."
+write-host -ForegroundColor Cyan "   You still need to approve the probe in the mon.ez.be interface."
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Stop-Transcript
 Read-Host -Prompt "Press Enter to exit"

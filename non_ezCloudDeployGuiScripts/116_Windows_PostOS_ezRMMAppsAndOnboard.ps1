@@ -53,12 +53,12 @@ powercfg.exe -change -disk-timeout-ac 0
 powercfg.exe -change -monitor-timeout-ac 480
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-write-host -ForegroundColor Cyan "Z> User configuration"
+write-host -ForegroundColor Cyan "   User configuration"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Gray "Z> Setting ezadminlocal's password to never expire "
 Set-LocalUser -Name "ezAdminLocal" -PasswordNeverExpires $true
 Write-Host -ForegroundColor Cyan "========================================================================================="
-write-host -ForegroundColor Cyan "Z> Installing apps and onboarding client to ezRmm"
+write-host -ForegroundColor Cyan "   Installing apps and onboarding client to ezRmm"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 
 # Install Choco and minimal default packages
@@ -193,7 +193,7 @@ catch {
 }
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-write-host -ForegroundColor Cyan "Z> Removing apps and updating Windows"
+write-host -ForegroundColor Cyan "   Removing apps and updating Windows"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Gray "Z> Use Start-OOBEDeploy to remove apps and update Windows "
 Write-Host -ForegroundColor Gray "   CommunicationsApps,MicrosoftTeams,OfficeHub,People,Skype,Solitaire,Xbox,ZuneMusic,ZuneVideo"
@@ -205,16 +205,64 @@ $Params = @{
 }
 Start-OOBEDeploy @Params
 
-
-Write-Host -ForegroundColor Cyan "========================================================================================="
-write-host -ForegroundColor Cyan "Z> Installing Probe Finished." 
-write-host -ForegroundColor Cyan "Z> You can deliver the Probe to the client now."
-Read-Host -Prompt "Z> Press any key to exit"
-Write-Host -ForegroundColor Cyan "========================================================================================="
-
 Stop-Transcript
-Exit
+Write-host ""
+Write-host ""
+write-host -ForegroundColor Gray "========================================================================================="
 
+# ASCII Art Banner - Customize this section with your own ASCII art
+$asciiBanner = @"
+                  ___ ____                                            
+                 / _ \_  /  _                      _    _             
+                |  __// /  | |                    | |  (_)            
+                 \___/___|_| |___      _____  _ __| | ___ _ __   __ _ 
+                | '_ \ / _ \ __\ \ /\ / / _ \| '__| |/ / | '_ \ / _` |
+                | | | |  __/ |_ \ V  V / (_) | |  |   <| | | | | (_| |
+                |_| |_|\___|\__| \_/\_/ \___/|_|  |_|\_\_|_| |_|\__, |     
+                                                                 __/ |
+                                                                |___/ 
+
+            ┏━╸╺━┓   ┏━╸╻  ┏━┓╻ ╻╺┳┓   ╺┳┓┏━╸┏━┓╻  ┏━┓╻ ╻  ┏━╸╻┏┓╻╻┏━┓╻ ╻┏━╸╺┳┓    
+            ┣╸ ┏━┛   ┃  ┃  ┃ ┃┃ ┃ ┃┃    ┃┃┣╸ ┣━┛┃  ┃ ┃┗┳┛  ┣╸ ┃┃┗┫┃┗━┓┣━┫┣╸  ┃┃    
+            ┗━╸┗━╸   ┗━╸┗━╸┗━┛┗━┛╺┻┛   ╺┻┛┗━╸╹  ┗━╸┗━┛ ╹   ╹  ╹╹ ╹╹┗━┛╹ ╹┗━╸╺┻┛    
+
+
+"@                                                                                                                        
+
+Write-Host -ForegroundColor Cyan $asciiBanner
+write-host -ForegroundColor White "    ez Networking | ezRMM Apps and Onboard - Post OS Deployment - ezRMM PRTG Probe"
+write-host -ForegroundColor Gray "========================================================================================="
+Write-Host ""
+write-host -ForegroundColor Yellow "            Installing Probe Finished." 
+write-host -ForegroundColor Yellow "            You can deliver the Probe to the client now."
+Write-Host ""
+
+Write-Host ""
+write-host -ForegroundColor Gray "            What would you like to do next?`n            [1] Shut down the computer`n            [2] Just close the script`n            [3] Restart the computer`n"
+
+
+$finishAction = Read-Host -Prompt "            Enter your choice (1-3)"
+switch ($finishAction) {
+    "1" {
+        write-host -ForegroundColor Cyan "   Shutting down the computer in 10 seconds..."
+        Start-Sleep -Seconds 5
+        Stop-Computer -Force
+    }
+    "2" {
+        write-host -ForegroundColor Cyan "   Exiting the script. Goodbye!"
+        Exit
+    }
+    "3" {
+        write-host -ForegroundColor Cyan "   Restarting the computer in 10 seconds..."
+        Start-Sleep -Seconds 5
+        Restart-Computer -Force
+    }
+    default {
+        Write-Host -ForegroundColor Yellow "Z> Invalid choice. Script will exit without additional actions."
+        Exit
+    }
+}
+Write-Host -ForegroundColor Cyan "========================================================================================="
 <#
 .SYNOPSIS
 Installs Chocolatey and minimal default packages and onboards the computer to ezRmm.

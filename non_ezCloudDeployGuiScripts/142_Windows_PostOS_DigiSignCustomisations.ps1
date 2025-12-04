@@ -307,9 +307,9 @@ $Trigger = New-ScheduledTaskTrigger -AtLogOn -User "User"
 Register-ScheduledTask -Action $Action -Trigger $Trigger -TaskName "UserLogonScript" -Description "Runs a script at User logon."
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-write-host -ForegroundColor Cyan "Z> Configuring DigiSign Finished." 
-write-host -ForegroundColor Cyan "Z> The DigiSign User has password 'user' and is set to autologin."
-write-host -ForegroundColor Cyan "Z> You can deliver the computer to the client now after testing auto user login."
+write-host -ForegroundColor Cyan "   Configuring DigiSign Finished." 
+write-host -ForegroundColor Cyan "   The DigiSign User has password 'user' and is set to autologin."
+write-host -ForegroundColor Cyan "   You can deliver the computer to the client now after testing auto user login."
 Read-Host -Prompt "Z> Press any key to Reboot the DigiSign Device."
 restart-computer -force
 Write-Host -ForegroundColor Cyan "========================================================================================="

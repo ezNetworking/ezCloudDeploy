@@ -33,7 +33,7 @@ try {
     Start-Transcript -Path $logFile -Append
 
     Write-Host -ForegroundColor Cyan "========================================================================================="
-    Write-Host -ForegroundColor Cyan "Z> Download Support Folders from our FTP server."
+    write-host -ForegroundColor Cyan "   Download Support Folders from our FTP server."
     Write-Host -ForegroundColor Cyan "========================================================================================="
 
     Write-Host "Z> [$(Get-Date -Format o)] Starting download from SFTP: $remoteDirectory"
@@ -87,7 +87,7 @@ try {
 
     Write-Host "Z> [$(Get-Date -Format o)] DOWNLOAD_SUCCESS"
     Write-Host -ForegroundColor Cyan "========================================================================================="
-    Write-Host -ForegroundColor Cyan "Z> Downloading Support Folders from our FTP server completed successfully."
+    write-host -ForegroundColor Cyan "   Downloading Support Folders from our FTP server completed successfully."
     Write-Host -ForegroundColor Cyan "========================================================================================="
 
     Stop-Transcript
