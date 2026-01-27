@@ -1,23 +1,30 @@
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "             Thinclient Deployment Client Customisations - Post OS Deployment"
+Write-Host -ForegroundColor Cyan "             Default Apps and Onboard Client - Post OS Deployment"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
-Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_PostOS_ThinClientCustomisations.log"
+Write-Host -ForegroundColor Gray "========================================================================================="
+Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_112_Windows_PostOS_DefaultAppsAndOnboard.log"
+Write-Host -ForegroundColor Gray "========================================================================================="
+Write-Host -ForegroundColor Gray "Z> Setting up Powershell and Repo trusted."
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
-Install-Module -Name 'Posh-SSH' -Scope AllUsers -Force
+# Write-Host -ForegroundColor Gray "Z> Installing OSD Module."
+# Install-Module OSD -Force -Verbose
+# Import-Module OSD -Force
 Write-Host -ForegroundColor Gray "Z> Installing Burned Toast Module."
 Install-Module burnttoast
 Import-Module burnttoast
+Write-Host -ForegroundColor Gray "========================================================================================="
+write-host "Z> reading the ezClientConfig.json file"
+$ezClientConfig = Get-Content -Path "C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json" | ConvertFrom-Json
 
 # Checking if the folders exist, if not create them
 $foldersToCheck = @(
     "C:\ezNetworking\Automation\Logs",
     "C:\ezNetworking\Automation\Scripts",
     "C:\ezNetworking\Apps",
-    "C:\ezNetworking\Automation\ezCloudDeploy",
-    "C:\ezNetworking\ezRS",
-    "C:\ezNetworking\ezRMM"
+    "C:\ezNetworking\ezRMM",
+    "C:\ezNetworking\ezRS"
 )
 
 foreach ($folder in $foldersToCheck) {
@@ -30,22 +37,47 @@ foreach ($folder in $foldersToCheck) {
     }
 }
 
-# Define the Folder, Files and URL Variables
-$jsonFilePath = 'C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json'
-$rdpFilePath = 'C:\ezNetworking\Automation\ezCloudDeploy\CustomerRDS.rdp'
-$desktopFolderPath = [Environment]::GetFolderPath('CommonDesktopDirectory')
-$rdpShortcutFilePath = Join-Path -Path $desktopFolderPath -ChildPath 'RDS Cloud.lnk'
-$SupportFolderScriptPath = "c:\ezNetworking\DownloadSupportFolder.ps1"
-$LgpoFtpFolder = "/drivehqshare/ezadminftp/public/LGPO"
-$lgpoLocalFolder = "C:\ezNetworking\Automation\ezCloudDeploy\LGPO"
+# Set Do Not Disturb to Off (Dirty Way, not found a better one :) :)
+
+if ($ezClientConfig.TaskSeqType -eq "AzureAD") {
+    write-host "Z> AzureAD Task Sequence, skipping Focus Assist"
+}  
+else {
+    write-host "Z> Setting Focus Assist to Off"
+    # Disable Focus Assist by updating the registry
+    Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings" `
+    -Name "NOC_GLOBAL_SETTING_TOASTS_ENABLED" `
+    -Value 0
+
+    # Confirm the change
+    Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Notifications\Settings" `
+    -Name "NOC_GLOBAL_SETTING_TOASTS_ENABLED"
+    Write-Host -ForegroundColor Gray "Z> Focus Assist set to Off"
+}
+
+# Send the toast notification
+$Time = Get-date -Format t
+$Btn = New-BTButton -Content 'OK' -arguments 'ok'
+$Splat = @{
+    Text = 'Z> Starting Installs' , "Let's give this PC some apps and settings. Started $Time"
+    Applogo = 'https://iili.io/H8B8JtI.png'
+    Sound = 'IM'
+    Button = $Btn
+    HeroImage = 'https://iili.io/HU77iLN.jpg'
+}
+New-BurntToastNotification @splat 
 
 
-# Load the JSON file
-Write-Host -ForegroundColor Gray "========================================================================================="
-Write-Host -ForegroundColor Gray "Z> Loading the JSON file"
-$ezClientConfig = Get-Content -Path $jsonFilePath | ConvertFrom-Json
-
-
+Write-Host -ForegroundColor Cyan "========================================================================================="
+write-host -ForegroundColor Cyan "   User configuration"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+Write-Host -ForegroundColor Gray "Z> Setting ezadminlocal's password to never expire "
+if (Get-LocalUser -Name "ezAdminLocal" -ErrorAction SilentlyContinue) {
+    Set-LocalUser -Name "ezAdminLocal" -PasswordNeverExpires $true
+    Write-Host -ForegroundColor Gray "Z> ezAdminLocal user found and password set to never expire."
+} else {
+    Write-Host -ForegroundColor Yellow "Z> No ezAdminLocal user found, probably an AzureAD install."
+}
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "   Installing apps and onboarding client to ezRmm"
@@ -64,17 +96,119 @@ catch {
 
 # -y confirm yes for any prompt during the install process
 write-host "Z> Installing Chocolatey packages"
+choco install googlechrome -y --ignore-checksums
+# choco install treesizefree -y --ignore-checksums
 choco install dotnet-8.0-desktopruntime -y
 Write-Host -ForegroundColor Gray "========================================================================================="
 
-# Disable sleep and disk sleep
-Write-Host -ForegroundColor Gray "========================================================================================="
-Write-Host -ForegroundColor Gray "Z> Disabling sleep and disk sleep"
-powercfg.exe -change -standby-timeout-ac 0
-powercfg.exe -change -disk-timeout-ac 0
-powercfg.exe -change -monitor-timeout-ac 0
 
-#Region Install ezRmm
+
+# Download the Office Install script from github
+Write-Host -ForegroundColor White "Z> Office 365 Install."
+try {
+    $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/115_Windows_PostOS_InstallOffice.ps1" -UseBasicParsing 
+    $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
+    Write-Host -ForegroundColor Gray "Z> Saving the script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\"
+    $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\InstallOffice365.ps1"
+    $DefaultAppsAndOnboardScript | Out-File -FilePath $DefaultAppsAndOnboardScriptPath -Encoding UTF8
+}
+catch {
+    Write-Error "Z> I was unable to download the Office Install script."
+}
+
+# Running the Office Install script
+$scriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\InstallOffice365.ps1"
+
+Write-Host -ForegroundColor Gray "Z> Running the Office Install script."
+
+$process = Start-Process -FilePath "powershell.exe" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`"" -PassThru
+
+# Wait for the process to complete
+$process.WaitForExit()
+
+# Check the exit code of the process
+$exitCode = $process.ExitCode
+
+if ($exitCode -eq 0) {
+    # Process completed successfully
+    Write-Host -ForegroundColor Gray "Z> Office 365 Install Script execution finished."
+} else {
+    # Process encountered an error
+    Write-Error "Z> Office 365 Install Script execution failed with exit code: $exitCode"
+}
+
+
+
+function Invoke-PostOOBEAppRemoval {
+    Write-Host -ForegroundColor Gray "Z> Removing unwanted apps using Get-AppxPackage method"
+    
+    $appsToRemove = @(
+        "*Microsoft.BingNews*",
+        "*Microsoft.GetHelp*",
+        "*Microsoft.Getstarted*",
+        "*Microsoft.Messaging*",
+        "*Microsoft.Microsoft3DViewer*",
+        "*Microsoft.MicrosoftOfficeHub*",
+        "*Microsoft.MicrosoftSolitaireCollection*",
+        "*Microsoft.Office.OneNote*",
+        "*Microsoft.People*",
+        "*Microsoft.Print3D*",
+        "*Microsoft.SkypeApp*",
+        "*Microsoft.Wallet*",
+        "*Microsoft.Xbox.TCUI*",
+        "*Microsoft.XboxApp*",
+        "*Microsoft.XboxGameOverlay*",
+        "*Microsoft.XboxGamingOverlay*",
+        "*Microsoft.XboxIdentityProvider*",
+        "*Microsoft.XboxSpeechToTextOverlay*",
+        "*Microsoft.ZuneMusic*",
+        "*Microsoft.ZuneVideo*",
+        "*Microsoft.YourPhone*",
+        "*Microsoft.WindowsCommunicationsApps*"
+    )
+    
+    foreach ($app in $appsToRemove) {
+        try {
+            $packages = Get-AppxPackage -Name $app -AllUsers -ErrorAction SilentlyContinue
+            if ($packages) {
+                $packages | Remove-AppxPackage -ErrorAction SilentlyContinue
+                Write-Host -ForegroundColor Gray "Z> Removed package: $app"
+            }
+            
+            $provisionedPackages = Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $app -ErrorAction SilentlyContinue
+            if ($provisionedPackages) {
+                $provisionedPackages | Remove-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue
+                Write-Host -ForegroundColor Gray "Z> Removed provisioned package: $app"
+            }
+        } catch {
+            Write-Host -ForegroundColor Yellow "Z> Could not remove $app : $($_.Exception.Message)"
+        }
+    }
+    
+    # Handle Windows Updates separately for post-OOBE
+    Write-Host -ForegroundColor Gray "Z> Checking for Windows Updates..."
+    try {
+        if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) {
+            Install-Module PSWindowsUpdate -Force -Scope CurrentUser -ErrorAction SilentlyContinue
+        }
+        Import-Module PSWindowsUpdate -ErrorAction SilentlyContinue
+        
+        $updates = Get-WindowsUpdate -ErrorAction SilentlyContinue
+        if ($updates) {
+            Write-Host -ForegroundColor Gray "Z> Installing $($updates.Count) Windows Updates..."
+            Install-WindowsUpdate -AcceptAll -IgnoreReboot -ErrorAction SilentlyContinue
+        } else {
+            Write-Host -ForegroundColor Gray "Z> No Windows Updates available"
+        }
+    } catch {
+        Write-Host -ForegroundColor Yellow "Z> Windows Update check failed: $($_.Exception.Message)"
+        Write-Host -ForegroundColor Gray "Z> Updates can be installed manually later"
+    }
+}
+
+
+
+#Region Install ezRmm and ezRS
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "   Installing ez RMM for customer $($ezClientConfig.ezRmmId)"
 Write-Host -ForegroundColor Cyan "========================================================================================="
@@ -167,10 +301,37 @@ catch {
     }
     throw
 }
-#EndRegion Install ezRmm
+#EndRegion Install ezRmm and ezRS
 
+Write-Host -ForegroundColor Gray "========================================================================================="
+# Download the JoinDomainAtFirstLogin.ps1 script from github
+Write-Host -ForegroundColor Gray " Z> Downloading and shortcutting the JoinDomainAtFirstLogin GUI."
+try {
+    $JoinDomainAtFirstLoginResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/101_Windows_PostOOBE_JoinDomainAtFirstLogin.ps1" -UseBasicParsing 
+    $JoinDomainAtFirstLoginScript = $JoinDomainAtFirstLoginResponse.content
+    Write-Host -ForegroundColor Gray " Z> Saving the AD Join script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts"
+    $JoinDomainAtFirstLoginScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1"
+    $JoinDomainAtFirstLoginScript | Out-File -FilePath $JoinDomainAtFirstLoginScriptPath -Encoding UTF8
+    }
+catch {
+    Write-Error " Z> I was unable to download the JoinDomainAtFirstLogin script from github"
+}
 
-#Region Synch ez Client Folders from FTP
+try {
+    $shortcutPath = "$([Environment]::GetFolderPath('CommonDesktopDirectory'))\Join Domain.lnk"
+    $iconPath = "C:\Windows\System32\shell32.dll,217"
+    $shell = New-Object -ComObject WScript.Shell
+    $shortcut = $shell.CreateShortcut($shortcutPath)
+    $shortcut.TargetPath = "powershell.exe"
+    $shortcut.Arguments = "-ExecutionPolicy Bypass -File `"$JoinDomainAtFirstLoginScriptPath`""
+    $shortcut.IconLocation = $iconPath
+    $shortcut.Save()
+    
+}
+catch {
+    Write-Error " Z> I was unable to create a shortcut for the JoinDomainAtFirstLogin script."
+}
+
 Write-Host ""
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "   Synching ez Client Folders"
@@ -215,7 +376,7 @@ try {
     Write-Host "Z> 1.1.1 NuGet provider installed or already present."
 } catch {
     Write-Host "Z> 1.1.2 Error: Failed to install the NuGet provider. Exception: $($_.Exception.Message)"
-    Stop-Transcript
+    Stop-TranscriptSafely
     return
 }
 
@@ -261,7 +422,6 @@ Write-Host "Z> 1.4.1 Posh-SSH module is already installed."
 $localDirectory = "C:\ezNetworking\"
 $ftpRemoteDirectory = "/SupportFolderClients"
 
-
 # 2.2 Check if local directory exists, if not create it
 if (-not (Test-Path $localDirectory)) {
     Write-Host "Z> 2.2.1 Local directory $localDirectory does not exist. Creating directory..."
@@ -286,24 +446,13 @@ try {
     Process-SFTPItems -SftpSession $SftpSession -LocalPath $localDirectory -RemotePath $ftpRemoteDirectory
     
     Write-Host "Z> 2.3.1 Download completed. Disconnecting from SFTP server..."
+    Remove-SFTPSession -SFTPSession $SftpSession
 } catch {
     Write-Host "Z> 2.3.2 Error: Failed to connect to SFTP server. Exception: $($_.Exception.Message)"
     Stop-Transcript
     return
 }
-#EndRegion Synch ez Client Folders from FTP
 
-
-
-# Set BGinfo to run on startup
-Write-Host -ForegroundColor Gray "Z> Configuring BGinfo to run on startup"
-
-$registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
-$propertyName = "BGinfo"
-$propertyValue = "powershell.exe -ExecutionPolicy Bypass -File C:\\ezNetworking\\BGinfo\\PresetAndBgInfo.ps1"
-New-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue -PropertyType String -Force
-
-#Region Install ez Support Companion
 Write-Host ""
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "   Installing ez Support Companion"
@@ -337,142 +486,23 @@ try {
 }
 
 Write-Host "Z> 2.6 ez Support Companion MSI client installed and configured successfully."
-#EndRegion Install ez Support Companion
+
+Write-Host -ForegroundColor Cyan "========================================================================================="
+write-host -ForegroundColor Cyan "   Removing unwanted apps and updating windows"
+Write-Host -ForegroundColor Cyan "========================================================================================="
+
+Invoke-PostOOBEAppRemoval
 
 
-Write-Host -ForegroundColor White ""
-Write-Host -ForegroundColor White "========================================================================================="
-Write-Host -ForegroundColor White "Z> Desktop Icons cleanup and creation. Start RDP at login for user 'User'"
-Write-Host -ForegroundColor White "========================================================================================="
-
-#Region Desktop Icons cleanup and creation. Start RDP at login for user 'User'
-# Get the RDS URI from the JSON file
-Write-Host -ForegroundColor Gray "Z> Loading RDS URI from ClientConfig JSON."
-$rdsUri = $ezClientConfig.custRdsUri
-$netBiosName = $ezClientConfig.custNetBiosName
-
-# Delete all links in the default public user's desktop
-Write-Host -ForegroundColor Gray "Z> Delete all links in the default public user's desktop."
-Get-ChildItem -Path $desktopFolderPath -Filter '*.*' -File | Remove-Item -Force
-
-# Create the RDP file with the RDS URI
-Write-Host -ForegroundColor Gray "Z> Create the RDP file with the RDS URI."
-$rdpContent = @"
-full address:s:$rdsUri
-prompt for credentials:i:1
-username:s:$netBiosName\ 
-"@
-$rdpContent | Out-File -FilePath $rdpFilePath -Encoding ASCII
-
-# Create a shortcut to the RDP file on the public desktop
-Write-Host -ForegroundColor Gray "Z> Create a shortcut to the RDP file on the public desktop."
-$shell = New-Object -ComObject WScript.Shell
-$shortcut = $shell.CreateShortcut($rdpShortcutFilePath)
-$shortcut.TargetPath = $rdpFilePath
-$shortcut.Save()
-
-# Create a Shutdown shortcut on the public desktop
-$WshShell = New-Object -comObject WScript.Shell
-$Shortcut = $WshShell.CreateShortcut("$env:PUBLIC\Desktop\Shutdown.lnk")
-$Shortcut.TargetPath = "C:\Windows\System32\shutdown.exe"
-$Shortcut.Arguments = "/s /t 0"
-$Shortcut.IconLocation = "C:\Windows\System32\shell32.dll,27"
-$Shortcut.Save()
-
-# Prevent creation of Microsoft Edge desktop shortcut
-Write-Host -ForegroundColor Gray "Z> Preventing creation of Microsoft Edge desktop shortcut."
-$RegPath = "HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate"
-if (!(Test-Path $RegPath)) {
-    New-Item -Path $RegPath -Force | Out-Null
+$Time = Get-date -Format t
+$Splat = @{
+    Text = 'Z> Default apps script finished' , "Installed Choco, ezRMM, Office 365, ez Support Companion Finished $Time"
+    Applogo = 'https://iili.io/H8B8JtI.png'
+    Sound = 'IM'
 }
-New-ItemProperty -Path $RegPath -Name "CreateDesktopShortcutDefault" -Value 0 -PropertyType "DWORD" -Force | Out-Null
+New-BurntToastNotification @splat 
 
-# Disable Windows Search
-Write-Host -ForegroundColor Gray "Z> Disabling Windows Search."
-$RegPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search"
-if (!(Test-Path $RegPath)) {
-    New-Item -Path $RegPath -Force | Out-Null
-}
-New-ItemProperty -Path $RegPath -Name "DisableSearch" -Value 1 -PropertyType "DWORD" -Force | Out-Null
-#endregion
-
-Write-Host -ForegroundColor White ""
-Write-Host -ForegroundColor White "========================================================================================="
-Write-Host -ForegroundColor White "Z> Importing Local Group Policies for non admins like the thinclient user."
-Write-Host -ForegroundColor White "========================================================================================="
-#region Import Local Group Policies for non admins like the thinclient user
-
-# Download LGPO files from ftp
-Write-Host -ForegroundColor White "Z> Downloading LGPO files from ftp."
-
-Write-Host "Z> Starting to process files and directories..."
-Process-SFTPItems -SftpSession $SftpSession -LocalPath $localDirectory -RemotePath $LgpoFtpFolder
-
-# Close the FTP connection
-
-Write-Host -ForegroundColor Gray "Z> Disconnecting from FTP server..."
-Remove-SFTPSession -SFTPSession $SftpSession
-
-
-# Import Registry.pol to non-administrator group
-# The non-administrators Local GP is always saved in C:\Windows\System32\GroupPolicyUsers\S-1-5-32-545\User\Registry.pol 
-# when updating is needed you can import the Registry.pol file on a clean PC as below, make changes via MMC/GroupPolEditor, non-Admins and copy it using lgpo /b c:\export and send it back to FTP
-# More info: https://woshub.com/backupimport-local-group-policy-settings/ and https://woshub.com/apply-local-group-policy-non-admins-mlgpo/
-
-write-host -ForegroundColor White "Z> Importing Registry.pol to non-administrator group."
-$lgpoExe = Join-Path -Path $lgpoLocalFolder -ChildPath "lgpo.exe"
-$unCommand = "/un"
-$nonAdminPolicyFile = Join-Path -Path $lgpoLocalFolder -ChildPath "NonAdministratorPolicy\LgpoNonAdmins.pol"
-
-# Run the command
-Start-Process -FilePath $lgpoExe -ArgumentList $unCommand, $nonAdminPolicyFile -Wait
-
-Write-Host -ForegroundColor White ""
-Write-Host -ForegroundColor White "========================================================================================="
-Write-Host -ForegroundColor White "Z> User and group creation."
-Write-Host -ForegroundColor White "========================================================================================="
-
-# Create non-admin user
-Write-Host -ForegroundColor White "Z> Creating NonAdminUser 'User' with password 'user'."
-
-<#
- # {$command = "net user 'User' 'user' /add /fullname:'ThinClient User' /comment:'User for Autologin'"
-Invoke-Expression -Command $command
-# Set password to never expire
-Write-Host -ForegroundColor Gray "Z> Set password to never expire."
-$command = "net user 'User' /expires:never"
-Invoke-Expression -Command $command
-:Enter a comment or description}
-#>
-
-# Create a secure password
-$password = ConvertTo-SecureString 'user' -AsPlainText -Force
-# Create the user using New-LocalUser
-New-LocalUser -Name 'User' -Password $password -FullName 'ThinClient User' -Description 'User for Autologin' -PasswordNeverExpires -UserMayNotChangePassword -AccountNeverExpires
-# Add the user to the "Users" group to make sure it's a non-admin account
-Write-Host -ForegroundColor Gray "Z> Adding 'User' to the Users group."
-Add-LocalGroupMember -Group 'Users' -Member 'User'
-Write-Host -ForegroundColor Green "Z> User 'User' created successfully."
-
-
-# Setup Autologin
-Write-Host -ForegroundColor Gray "Z> Setting up Autologin."
-$RegPath = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon"
-Set-ItemProperty $RegPath "AutoAdminLogon" -Value "1" -type String 
-Set-ItemProperty $RegPath "DefaultUserName" -Value "User" -type String 
-Set-ItemProperty $RegPath "DefaultPassword" -Value "user" -type String 
-
-# Create User Logon Script to start RDP on login of User
-Write-Host -ForegroundColor Gray "Z> Creating job for User to open the RDP via logon script."
-$logonScriptContent = @"
-& 'mstsc.exe' 'C:\ezNetworking\Automation\ezCloudDeploy\CustomerRDS.rdp'
-"@
-$logonScriptPath = "C:\ezNetworking\Automation\ezCloudDeploy\UserLogonScript.ps1"
-$logonScriptContent | Out-File -FilePath $logonScriptPath -Encoding ASCII
-$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-File `"$logonScriptPath`""
-$Trigger = New-ScheduledTaskTrigger -AtLogOn -User "User"
-Register-ScheduledTask -Action $Action -Trigger $Trigger -TaskName "UserLogonScript" -Description "Runs a script at User logon."
-
+Write-host ""
 Stop-Transcript
 Write-host ""
 Write-host ""
@@ -498,12 +528,11 @@ $asciiBanner = @"
 "@                                                                                                                        
 
 Write-Host -ForegroundColor Cyan $asciiBanner
-write-host -ForegroundColor White "         ez Networking Thin Client Apps and Onboard Client - Post OS Deployment"
+write-host -ForegroundColor White "            ez Networking Default Apps and Onboard Client - Post OS Deployment"
 write-host -ForegroundColor Gray "========================================================================================="
 Write-Host ""
-write-host -ForegroundColor Cyan "            Configuring ThinClient Finished." 
-write-host -ForegroundColor Cyan "            The Thinclient User has password 'user' and is set to autologin."
-write-host -ForegroundColor Cyan "            You can deliver the computer to the client now after testing auto user login."
+write-host -ForegroundColor Yellow "            Please check for additional powershell boxes."
+write-host -ForegroundColor Yellow "            You can can install Cust. Apps/run Cust. Onboarding scripts now."
 Write-Host ""
 
 Write-Host ""
@@ -511,6 +540,7 @@ write-host -ForegroundColor Gray "            What would you like to do next?`n 
 
 
 $finishAction = Read-Host -Prompt "            Enter your choice (1-3)"
+
 switch ($finishAction) {
     "1" {
         write-host -ForegroundColor Cyan "   Shutting down the computer in 10 seconds..."
@@ -532,3 +562,15 @@ switch ($finishAction) {
     }
 }
 Write-Host -ForegroundColor Cyan "========================================================================================="
+
+
+<#
+.SYNOPSIS
+Installs Chocolatey and minimal default packages and onboards the computer to ezRmm.
+
+.DESCRIPTION
+This script installs Chocolatey and minimal default packages. It reads the ezClientConfig.json and onboards the computer to ezRmm.
+It also removes Windows Consumer Apps and updates Windows.
+.NOTES
+Author: Jurgen Verhelst | ez Networking | www.ez.be
+#>

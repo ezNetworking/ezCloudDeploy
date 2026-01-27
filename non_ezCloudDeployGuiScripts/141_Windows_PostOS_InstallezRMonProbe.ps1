@@ -20,7 +20,7 @@ Write-Host -ForegroundColor Cyan "             Install ezRMon Probe - Post OS De
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_116_Windows_PostOS_ezRMMAppsAndOnboard.log"
+Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_141_Windows_PostOS_ezRMonProbe.log"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Gray "Z> Downloading ezRMON Probe."
 
@@ -89,8 +89,8 @@ catch {
 }
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "Z> The ezRMon probe installation completed successfully."
-Write-Host -ForegroundColor Cyan "Z> You still need to approve the probe in the mon.ez.be interface."
+write-host -ForegroundColor Cyan "   The ezRMon probe installation completed successfully."
+write-host -ForegroundColor Cyan "   You still need to approve the probe in the mon.ez.be interface."
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Stop-Transcript
 Read-Host -Prompt "Press Enter to exit"

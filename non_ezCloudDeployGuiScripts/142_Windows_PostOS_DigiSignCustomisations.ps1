@@ -5,6 +5,8 @@ Write-Host -ForegroundColor Cyan ""
 Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_PostOS_ThinClientCustomisations.log"
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+Install-Module -Name 'Posh-SSH' -Scope AllUsers -Force
+Import-Module Posh-SSH
 Install-Module Transferetto
 Import-Module Transferetto
 
@@ -99,7 +101,7 @@ write-host -ForegroundColor White "Z> ezRMM - Downloading and installing it for 
 
 
 try {
-    $ezRmmUrl = "http://support.ez.be/GetAgent/Msi/?customerId=$($ezClientConfig.ezRmmId)" + '&integratorLogin=jurgen.verhelst%40ez.be'
+    $ezRmmUrl = "http://support.ez.be/GetAgent/Windows/?cid=$($ezClientConfig.ezRmmId)" + '&aid=0013z00002YbbGCAAZ'
     write-host -ForegroundColor Gray "Z> Downloading ezRmmInstaller.msi from $ezRmmUrl"
     Invoke-WebRequest -Uri $ezRmmUrl -OutFile "C:\ezNetworking\ezRMM\ezRmmInstaller.msi"
     write-host -ForegroundColor Gray "Z> Installing ezRmm."
@@ -305,9 +307,9 @@ $Trigger = New-ScheduledTaskTrigger -AtLogOn -User "User"
 Register-ScheduledTask -Action $Action -Trigger $Trigger -TaskName "UserLogonScript" -Description "Runs a script at User logon."
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-write-host -ForegroundColor Cyan "Z> Configuring DigiSign Finished." 
-write-host -ForegroundColor Cyan "Z> The DigiSign User has password 'user' and is set to autologin."
-write-host -ForegroundColor Cyan "Z> You can deliver the computer to the client now after testing auto user login."
+write-host -ForegroundColor Cyan "   Configuring DigiSign Finished." 
+write-host -ForegroundColor Cyan "   The DigiSign User has password 'user' and is set to autologin."
+write-host -ForegroundColor Cyan "   You can deliver the computer to the client now after testing auto user login."
 Read-Host -Prompt "Z> Press any key to Reboot the DigiSign Device."
 restart-computer -force
 Write-Host -ForegroundColor Cyan "========================================================================================="

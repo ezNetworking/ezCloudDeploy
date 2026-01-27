@@ -1,6 +1,6 @@
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "             ez RMM Deployment Task Sequence (Win11 22H2 Pro en-US Retail)"
+Write-Host -ForegroundColor Cyan "             ez RMM Deployment Task Sequence (Win11 Pro en-US Retail)"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
 
@@ -32,7 +32,7 @@ Import-Module OSD -Force
 
 $Params = @{
     OSVersion = "Windows 11"
-    OSBuild = "24H2"
+    OSBuild = "25H2"
     OSEdition = "Pro"
     OSLanguage = "en-us"
     OSLicense = "Retail"
@@ -163,8 +163,8 @@ catch {
 }
 Write-Host -ForegroundColor Gray "========================================================================================="
 
-# Download the DefaultAppsAndOnboard.ps1 script from github
-Write-Host -ForegroundColor Gray "Z> Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
+# Download the ezRmmHostAppsAndOnboard.ps1 script from github
+Write-Host -ForegroundColor Gray "Z> Downloading the ezRmmHostAppsAndOnboard script from ezCloudDeploy."
 try {
     $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/116_Windows_PostOS_ezRMMAppsAndOnboard.ps1" -UseBasicParsing 
     $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content

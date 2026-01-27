@@ -1,6 +1,6 @@
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "             Local AD Deployment Task Sequence (Win11 22H2 Pro en-US Retail)"
+Write-Host -ForegroundColor Cyan "             Local AD Deployment Task Sequence (Win11 25H2 Pro en-US Retail)"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
 
@@ -32,7 +32,7 @@ Import-Module OSD -Force
 
 $Params = @{
     OSVersion = "Windows 11"
-    OSBuild = "24H2"
+    OSBuild = "25H2"
     OSEdition = "Pro"
     OSLanguage = "en-us"
     OSLicense = "Retail"
@@ -96,7 +96,7 @@ $unattendXml = @"
             <SystemLocale>en-US</SystemLocale>
             <UILanguage>en-US</UILanguage>
             <UILanguageFallback>en-US</UILanguageFallback>
-            <UserLocale>en-US</UserLocale>
+            <UserLocale>nl-BE</UserLocale>
         </component>
     </settings>
     <settings pass="specialize">
@@ -105,13 +105,20 @@ $unattendXml = @"
             <SystemLocale>en-US</SystemLocale>
             <UILanguage>en-US</UILanguage>
             <UILanguageFallback>en-US</UILanguageFallback>
-            <UserLocale>en-US</UserLocale>
+            <UserLocale>nl-BE</UserLocale>
         </component>
         <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <ComputerName>$ComputerName</ComputerName>
         </component>
     </settings>
     <settings pass="oobeSystem">
+        <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <InputLocale>0813:00000813</InputLocale>
+            <SystemLocale>en-US</SystemLocale>
+            <UILanguage>en-US</UILanguage>
+            <UILanguageFallback>en-US</UILanguageFallback>
+            <UserLocale>nl-BE</UserLocale>
+        </component>
         <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <OOBE>        
                 <HideEULAPage>true</HideEULAPage>
@@ -172,7 +179,7 @@ Write-Host -ForegroundColor Gray "==============================================
 # Download the DefaultAppsAndOnboard.ps1 script from github
 Write-Host -ForegroundColor Gray "Z>Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
 try {
-    $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/111_Windows_PostOS_DefaultAppsAndOnboard.ps1" -UseBasicParsing 
+    $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/112_Windows_PostOS_DefaultAppsAndOnboard_LocalAD.ps1" -UseBasicParsing 
     $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
     Write-Host -ForegroundColor Gray "Z>Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
     $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
@@ -182,19 +189,7 @@ catch {
     Write-Error " Z> I was unable to download the DefaultAppsAndOnboardScript script."
 }
 
-Write-Host -ForegroundColor Gray "========================================================================================="
-# Download the JoinDomainAtFirstLogin.ps1 script from github
-Write-Host -ForegroundColor Gray " Z> Downloading the JoinDomainAtFirstLogin GUI."
-try {
-    $JoinDomainAtFirstLoginResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/101_Windows_PostOOBE_JoinDomainAtFirstLogin.ps1" -UseBasicParsing 
-    $JoinDomainAtFirstLoginScript = $JoinDomainAtFirstLoginResponse.content
-    Write-Host -ForegroundColor Gray " Z> Saving the AD Join script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts"
-    $JoinDomainAtFirstLoginScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\JoinDomainAtFirstLogin.ps1"
-    $JoinDomainAtFirstLoginScript | Out-File -FilePath $JoinDomainAtFirstLoginScriptPath -Encoding UTF8
-    }
-catch {
-    Write-Error " Z> I was unable to download the JoinDomainAtFirstLogin script from github"
-}
+
 Write-Host -ForegroundColor Gray "========================================================================================="
 # Set the unattend.xml file in the offline registry
 Write-Host -ForegroundColor Gray " Z> Setting the unattend.xml file in the offline registry"

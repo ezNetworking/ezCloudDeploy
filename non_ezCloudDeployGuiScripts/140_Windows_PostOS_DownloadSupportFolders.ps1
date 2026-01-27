@@ -1,17 +1,18 @@
 <#
 .SYNOPSIS
-This script downloads our Support folders from our FTP server to this computer.
+    Securely download support folders via SFTP using Posh​-SSH.
+
+.PARAMETER remoteDirectory
+    The remote SFTP directory to mirror, e.g. "/SupportFolderServers".
 
 .DESCRIPTION
-This script performs the following actions:
-  - Login to dl.ez.be with a read-only user account.
-  - Download the files and folders from the specified remote directory.
-.AUTHOR
-    Jurgen Verhelst | ez Networking (jurgen.verhelst@ez.be)
-.NOTES
-Version: 1.5
-Last Updated: 11/7/23
+    - Runs on the jump server itself (via Start-Process from your onboarding script).
+    - Logs everything (via Start-Transcript) into the shared log file.
+    - Returns a single output string: DOWNLOAD_SUCCESS or DOWNLOAD_FAILED: <error>.
 
+.NOTES
+    Author: Jurgen Verhelst / ez Networking
+    Version: 1.6 (updated 2025-08-01)
 #>
 
 param(
@@ -19,94 +20,91 @@ param(
     [string]$remoteDirectory
 )
 
-Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezDownloadSupportFolders.log"
-
-Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "             Downloading Support Folders from our FTP server - Post OS Deployment"
-Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan ""
-Write-Host -ForegroundColor Gray "Z> Importing FTP Module"
-# Import the module
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-Install-module Transferetto -AllowClobber
-Import-Module Transferetto
-
-# Enable Tracing
-Set-FTPTracing -disable
-
-# Define FTP Server connection details
+# Configurable parameters
+$logFile = 'C:\ezNetworking\Automation\Logs\ezDownloadSupportFolders.log'
 $server = "ftp.driveHQ.com"
+$port = 22
 $username = "ezpublic"
 $password = "MakesYourNetWork"
 
-# Define local directory
-$localDirectory = "C:\ezNetworking"
+try {
+    # Start transcript logging (append mode)
+    if (-not (Test-Path $logFile)) { New-Item $logFile -ItemType File | Out-Null }
+    Start-Transcript -Path $logFile -Append
 
-# Function to handle files and directories
-function Process-FTPItems {
-    param(
-        [FluentFTP.FtpClient]$Client,
-        [string]$LocalPath,
-        [string]$RemotePath
+    Write-Host -ForegroundColor Cyan "========================================================================================="
+    write-host -ForegroundColor Cyan "   Download Support Folders from our FTP server."
+    Write-Host -ForegroundColor Cyan "========================================================================================="
+
+    Write-Host "Z> [$(Get-Date -Format o)] Starting download from SFTP: $remoteDirectory"
+
+    # Ensure TLS1.2 for SFTP
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+
+    # Import Posh-SSH
+    # if (-not (Get-Module -ListAvailable -Name 'Posh-SSH')) {
+    #     Write-Host "Z> Installing Posh-SSH..."
+    #     Install-Module -Name 'Posh-SSH' -AllowClobber -Force -ErrorAction Stop
+    # }
+    Import-Module 'Posh-SSH' -ErrorAction Stop
+
+    Write-Host "Z> Posh-SSH Version: $((Get-Module Posh-SSH).Version)"
+
+    # Connect to SFTP server
+    $cred = New-Object System.Management.Automation.PSCredential (
+        $username, (ConvertTo-SecureString $password -AsPlainText -Force)
     )
+    Write-Host "Z> Establishing SFTP session to $server..."
+    $sess = New-SFTPSession -ComputerName $server -Credential $cred -Port $port -AcceptKey -ErrorAction Stop
 
-    # Get the list of remote items (files and directories)
-    $remoteItems = Get-FTPList -Client $Client -Path $RemotePath
-    
-    Write-Host "Z> Found $(($remoteItems).Count) items in the remote path: $RemotePath"
-
-    foreach ($remoteItem in $remoteItems) {
-        $localFilePath = Join-Path -Path $LocalPath -ChildPath $remoteItem.Name
-
-        if ($remoteItem.Type -eq "File") {
-            # Download the remote file and overwrite the local file if it exists
-            Receive-FTPFile -Client $Client -LocalPath $localFilePath -RemotePath $remoteItem.FullName -LocalExists Overwrite
-        } elseif ($remoteItem.Type -eq "Directory") {
-            # If the item is a directory, recursively call this function
-            
-            Write-Host "Z> Found directory: $remoteItem.FullName"
-
-            if (!(Test-Path $localFilePath)) {
-                
-                Write-Host "Z> Local directory doesn't exist. Creating: $localFilePath"
-                New-Item -ItemType Directory -Path $localFilePath | Out-Null
+    # Recursive download function
+    function Download-Recursive {
+        param(
+            [Parameter(Mandatory)][int]    $SessionId,
+            [Parameter(Mandatory)][string] $RemotePath,
+            [Parameter(Mandatory)][string] $LocalPath
+        )
+        $items = Get-SFTPChildItem -SessionId $SessionId -Path $RemotePath
+        Write-Host "Z> Found $($items.Count) entries in $RemotePath"
+        foreach ($item in $items) {
+            $dest = Join-Path -Path $LocalPath -ChildPath $item.Name
+            if ($item.IsDirectory) {
+                if (-not (Test-Path $dest)) { New-Item -ItemType Directory -Path $dest | Out-Null }
+                Download-Recursive -SessionId $SessionId -RemotePath $item.FullName -LocalPath $dest
+            } else {
+                Write-Host "Z> → Downloading: $($item.FullName)"
+                try {
+                    Get-SFTPItem -SessionId $SessionId -Path $item.FullName -Destination $LocalPath -Force | Out-Null
+                } catch {
+                    throw "Failed to download $($item.FullName): $($_.Exception.Message)"
+                }
             }
-            
-            Write-Host "Z> Navigating into directory: $localFilePath"
-            Process-FTPItems -Client $Client -LocalPath $localFilePath -RemotePath $remoteItem.FullName
         }
     }
+
+    Download-Recursive -SessionId $sess.SessionId -RemotePath $remoteDirectory -LocalPath 'C:\ezNetworking'
+    Remove-SFTPSession -SessionId $sess.SessionId
+
+    Write-Host "Z> [$(Get-Date -Format o)] DOWNLOAD_SUCCESS"
+    Write-Host -ForegroundColor Cyan "========================================================================================="
+    write-host -ForegroundColor Cyan "   Downloading Support Folders from our FTP server completed successfully."
+    Write-Host -ForegroundColor Cyan "========================================================================================="
+
+    Stop-Transcript
+    exit 0
+}
+catch {
+    $msg = $_.Exception.Message
+    Write-Host "Z> [$(Get-Date -Format o)] DOWNLOAD_FAILED: $msg"
+    Write-Host -ForegroundColor Red "========================================================================================="
+    Write-Host -ForegroundColor Red "Z> Downloading Support Folders from our FTP server failed."
+    Write-Host -ForegroundColor Red "========================================================================================="
+
+    Stop-Transcript
+    exit 1
 }
 
-try {
-    # Establish a connection to the FTP server
-    
-    Write-Host "Z> Connecting to FTP Server at $server..."
-    $ftpConnection = Connect-FTP -Server $server -Username $username -Password $password -ErrorAction Stop
-    Request-FTPConfiguration 
-
-} catch {
-    
-    Write-Host "Z> Failed to connect to FTP server at $server. Exiting script..."
-    Write-Host "Z> Error details: $_"
-}
-
-# Process files and directories
-
-Write-Host "Z> Starting to process files and directories..."
-Process-FTPItems -Client $ftpConnection -LocalPath $localDirectory -RemotePath $remoteDirectory
-
-# Close the FTP connection
-
-Write-Host "Z> Disconnecting from FTP server..."
-Disconnect-FTP -Client $ftpConnection
-
-Write-Host "Z> Process completed."
 
 
-Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "Z> Downloading Support Folders from our FTP server completed successfully."
-Write-Host -ForegroundColor Cyan "========================================================================================="
-Stop-Transcript
 
 
