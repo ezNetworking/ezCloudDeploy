@@ -442,7 +442,7 @@ New-BurntToastNotification @splat
 
 try {
     $installer = "C:\ezNetworking\ezRMM\ezRmmInstaller.msi"
-    $ezRmmUrl = "http://support.ez.be/GetAgent/Windows/?cid=$($ezClientConfig.ezRmmId)" + '&aeid=34471983397d46c28df96262b7ad29a2'
+    $ezRmmUrl = "http://support.ez.be/api/utils/agent-install/windows/?cid=$($ezClientConfig.ezRmmId)" + '&aeid=34471983397d46c28df96262b7ad29a2'
     
     # Ensure directory exists
     $installerDir = Split-Path -Path $installer -Parent

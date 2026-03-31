@@ -87,7 +87,7 @@ write-host -ForegroundColor White "Z> ezRMM - Downloading and installing it for 
 
 
 try {
-    $ezRmmUrl = "http://support.ez.be/GetAgent/Windows/?cid=$($ezClientConfig.ezRmmId)" + '&aeid=34471983397d46c28df96262b7ad29a2'
+    $ezRmmUrl = "http://support.ez.be/api/utils/agent-install/windows/?cid=$($ezClientConfig.ezRmmId)" + '&aeid=34471983397d46c28df96262b7ad29a2'
     Write-Host -ForegroundColor Gray "Z> Downloading ezRmmInstaller.msi from $ezRmmUrl"
     Invoke-WebRequest -Uri $ezRmmUrl -OutFile "C:\ezNetworking\ezRMM\ezRmmInstaller.msi"
     Start-Process -FilePath "C:\ezNetworking\ezRMM\ezRmmInstaller.msi" -ArgumentList "/quiet" -Wait
