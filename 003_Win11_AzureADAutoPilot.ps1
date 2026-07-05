@@ -39,7 +39,8 @@ $Params = @{
     SkipAutopilot = $true
     SkipODT = $true
     Screenshot = $true 
-    Restart = $false   
+    Restart = $false
+    Firmware = $true   
     ZTI = $true
 }
 Start-OSDCloud @Params
