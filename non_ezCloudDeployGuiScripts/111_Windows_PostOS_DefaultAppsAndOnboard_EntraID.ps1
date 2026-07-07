@@ -531,7 +531,7 @@ catch {
 
 $Time = Get-date -Format t
 $Splat = @{
-    Text = 'Z> Default apps script finished' , "Installed Choco, ezRMM, Office 365, ez Support Companion Finished $Time"
+    Text = 'Z> Default apps script finished' , "Installed Choco, ezRMM, Office 365 $Time"
     Applogo = 'https://iili.io/H8B8JtI.png'
     Sound = 'IM'
 }
