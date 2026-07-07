@@ -392,7 +392,8 @@ try {
 }
 #EndRegion Synch ez Client Folders from FTP
 
-#Region Install ez Support Companion
+<#
+ # {#Region Install ez Support Companion
 Write-Host ""
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "   Installing ez Support Companion"
@@ -426,7 +427,8 @@ try {
 }
 
 Write-Host "Z> 2.6 ez Support Companion MSI client installed and configured successfully."
-#EndRegion Install ez Support Companion
+#EndRegion Install ez Support Companion:Enter a comment or description}
+#>
 
 #Region Install ezRmm and ezRS
 Write-Host -ForegroundColor Cyan "========================================================================================="
