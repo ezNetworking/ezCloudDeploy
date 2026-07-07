@@ -4,6 +4,7 @@ This script downloads and runs the Office Deployment Tool, create a config XML i
 
 .DESCRIPTION
 This code downloads the Office Deployment Tool from a URL, t, and runs it with certain arguments. It checks if the script is running as an administrator and if the specified download path exists. It also deletes any existing folder at a specified path.
+Before installing, it removes any consumer/OEM Click-to-Run Office preinstalls (huis en thuis versies) so our business version does not end up next to them.
 
 .TODO
 Teams MSI= https://teams.microsoft.com/downloads/desktopurl?env=production&plat=windows&arch=x64&managedInstaller=true&download=true
@@ -15,8 +16,12 @@ Array with apps you do NOT want to install
 
 .NOTES
 Author: Jurgen Verhelst | ez Networking (jurgen.verhelst@ez.be) 
-Version: 0.7
-Last Updated: 19/2/23
+Version: 0.8
+Last Updated: 07/07/26
+Changes 0.8: Consumer/OEM Click-to-Run Office wordt verwijderd voor de install (ISO27001 / OEM preinstall issue),
+             de detectie op het einde checkt nu de ClickToRun ProductReleaseIds ipv "*Office 16*" DisplayName
+             (die matchte niet meer met moderne "Microsoft 365 Apps" DisplayNames), en de
+             Write-Host = typo in Generate-XMLFile is gefixt.
 
 #> 
 <# 
@@ -48,7 +53,8 @@ Write-Host -ForegroundColor Cyan "             Install Office 365 - Post OS Depl
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
 Function Generate-XMLFile{
-  Write-Host = " Zed says: Generating an XML file"
+  # FIX 2026-07-07: was "Write-Host = ..." (typo), het = teken werd mee geprint
+  Write-Host " Zed says: Generating an XML file"
   If($ExcludeApps){
     $ExcludeApps | ForEach-Object{
       $ExcludeAppsString += "<ExcludeApp ID =`"$_`" />"
@@ -196,6 +202,66 @@ If(!($ConfiguratonXMLFile)){ #If the user didn't specify with -ConfigurationXMLF
   }
 }
 
+# =========================================================================================
+# 2. Remove consumer/OEM Click-to-Run Office versions (FIX 2026-07-07)
+# =========================================================================================
+# OEM machines komen vaak met een huis en thuis Office preinstall (O365HomePremRetail,
+# HomeStudent2021Retail, enz). Die verwijderen we hier eerst via hun eigen OfficeClickToRun
+# uninstall entries, anders komt onze business versie er gewoon naast te staan.
+# Onze eigen SKUs (O365BusinessRetail / O365ProPlusRetail) worden NOOIT verwijderd.
+$ezAllowedSkus = @("O365ProPlusRetail","O365BusinessRetail")
+Write-Host "Z> 2. Checking for consumer/OEM Click-to-Run Office versions to remove"
+
+try {
+    $c2rConfig = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration" -ErrorAction SilentlyContinue
+    if ($c2rConfig -and $c2rConfig.ProductReleaseIds) {
+        Write-Host "Z> 2.1 Found ProductReleaseIds: $($c2rConfig.ProductReleaseIds)"
+        $installedSkus = $c2rConfig.ProductReleaseIds -split ","
+        $skusToRemove = @($installedSkus | ForEach-Object { $_.Trim() } | Where-Object { $ezAllowedSkus -notcontains $_ })
+
+        if ($skusToRemove.Count -gt 0) {
+            $uninstallRoots = @('HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall',
+                                'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall')
+
+            foreach ($sku in $skusToRemove) {
+                Write-Host "Z> 2.2 Removing consumer Office SKU: $sku"
+                $skuRemoved = $false
+
+                foreach ($uninstallRoot in $uninstallRoots) {
+                    $uninstallKeys = Get-ChildItem $uninstallRoot -ErrorAction SilentlyContinue
+                    foreach ($uninstallKey in $uninstallKeys) {
+                        $uninstallString = $uninstallKey.GetValue("UninstallString")
+                        if ($uninstallString -and $uninstallString -like "*OfficeClickToRun.exe*" -and $uninstallString -like "*productstoremove=$sku*") {
+                            # UninstallString formaat: "C:\...\OfficeClickToRun.exe" scenario=install scenariosubtype=ARP sourcetype=None productstoremove=SKU.16_nl-nl_x-none culture=nl-nl
+                            $exePath = ($uninstallString -split '"')[1]
+                            $uninstallArgs = ($uninstallString -split '"')[2].Trim() + " displaylevel=false forceappshutdown=true"
+
+                            Write-Host "Z> 2.2.1 Running silent uninstall: $($uninstallKey.PSChildName)"
+                            $removeProcess = Start-Process -FilePath $exePath -ArgumentList $uninstallArgs -Wait -PassThru
+                            Write-Host "Z> 2.2.2 Uninstall finished with exit code $($removeProcess.ExitCode)"
+                            $skuRemoved = $true
+                        }
+                    }
+                }
+
+                if (-not $skuRemoved) {
+                    Write-Warning "Z> 2.2.3 No uninstall entry found for $sku, continuing anyway. Our version will be installed next to it."
+                }
+            }
+        }
+        else {
+            Write-Host "Z> 2.3 No consumer Office SKUs found, nothing to remove."
+        }
+    }
+    else {
+        Write-Host "Z> 2.1 No Click-to-Run Office found, nothing to remove."
+    }
+}
+catch {
+    # Verwijdering mag de install nooit blokkeren
+    Write-Warning "Z> 2.4 Consumer Office removal had an issue: $($_.Exception.Message). Continuing with the install."
+}
+
 <#
  # {
 #Get the ODT Download link
@@ -240,18 +306,22 @@ Try{
   return
 }
 
-#Check if Office 365 suite was installed correctly.
-
-$RegLocations = @('HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall',
-                  'HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall'
-                 )
-
+# =========================================================================================
+# 3. Verify install (FIX 2026-07-07)
+# =========================================================================================
+# De oude check zocht een DisplayName "*Office 16*" in de uninstall keys, maar moderne
+# Microsoft 365 Apps heten "Microsoft 365 Apps for business - nl-nl" en matchten dus nooit.
+# We checken nu de ClickToRun ProductReleaseIds op onze eigen SKU, dat is de echte eindstaat.
 $OfficeInstalled = $False
-Foreach ($Key in (Get-ChildItem $RegLocations) ) {
-  If($Key.GetValue("DisplayName") -like "*Office 16*") {
-    $OfficeVersionInstalled = $Key.GetValue("DisplayName")
-    $OfficeInstalled = $True
-  }
+$OfficeVersionInstalled = ""
+$c2rConfigAfter = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Office\ClickToRun\Configuration" -ErrorAction SilentlyContinue
+if ($c2rConfigAfter -and $c2rConfigAfter.ProductReleaseIds) {
+    foreach ($allowedSku in $ezAllowedSkus) {
+        if ($c2rConfigAfter.ProductReleaseIds -like "*$allowedSku*") {
+            $OfficeInstalled = $True
+            $OfficeVersionInstalled = $allowedSku
+        }
+    }
 }
 
 If($OfficeInstalled){
