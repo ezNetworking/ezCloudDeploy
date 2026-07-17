@@ -32,9 +32,6 @@ foreach ($folder in $foldersToCheck) {
 
 # Define the Folder, Files and URL Variables
 $jsonFilePath = 'C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json'
-$rdpFilePath = 'C:\ezNetworking\Automation\ezCloudDeploy\CustomerRDS.rdp'
-$desktopFolderPath = [Environment]::GetFolderPath('CommonDesktopDirectory')
-$rdpShortcutFilePath = Join-Path -Path $desktopFolderPath -ChildPath 'RDS Cloud.lnk'
 $SupportFolderScriptPath = "c:\ezNetworking\DownloadSupportFolder.ps1"
 $SupportFolderFtpFolder = '/drivehqshare/ezadminftp/public/SupportFolderClients'
 $LgpoFtpFolder = "/drivehqshare/ezadminftp/public/LGPO"
@@ -94,7 +91,7 @@ powercfg.exe -change -disk-timeout-ac 0
 powercfg.exe -change -monitor-timeout-ac 0
 
 
-# Install ezRmm and ezRS
+# Install ezRmm
 #region Install ezRmm and ezRS
 Write-Host -ForegroundColor Gray "========================================================================================="
 write-host -ForegroundColor White "Z> ezRMM - Downloading and installing it for customer $($ezClientConfig.ezRmmId)"
@@ -114,19 +111,19 @@ catch {
 }
 
 
-Write-Host -ForegroundColor Gray "========================================================================================="
-write-host -ForegroundColor Gray "Z> ezRS - Downloading and installing it"
-try {
-$ConfigId = 'q6epc32'
-$Version = 'v15'
-[System.Net.ServicePointManager]::SecurityProtocol = 'Tls12'
-$UrlDownload = "https://customdesignservice.teamviewer.com/download/windows/$Version/$ConfigId/TeamViewer_Host_Setup.exe"
-$FileDownload = "C:\ezNetworking\ezRS\ezRsInstaller.exe"
-( New-Object System.Net.WebClient ).DownloadFile( $UrlDownload , $FileDownload )
-}
-catch {
-    Write-Error "Z> ezRS is already installed or had an error $($_.Exception.Message)"
-}
+# Write-Host -ForegroundColor Gray "========================================================================================="
+# write-host -ForegroundColor Gray "Z> ezRS - Downloading and installing it"
+# try {
+# $ConfigId = 'q6epc32'
+# $Version = 'v15'
+# [System.Net.ServicePointManager]::SecurityProtocol = 'Tls12'
+# $UrlDownload = "https://customdesignservice.teamviewer.com/download/windows/$Version/$ConfigId/TeamViewer_Host_Setup.exe"
+# $FileDownload = "C:\ezNetworking\ezRS\ezRsInstaller.exe"
+# ( New-Object System.Net.WebClient ).DownloadFile( $UrlDownload , $FileDownload )
+# }
+# catch {
+#     Write-Error "Z> ezRS is already installed or had an error $($_.Exception.Message)"
+# }
 #endregion
 
 # Download the DownloadSupportFolder script, run and schedule it
@@ -171,45 +168,6 @@ $registryPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run"
 $propertyName = "BGinfo"
 $propertyValue = "powershell.exe -ExecutionPolicy Bypass -File C:\\ezNetworking\\BGinfo\\PresetAndBgInfo.ps1"
 New-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue -PropertyType String -Force
-#endregion
-
-Write-Host -ForegroundColor White ""
-Write-Host -ForegroundColor White "========================================================================================="
-Write-Host -ForegroundColor White "Z> Desktop Icons cleanup and creation. Start RDP at login for user 'User'"
-Write-Host -ForegroundColor White "========================================================================================="
-#Region Desktop Icons cleanup and creation. Start RDP at login for user 'User'
-# Get the RDS URI from the JSON file
-Write-Host -ForegroundColor Gray "Z> Loading RDS URI from ClientConfig JSON."
-$rdsUri = $ezClientConfig.custRdsUri
-$netBiosName = $ezClientConfig.custNetBiosName
-
-# Delete all links in the default public user's desktop
-Write-Host -ForegroundColor Gray "Z> Delete all links in the default public user's desktop."
-Get-ChildItem -Path $desktopFolderPath -Filter '*.*' -File | Remove-Item -Force
-
-# Create a Shutdown shortcut on the public desktop
-$WshShell = New-Object -comObject WScript.Shell
-$Shortcut = $WshShell.CreateShortcut("$env:PUBLIC\Desktop\Shutdown.lnk")
-$Shortcut.TargetPath = "C:\Windows\System32\shutdown.exe"
-$Shortcut.Arguments = "/s /t 0"
-$Shortcut.IconLocation = "C:\Windows\System32\shell32.dll,27"
-$Shortcut.Save()
-
-# Prevent creation of Microsoft Edge desktop shortcut
-Write-Host -ForegroundColor Gray "Z> Preventing creation of Microsoft Edge desktop shortcut."
-$RegPath = "HKLM:\SOFTWARE\Policies\Microsoft\EdgeUpdate"
-if (!(Test-Path $RegPath)) {
-    New-Item -Path $RegPath -Force | Out-Null
-}
-New-ItemProperty -Path $RegPath -Name "CreateDesktopShortcutDefault" -Value 0 -PropertyType "DWORD" -Force | Out-Null
-
-# Disable Windows Search
-Write-Host -ForegroundColor Gray "Z> Disabling Windows Search."
-$RegPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search"
-if (!(Test-Path $RegPath)) {
-    New-Item -Path $RegPath -Force | Out-Null
-}
-New-ItemProperty -Path $RegPath -Name "DisableSearch" -Value 1 -PropertyType "DWORD" -Force | Out-Null
 #endregion
 
 Write-Host -ForegroundColor White ""
@@ -295,16 +253,57 @@ Set-ItemProperty $RegPath "AutoAdminLogon" -Value "1" -type String
 Set-ItemProperty $RegPath "DefaultUserName" -Value "User" -type String 
 Set-ItemProperty $RegPath "DefaultPassword" -Value "user" -type String 
 
-# Create User Logon Script to start RDP on login of User
-Write-Host -ForegroundColor Gray "Z> Creating job for User to open the RDP via logon script."
-$logonScriptContent = @"
-& 'mstsc.exe' 'C:\ezNetworking\Automation\ezCloudDeploy\CustomerRDS.rdp'
-"@
-$logonScriptPath = "C:\ezNetworking\Automation\ezCloudDeploy\UserLogonScript.ps1"
-$logonScriptContent | Out-File -FilePath $logonScriptPath -Encoding ASCII
-$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-File `"$logonScriptPath`""
-$Trigger = New-ScheduledTaskTrigger -AtLogOn -User "User"
-Register-ScheduledTask -Action $Action -Trigger $Trigger -TaskName "UserLogonScript" -Description "Runs a script at User logon."
+# Download and configure the EasySignage Windows player
+Write-Host -ForegroundColor White ""
+Write-Host -ForegroundColor White "========================================================================================="
+Write-Host -ForegroundColor White "Z> Downloading and configuring the EasySignage Windows player."
+Write-Host -ForegroundColor White "========================================================================================="
+
+$easySignageUrl = 'https://download.easysignage.com/easysignage-ds-win64-amd64.exe.zip?utm_source=organic'
+$easySignageFolder = 'C:\ezNetworking\Apps\EasySignage'
+$easySignageZipPath = Join-Path -Path $easySignageFolder -ChildPath 'easysignage-ds-win64-amd64.exe.zip'
+$easySignageExePath = Join-Path -Path $easySignageFolder -ChildPath 'easysignage-ds-win64.exe'
+$easySignageConfigPath = Join-Path -Path $easySignageFolder -ChildPath 'conf.txt'
+$easySignageAutostartPath = Join-Path -Path $easySignageFolder -ChildPath 'autostart.bat'
+$easySignageTaskName = 'ezDigitalSignageAutoStart'
+
+try {
+    if (!(Test-Path -Path $easySignageFolder)) {
+        New-Item -Path $easySignageFolder -ItemType Directory -Force | Out-Null
+    }
+
+    Write-Host -ForegroundColor Gray "Z> Downloading EasySignage from $easySignageUrl"
+    Invoke-WebRequest -Uri $easySignageUrl -OutFile $easySignageZipPath -UseBasicParsing -ErrorAction Stop
+
+    Write-Host -ForegroundColor Gray "Z> Extracting EasySignage to $easySignageFolder"
+    Expand-Archive -Path $easySignageZipPath -DestinationPath $easySignageFolder -Force
+
+    $requiredEasySignageFiles = @(
+        $easySignageExePath,
+        $easySignageConfigPath,
+        $easySignageAutostartPath
+    )
+    foreach ($requiredFile in $requiredEasySignageFiles) {
+        if (!(Test-Path -Path $requiredFile -PathType Leaf)) {
+            throw "The EasySignage package is missing the required file: $requiredFile"
+        }
+    }
+
+    Remove-Item -Path $easySignageZipPath -Force
+
+    Write-Host -ForegroundColor Gray "Z> Registering scheduled task $easySignageTaskName for DigiSign user 'User'."
+    $easySignageArguments = "/c `"`"$easySignageAutostartPath`"`""
+    $easySignageAction = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument $easySignageArguments -WorkingDirectory $easySignageFolder
+    $easySignageTrigger = New-ScheduledTaskTrigger -AtLogOn -User 'User'
+    $easySignagePrincipal = New-ScheduledTaskPrincipal -UserId 'User' -LogonType Interactive -RunLevel Limited
+    Register-ScheduledTask -TaskName $easySignageTaskName -Action $easySignageAction -Trigger $easySignageTrigger -Principal $easySignagePrincipal -Description 'Starts the EasySignage Windows player when the DigiSign user logs on.' -Force | Out-Null
+
+    Write-Host -ForegroundColor Green "Z> EasySignage is installed and will start automatically when User logs on."
+}
+catch {
+    Write-Error "Z> EasySignage installation failed: $($_.Exception.Message)"
+    throw
+}
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "   Configuring DigiSign Finished." 

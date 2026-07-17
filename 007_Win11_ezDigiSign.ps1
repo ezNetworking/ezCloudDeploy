@@ -76,7 +76,7 @@ foreach ($folder in $folders) {
 
 # Create a json config file with the ezRmmId
 Write-Host -ForegroundColor Gray "========================================================================================="
-Write-Host -ForegroundColor White "Z> Creating a json client config file (ezRmmId, RDP URI)"
+Write-Host -ForegroundColor White "Z> Creating a json client config file (ezRmmId)"
 $ezClientConfig = @"
 {
     "TaskSeqType": "Workgroup",
@@ -88,9 +88,9 @@ Write-Host -ForegroundColor Gray "==============================================
 
 # Download the DefaultAppsAndOnboard.ps1 script from github
 Write-Host -ForegroundColor Gray "========================================================================================="
-Write-Host -ForegroundColor Gray "Z> Downloading the DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
+Write-Host -ForegroundColor Gray "Z> Downloading the ez DigiSign DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
 try {
-    $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/master/non_ezCloudDeployGuiScripts/142_Windows_PostOS_DigiSignCustomisations.ps1" -UseBasicParsing 
+    $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/main/non_ezCloudDeployGuiScripts/142_Windows_PostOS_DigiSignCustomisations.ps1" -UseBasicParsing
     $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
     Write-Host -ForegroundColor Gray "Z> Saving the Onboard script to c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
     $DefaultAppsAndOnboardScriptPath = "c:\ezNetworking\Automation\ezCloudDeploy\Scripts\DefaultAppsAndOnboard.ps1"
@@ -102,7 +102,7 @@ catch {
 
 
 # Put our autoUnattend xml template for DigiSign OOBE in a variable
-Write-Host -ForegroundColor White "Z> Updating our Unattend xml for DigiSign OOBE (no online useraccount page)"
+Write-Host -ForegroundColor White "Z> Updating our Unattend xml for ezDigiSign OOBE (no online useraccount page)"
 $unattendXml = @"
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend">
@@ -231,26 +231,14 @@ Restart-Computer -Force
 Stop-Transcript
 <#
 .SYNOPSIS
-Configures a desktop as a Thin Client, removes specified default apps 
-and creates shortcuts to the RDS Farm.
+Configures a desktop as a ez Digital Signage Windows Player, removes specified default apps.
 
 .DESCRIPTION
 This script checks if the required folders exist, creates them if they don't, sets up the environment, 
 prompts the user to input a computer name, generates an unattend.xml file to customize the Windows installation 
-for DigiSign usage, creates an RDP file, saves it in the correct folder, 
+for DigiSign usage, stages the post-OS DigiSign customisation script,
 configures the unattend.xml file to configure users, OOBE, scripts and starts OOBEDeploy with the customized unattend.xml file, 
 and removes specified default apps. It also creates a transcript of the deployment process.
-
-.INPUTS
-This script prompts the user to input the computer name.
-
-.EXAMPLE
-002_TaskSequence_DigiSign.ps1 -ComputerName "CUST-SITE-TCxx" -ezRmmId 123456789 -ezRdsUri "Farm01.cust.cloud"
-
-This command configures a Windows 11 22H2 Pro image with DigiSign on a computer named "MyComputer01" and loads 
-an unattend.XML for Users config, region and KBD settings, first run commands, and domain join at first login.
-It installs the ez RMM tool and removes the default apps CommunicationsApps, OfficeHub, People, Skype, Solitaire,
-Xbox, ZuneMusic, and ZuneVideo.
 
 .NOTES
 Author: Jurgen Verhelst | ez Networking | www.ez.be
