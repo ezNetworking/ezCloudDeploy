@@ -7,8 +7,6 @@ Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 Install-Module -Name 'Posh-SSH' -Scope AllUsers -Force
 Import-Module Posh-SSH
-Install-Module Transferetto
-Import-Module Transferetto
 
 # Checking if the folders exist, if not create them
 $foldersToCheck = @(
@@ -33,48 +31,22 @@ foreach ($folder in $foldersToCheck) {
 # Define the Folder, Files and URL Variables
 $jsonFilePath = 'C:\ezNetworking\Automation\ezCloudDeploy\ezClientConfig.json'
 $SupportFolderScriptPath = "c:\ezNetworking\DownloadSupportFolder.ps1"
-$SupportFolderFtpFolder = '/drivehqshare/ezadminftp/public/SupportFolderClients'
-$LgpoFtpFolder = "/drivehqshare/ezadminftp/public/LGPO"
+$SupportFolderSftpFolder = '/SupportFolderClients'
+$LgpoSftpFolder = '/LGPO'
 $lgpoLocalFolder = "C:\ezNetworking\Automation\ezCloudDeploy\LGPO"
 
-# Define FTP Server connection details
-$ftpServer = "ftp.driveHQ.com"
-$ftpUsername = "ezPublic"
-$ftpPublicPassword = "MakesYourNetWork"
-
-# Function to handle files and directories
-function Process-FTPItems {
+# Run the Posh-SSH download helper in a separate process because it uses exit codes.
+function Invoke-SFTPFolderDownload {
     param(
-        [FluentFTP.FtpClient]$Client,
-        [string]$LocalPath,
-        [string]$RemotePath
+        [Parameter(Mandatory = $true)]
+        [string]$RemoteDirectory
     )
 
-    # Get the list of remote items (files and directories)
-    $remoteItems = Get-FTPList -Client $Client -Path $RemotePath
-    
-    Write-Host "Z> Found $(($remoteItems).Count) items in the remote path: $RemotePath"
-
-    foreach ($remoteItem in $remoteItems) {
-        $localFilePath = Join-Path -Path $LocalPath -ChildPath $remoteItem.Name
-
-        if ($remoteItem.Type -eq "File") {
-            # Download the remote file and overwrite the local file if it exists
-            Receive-FTPFile -Client $Client -LocalPath $localFilePath -RemotePath $remoteItem.FullName -LocalExists Overwrite
-        } elseif ($remoteItem.Type -eq "Directory") {
-            # If the item is a directory, recursively call this function
-            
-            Write-Host "Z> Found directory: $remoteItem.FullName"
-
-            if (!(Test-Path $localFilePath)) {
-                
-                Write-Host "Z> Local directory doesn't exist. Creating: $localFilePath"
-                New-Item -ItemType Directory -Path $localFilePath | Out-Null
-            }
-            
-            Write-Host "Z> Navigating into directory: $localFilePath"
-            Process-FTPItems -Client $Client -LocalPath $localFilePath -RemotePath $remoteItem.FullName
-        }
+    Write-Host -ForegroundColor Gray "Z> Downloading SFTP folder $RemoteDirectory"
+    $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$SupportFolderScriptPath`" -remoteDirectory `"$RemoteDirectory`""
+    $downloadProcess = Start-Process -FilePath 'powershell.exe' -ArgumentList $arguments -Wait -PassThru
+    if ($downloadProcess.ExitCode -ne 0) {
+        throw "SFTP download of $RemoteDirectory failed with exit code $($downloadProcess.ExitCode)."
     }
 }
 
@@ -91,23 +63,72 @@ powercfg.exe -change -disk-timeout-ac 0
 powercfg.exe -change -monitor-timeout-ac 0
 
 
-# Install ezRmm
-#region Install ezRmm and ezRS
+# Install ezRmm silently as SYSTEM
+#region Install ezRmm
 Write-Host -ForegroundColor Gray "========================================================================================="
 write-host -ForegroundColor White "Z> ezRMM - Downloading and installing it for customer $($ezClientConfig.ezRmmId)"
 
-
+$taskName = $null
 try {
+    $installer = "C:\ezNetworking\ezRMM\ezRmmInstaller.msi"
     $ezRmmUrl = "http://support.ez.be/api/utils/agent-install/windows/?cid=$($ezClientConfig.ezRmmId)" + '&aeid=34471983397d46c28df96262b7ad29a2'
     write-host -ForegroundColor Gray "Z> Downloading ezRmmInstaller.msi from $ezRmmUrl"
-    Invoke-WebRequest -Uri $ezRmmUrl -OutFile "C:\ezNetworking\ezRMM\ezRmmInstaller.msi"
-    write-host -ForegroundColor Gray "Z> Installing ezRmm."
+    Invoke-WebRequest -Uri $ezRmmUrl -OutFile $installer -UseBasicParsing -ErrorAction Stop
 
-    Start-Process -FilePath "C:\ezNetworking\ezRMM\ezRmmInstaller.msi" -ArgumentList "/quiet" -Wait
-    
+    if (!(Test-Path -Path $installer -PathType Leaf)) {
+        throw "Failed to download the ezRMM installer."
+    }
+
+    $currentUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+    Write-Host -ForegroundColor Gray "Z> Running as $currentUser"
+
+    if ($currentUser -eq 'NT AUTHORITY\SYSTEM') {
+        Write-Host -ForegroundColor Gray "Z> Installing ezRMM silently as SYSTEM."
+        $installProcess = Start-Process -FilePath 'msiexec.exe' -ArgumentList "/i `"$installer`" /qn /norestart" -Wait -PassThru
+        $installExitCode = $installProcess.ExitCode
+    } else {
+        Write-Host -ForegroundColor Gray "Z> Creating a temporary SYSTEM task for the silent ezRMM installation."
+        $taskName = "Install_ezRmm_$([guid]::NewGuid())"
+        $action = New-ScheduledTaskAction -Execute 'msiexec.exe' -Argument "/i `"$installer`" /qn /norestart"
+        $trigger = New-ScheduledTaskTrigger -Once -At (Get-Date).AddSeconds(5)
+        $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable
+        Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $trigger -User 'SYSTEM' -RunLevel Highest -Settings $settings | Out-Null
+        Start-ScheduledTask -TaskName $taskName
+
+        $timeout = 300
+        $elapsed = 0
+        do {
+            Start-Sleep -Seconds 5
+            $elapsed += 5
+            $task = Get-ScheduledTask -TaskName $taskName -ErrorAction Stop
+            $taskInfo = Get-ScheduledTaskInfo -TaskName $taskName -ErrorAction Stop
+
+            if ($elapsed -ge $timeout) {
+                throw "ezRMM installation timed out after $timeout seconds."
+            }
+        } while ($task.State -eq 'Running' -or $taskInfo.LastRunTime -eq [datetime]::MinValue)
+
+        $installExitCode = $taskInfo.LastTaskResult
+        Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+    }
+
+    if ($installExitCode -ne 0 -and $installExitCode -ne 3010) {
+        throw "ezRMM installer failed with exit code $installExitCode."
+    }
+
+    Write-Host -ForegroundColor Green "Z> ezRMM installed successfully (exit code $installExitCode)."
 }
 catch {
-    Write-Error "Z> ezRmm is already installed or had an error $($_.Exception.Message)"
+    if ($taskName) {
+        Unregister-ScheduledTask -TaskName $taskName -Confirm:$false -ErrorAction SilentlyContinue
+    }
+    Write-Error "Z> ezRMM installation failed: $($_.Exception.Message)"
+    throw
+}
+finally {
+    if ($installer -and (Test-Path -Path $installer)) {
+        Remove-Item -Path $installer -Force -ErrorAction SilentlyContinue
+    }
 }
 
 
@@ -136,13 +157,13 @@ try {
     Write-Host -ForegroundColor Gray "Z> Saving the Onboard script to $SupportFolderScriptPath"
     $DownloadSupportFolderScript | Out-File -FilePath $SupportFolderScriptPath -Encoding UTF8
 
-    Write-Host -ForegroundColor Gray "Z> Running the DownloadSupportFolder script"
-    . $SupportFolderScriptPath -remoteDirectory $SupportFolderFtpFolder
+    Write-Host -ForegroundColor Gray "Z> Running the DownloadSupportFolder script in a separate PowerShell process"
+    Invoke-SFTPFolderDownload -RemoteDirectory $SupportFolderSftpFolder
 
     # Create a new scheduled task for the same script
     Write-Host -ForegroundColor Gray ""
     Write-Host -ForegroundColor Gray "Z> Scheduling the DownloadSupportFolder script to run every Sunday at 14:00"
-    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File $SupportFolderScriptPath -remoteDirectory '$SupportFolderFtpFolder'"
+    $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NoProfile -ExecutionPolicy Bypass -File `"$SupportFolderScriptPath`" -remoteDirectory `"$SupportFolderSftpFolder`""
     $trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek Sunday -At 14:00
     $settings = New-ScheduledTaskSettingsSet
     $principal = New-ScheduledTaskPrincipal -UserId "SYSTEM"
@@ -176,34 +197,15 @@ Write-Host -ForegroundColor White "Z> Importing Local Group Policies for non adm
 Write-Host -ForegroundColor White "========================================================================================="
 #region Import Local Group Policies for non admins like the DigiSign user
 
-# Download LGPO files from ftp
-Write-Host -ForegroundColor White "Z> Downloading LGPO files from ftp."
-Set-FTPTracing -disable
-
-
+# Download LGPO files through the same Posh-SSH helper
+Write-Host -ForegroundColor White "Z> Downloading LGPO files through SFTP."
 try {
-    # Establish a connection to the FTP server
-    
-    Write-Host "Z> Connecting to FTP Server at $ftpServer..."
-    $ftpConnection = Connect-FTP -Server $ftpServer -Username $ftpUsername -Password $ftpPublicPassword
-    Request-FTPConfiguration 
-
-} catch {
-    
-    Write-Host "Z> Failed to connect to FTP server at $ftpServer. Exiting script..."
-    Write-Host "Z> Error details: $_"
-    
+    Invoke-SFTPFolderDownload -RemoteDirectory $LgpoSftpFolder
 }
-
-# Process files and directories
-
-Write-Host "Z> Starting to process files and directories..."
-Process-FTPItems -Client $ftpConnection -LocalPath "C:\ezNetworking" -RemotePath $LgpoFtpFolder
-
-# Close the FTP connection
-
-Write-Host -ForegroundColor Gray "Z> Disconnecting from FTP server..."
-Disconnect-FTP -Client $ftpConnection
+catch {
+    Write-Error "Z> Failed to download LGPO files through SFTP: $($_.Exception.Message)"
+    throw
+}
 
 # Import Registry.pol to non-administrator group
 # The non-administrators Local GP is always saved in C:\Windows\System32\GroupPolicyUsers\S-1-5-32-545\User\Registry.pol 
