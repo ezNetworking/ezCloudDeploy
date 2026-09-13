@@ -96,9 +96,9 @@ catch {
 
 # -y confirm yes for any prompt during the install process
 write-host "Z> Installing Chocolatey packages"
-choco install googlechrome -y --ignore-checksums
+#choco install googlechrome -y --ignore-checksums
 # choco install treesizefree -y --ignore-checksums
-choco install dotnet-8.0-desktopruntime -y
+#choco install dotnet-8.0-desktopruntime -y
 Write-Host -ForegroundColor Gray "========================================================================================="
 
 
