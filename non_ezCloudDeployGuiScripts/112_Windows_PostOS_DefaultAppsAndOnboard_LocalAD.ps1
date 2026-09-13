@@ -213,13 +213,6 @@ Write-Host -ForegroundColor Cyan "==============================================
 write-host -ForegroundColor Cyan "   Installing ez RMM for customer $($ezClientConfig.ezRmmId)"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 
-$Splat = @{
-    Text = 'Z> Installing ez RMM' , "Downloading and installing... Started $Time"
-    Applogo = 'https://iili.io/H8B8JtI.png'
-    Sound = 'IM'
-}
-New-BurntToastNotification @splat 
-
 try {
     $installer = "C:\ezNetworking\ezRMM\ezRmmInstaller.msi"
     $ezRmmUrl = "http://support.ez.be/api/utils/agent-install/windows/?cid=$($ezClientConfig.ezRmmId)" + '&aeid=34471983397d46c28df96262b7ad29a2'
@@ -453,39 +446,6 @@ try {
     return
 }
 
-Write-Host ""
-Write-Host -ForegroundColor Cyan "========================================================================================="
-write-host -ForegroundColor Cyan "   Installing ez Support Companion"
-Write-Host -ForegroundColor Cyan "========================================================================================="
-$installerPath = "C:\ezNetworking\ez Support Companion\ez Support Companion Setup.msi"
-
-# 2.4 Check if the file was downloaded successfully
-if (!(Test-Path $installerPath)) {
-    Write-Host "Z> 2.4 Error: Installer file still not found after FTP download. skipping install."
-} else {
-    Write-Host "Z> 2.4 Installer file downloaded successfully. Proceeding with installation."
-}
-
-
-# 2.5 Proceed with the installation of the .msi file
-Write-Host "Z> 2.5 Starting installation of ez Support Companion using the MSI installer..."
-try {
-    $installResult = Start-Process -FilePath "msiexec.exe" -ArgumentList "/i `"$installerPath`" /qn" -Wait -PassThru
-    
-    if ($installResult.ExitCode -eq 0) {
-        Write-Host "Z> 2.5.1 MSI Installation completed successfully."
-    } else {
-        Write-Host "Z> 2.5.1 MSI Installation failed with exit code $($installResult.ExitCode). Please check logs for details."
-        Stop-Transcript
-        return
-    }
-} catch {
-    Write-Host "Z> 2.5.2 Error during installation. Exception: $($_.Exception.Message)"
-    Stop-Transcript
-    return
-}
-
-Write-Host "Z> 2.6 ez Support Companion MSI client installed and configured successfully."
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
 write-host -ForegroundColor Cyan "   Removing unwanted apps and updating windows"
@@ -496,7 +456,7 @@ Invoke-PostOOBEAppRemoval
 
 $Time = Get-date -Format t
 $Splat = @{
-    Text = 'Z> Default apps script finished' , "Installed Choco, ezRMM, Office 365, ez Support Companion Finished $Time"
+    Text = 'Z> Default apps script finished' , "Installed Choco, ezRMM, Office 365 $Time"
     Applogo = 'https://iili.io/H8B8JtI.png'
     Sound = 'IM'
 }

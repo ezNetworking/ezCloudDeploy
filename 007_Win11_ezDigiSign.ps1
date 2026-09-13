@@ -1,6 +1,6 @@
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "             Digisign Deployment Task Sequence (Win11 Pro en-US Retail)"
+Write-Host -ForegroundColor Cyan "             ez Digital Signage Deployment (Win11 Pro en-US Retail)"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
 
@@ -47,7 +47,7 @@ Start-OSDCloud @Params
 
 Write-Host -ForegroundColor Gray "========================================================================================="
 # Start transcript
-$transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_DigiSign.log"
+$transcriptPath = "c:\ezNetworking\Automation\Logs\ezCloudDeploy_TaskSequence_ezDigitalSignage.log"
 Start-Transcript -Path $transcriptPath
 Write-Host -ForegroundColor Gray "========================================================================================="
 Write-Host ""
@@ -88,7 +88,7 @@ Write-Host -ForegroundColor Gray "==============================================
 
 # Download the DefaultAppsAndOnboard.ps1 script from github
 Write-Host -ForegroundColor Gray "========================================================================================="
-Write-Host -ForegroundColor Gray "Z> Downloading the ez DigiSign DefaultAppsAndOnboardScript.ps1 script from ezCloudDeploy."
+Write-Host -ForegroundColor Gray "Z> Downloading the ez Digital Signage post-OS script from ezCloudDeploy."
 try {
     $DefaultAppsAndOnboardResponse = Invoke-WebRequest -Uri "https://raw.githubusercontent.com/ezNetworking/ezCloudDeploy/main/non_ezCloudDeployGuiScripts/142_Windows_PostOS_DigiSignCustomisations.ps1" -UseBasicParsing
     $DefaultAppsAndOnboardScript = $DefaultAppsAndOnboardResponse.content
@@ -101,8 +101,8 @@ catch {
 }
 
 
-# Put our autoUnattend xml template for DigiSign OOBE in a variable
-Write-Host -ForegroundColor White "Z> Updating our Unattend xml for ezDigiSign OOBE (no online useraccount page)"
+# Put our autoUnattend XML template for ez Digital Signage OOBE in a variable
+Write-Host -ForegroundColor White "Z> Updating the Unattend XML for ez Digital Signage OOBE (no online user account page)"
 $unattendXml = @"
 <?xml version="1.0" encoding="utf-8"?>
 <unattend xmlns="urn:schemas-microsoft-com:unattend">
@@ -178,7 +178,7 @@ $unattendXml = @"
 # Write the updated unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\
 Write-Host -ForegroundColor White "Z> Writing the unattend.xml file to c:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\"
 write-host -ForegroundColor Gray "$unattendXml"
-$unattendPath = "C:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\DigiSignUnattend.xml"
+$unattendPath = "C:\ezNetworking\Automation\ezCloudDeploy\AutoUnattend\ezDigitalSignageUnattend.xml"
 try {
     $unattendXml | Out-File -FilePath $unattendPath -Encoding UTF8
     
@@ -231,12 +231,12 @@ Restart-Computer -Force
 Stop-Transcript
 <#
 .SYNOPSIS
-Configures a desktop as a ez Digital Signage Windows Player, removes specified default apps.
+Configures a desktop as an ez Digital Signage Windows player and removes specified default apps.
 
 .DESCRIPTION
 This script checks if the required folders exist, creates them if they don't, sets up the environment, 
 prompts the user to input a computer name, generates an unattend.xml file to customize the Windows installation 
-for DigiSign usage, stages the post-OS DigiSign customisation script,
+for ez Digital Signage usage, stages the post-OS ez Digital Signage customisation script,
 configures the unattend.xml file to configure users, OOBE, scripts and starts OOBEDeploy with the customized unattend.xml file, 
 and removes specified default apps. It also creates a transcript of the deployment process.
 

@@ -1,8 +1,9 @@
 Write-Host -ForegroundColor Cyan "========================================================================================="
-Write-Host -ForegroundColor Cyan "             Thinclient Deployment Client Customisations - Post OS Deployment"
+Write-Host -ForegroundColor Cyan "             ez Digital Signage Customisations - Post OS Deployment"
 Write-Host -ForegroundColor Cyan "========================================================================================="
 Write-Host -ForegroundColor Cyan ""
-Start-Transcript -Path "C:\ezNetworking\Automation\Logs\ezCloudDeploy_PostOS_ThinClientCustomisations.log"
+$transcriptPath = "C:\ezNetworking\Automation\Logs\ezCloudDeploy_PostOS_ezDigitalSignageCustomisations.log"
+Start-Transcript -Path $transcriptPath
 Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force
 Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
 Install-Module -Name 'Posh-SSH' -Scope AllUsers -Force
@@ -193,9 +194,9 @@ New-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue -
 
 Write-Host -ForegroundColor White ""
 Write-Host -ForegroundColor White "========================================================================================="
-Write-Host -ForegroundColor White "Z> Importing Local Group Policies for non admins like the DigiSign user."
+Write-Host -ForegroundColor White "Z> Importing Local Group Policies for non-admins like the ez Digital Signage user."
 Write-Host -ForegroundColor White "========================================================================================="
-#region Import Local Group Policies for non admins like the DigiSign user
+#region Import Local Group Policies for non-admins like the ez Digital Signage user
 
 # Download LGPO files through the same Posh-SSH helper
 Write-Host -ForegroundColor White "Z> Downloading LGPO files through SFTP."
@@ -229,7 +230,7 @@ Write-Host -ForegroundColor White "=============================================
 Write-Host -ForegroundColor White "Z> Creating NonAdminUser 'User' with password 'user'."
 
 <#
- # {$command = "net user 'User' 'user' /add /fullname:'DigiSign User' /comment:'User for Autologin'"
+ # {$command = "net user 'User' 'user' /add /fullname:'ez Digital Signage User' /comment:'User for Autologin'"
 Invoke-Expression -Command $command
 # Set password to never expire
 Write-Host -ForegroundColor Gray "Z> Set password to never expire."
@@ -241,7 +242,7 @@ Invoke-Expression -Command $command
 # Create a secure password
 $password = ConvertTo-SecureString 'user' -AsPlainText -Force
 # Create the user using New-LocalUser
-New-LocalUser -Name 'User' -Password $password -FullName 'DigiSign User' -Description 'User for Autologin' -PasswordNeverExpires -UserMayNotChangePassword -AccountNeverExpires
+New-LocalUser -Name 'User' -Password $password -FullName 'ez Digital Signage User' -Description 'User for ez Digital Signage autologin' -PasswordNeverExpires -UserMayNotChangePassword -AccountNeverExpires
 # Add the user to the "Users" group to make sure it's a non-admin account
 Write-Host -ForegroundColor Gray "Z> Adding 'User' to the Users group."
 Add-LocalGroupMember -Group 'Users' -Member 'User'
@@ -293,12 +294,12 @@ try {
 
     Remove-Item -Path $easySignageZipPath -Force
 
-    Write-Host -ForegroundColor Gray "Z> Registering scheduled task $easySignageTaskName for DigiSign user 'User'."
+    Write-Host -ForegroundColor Gray "Z> Registering scheduled task $easySignageTaskName for ez Digital Signage user 'User'."
     $easySignageArguments = "/c `"`"$easySignageAutostartPath`"`""
     $easySignageAction = New-ScheduledTaskAction -Execute 'cmd.exe' -Argument $easySignageArguments -WorkingDirectory $easySignageFolder
     $easySignageTrigger = New-ScheduledTaskTrigger -AtLogOn -User 'User'
     $easySignagePrincipal = New-ScheduledTaskPrincipal -UserId 'User' -LogonType Interactive -RunLevel Limited
-    Register-ScheduledTask -TaskName $easySignageTaskName -Action $easySignageAction -Trigger $easySignageTrigger -Principal $easySignagePrincipal -Description 'Starts the EasySignage Windows player when the DigiSign user logs on.' -Force | Out-Null
+    Register-ScheduledTask -TaskName $easySignageTaskName -Action $easySignageAction -Trigger $easySignageTrigger -Principal $easySignagePrincipal -Description 'Starts the EasySignage Windows player when the ez Digital Signage user logs on.' -Force | Out-Null
 
     Write-Host -ForegroundColor Green "Z> EasySignage is installed and will start automatically when User logs on."
 }
@@ -308,13 +309,13 @@ catch {
 }
 
 Write-Host -ForegroundColor Cyan "========================================================================================="
-write-host -ForegroundColor Cyan "   Configuring DigiSign Finished." 
-write-host -ForegroundColor Cyan "   The DigiSign User has password 'user' and is set to autologin."
+write-host -ForegroundColor Cyan "   Configuring ez Digital Signage finished."
+write-host -ForegroundColor Cyan "   The ez Digital Signage user has password 'user' and is set to autologin."
 write-host -ForegroundColor Cyan "   You can deliver the computer to the client now after testing auto user login."
-Read-Host -Prompt "Z> Press any key to Reboot the DigiSign Device."
+Read-Host -Prompt "Z> Press any key to reboot the ez Digital Signage device."
 restart-computer -force
 Write-Host -ForegroundColor Cyan "========================================================================================="
 
 Stop-Transcript
 Write-Warning "  If you do see errors, please check the log file at: "
-write-warning "  C:\ezNetworking\Automation\Logs\ezCloudDeploy_PostOS_DigiSignCustomisations.log"
+write-warning "  $transcriptPath"
