@@ -303,6 +303,7 @@ $propertyName = "BGinfo"
 $propertyValue = "powershell.exe -ExecutionPolicy Bypass -File C:\\ezNetworking\\BGinfo\\PresetAndBgInfo.ps1"
 New-ItemProperty -Path $registryPath -Name $propertyName -Value $propertyValue -PropertyType String -Force
 
+
 #Region Install ez Support Companion
 Write-Host ""
 Write-Host -ForegroundColor Cyan "========================================================================================="
@@ -338,7 +339,6 @@ try {
 
 Write-Host "Z> 2.6 ez Support Companion MSI client installed and configured successfully."
 #EndRegion Install ez Support Companion
-
 
 Write-Host -ForegroundColor White ""
 Write-Host -ForegroundColor White "========================================================================================="

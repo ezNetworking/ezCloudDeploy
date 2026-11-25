@@ -74,7 +74,7 @@ catch {
 
 # -y confirm yes for any prompt during the install process
 write-host "Z> Installing Chocolatey packages"
-choco install googlechrome -y
+# choco install googlechrome -y
 choco install treesizefree -y
 choco install tailblazer -y
 choco install notepadplusplus -y
